@@ -1,0 +1,1750 @@
+#include "cxthread.h"
+
+#if _POSIX_PRIORITY_SCHEDULING > 0
+#include <sched.h>
+static int realtime_policy = SCHED_FIFO;
+#endif
+
+#undef  _POSIX_SPIN_LOCKS
+
+static unsigned max_sharing = 0;
+
+#if _POSIX_TIMERS > 0 && defined(POSIX_TIMERS)
+extern int _posix_clocking;
+int _posix_clocking = CLOCK_REALTIME;
+#endif
+
+struct mutex_entry
+{
+    cx::pthread_mutex_t mutex;
+    struct mutex_entry *next;
+    const void *pointer;
+    unsigned count;
+};
+
+class mutex_index : public CxMutex
+{
+public:
+    struct mutex_entry *list;
+
+    mutex_index();
+};
+static mutex_index single_table;
+static mutex_index *mutex_table = &single_table;
+static unsigned mutex_indexing = 1;
+
+#ifdef  __PTH__
+static pth_key_t threadmap;
+#else
+#ifdef  _WIN32
+#include <sys/timeb.h>
+static DWORD threadmap;
+#else
+static pthread_key_t threadmap;
+#endif
+#endif
+
+mutex_index::mutex_index() : CxMutex()
+{
+    list = nullptr;
+}
+
+#if !defined(_WIN32) && !defined(__PTH__)
+CxConditional::attribute * CxConditional::singleAttribute()
+{
+    static CxConditional::attribute attr;
+    return & attr;
+}
+#endif
+
+#ifdef  __PTH__
+static int pthread_cond_timedwait(pthread_cond_t *cond, cx::pthread_mutex_t *mutex, const struct timespec *abstime)
+{
+    static pth_key_t ev_key = PTH_KEY_INIT;
+    pth_event_t ev = pth_event(PTH_EVENT_TIME|PTH_MODE_STATIC, &ev_key,
+        pth_time(abstime->tv_sec, (abstime->tv_nsec) / 1000));
+
+    if(!pth_cond_await(cond, mutex, ev))
+        return errno;
+    return 0;
+}
+
+static void pthread_shutdown()
+{
+    pth_kill();
+}
+#endif
+
+static unsigned hash_address(const void *ptr, unsigned indexing)
+{
+    assert(ptr != nullptr);
+
+    unsigned key = 0;
+    unsigned count = 0;
+    const unsigned char *addr = (unsigned char *)(&ptr);
+
+    if(indexing < 2)
+        return 0;
+
+    // skip lead zeros if little endian...
+    while(count < sizeof(const void *) && *addr == 0) {
+        ++count;
+        ++addr;
+    }
+
+    while(count++ < sizeof(const void *) && *addr)
+        key = (key << 1) ^ *(addr++);
+
+    return key % indexing;
+}
+
+void CxConditional::set(struct timespec *ts, cx::timems_t msec)
+{
+    assert(ts != nullptr);
+
+#if _POSIX_TIMERS > 0 && defined(POSIX_TIMERS)
+    clock_gettime(_posix_clocking, ts);
+#else
+    timeval tv;
+#ifdef _WIN32
+    // Windows 下使用 _ftime_s 获取当前时间
+    struct _timeb timebuffer;
+    _ftime_s(&timebuffer);
+    tv.tv_sec = (long)timebuffer.time;
+    tv.tv_usec = timebuffer.millitm * 1000;
+#else
+    gettimeofday(&tv, nullptr);
+#endif
+    ts->tv_sec = tv.tv_sec;
+    ts->tv_nsec = tv.tv_usec * 1000l;
+#endif
+    ts->tv_sec += msec / 1000;
+    ts->tv_nsec += (msec % 1000) * 1000000l;
+    while(ts->tv_nsec >= 1000000000l) {
+        ++ts->tv_sec;
+        ts->tv_nsec -= 1000000000l;
+    }
+}
+
+
+#ifdef  _WIN32
+
+#ifdef  _MSCONDITIONAL_
+
+CxConditional::CxConditional()
+{
+    InitializeCriticalSection(&mutex);
+    InitializeConditionVariable(&cond);
+}
+
+CxConditional::~CxConditional()
+{
+    DeleteCriticalSection(&mutex);
+}
+
+void CxConditional::wait()
+{
+    SleepConditionVariableCS(&cond, &mutex, INFINITE);
+}
+
+bool CxConditional::wait(cx::timems_t timeout)
+{
+    if(SleepConditionVariableCS(&cond, &mutex, timeout))
+        return true;
+
+    return false;
+}
+
+void CxConditional::signal()
+{
+    WakeConditionVariable(&cond);
+}
+
+void CxConditional::broadcast()
+{
+    WakeAllConditionVariable(&cond);
+}
+
+#else
+void CxConditional::wait()
+{
+    int result;
+
+    EnterCriticalSection(&mlock);
+    ++waiting;
+    LeaveCriticalSection(&mlock);
+    LeaveCriticalSection(&mutex);
+    result = WaitForMultipleObjects(2, events, FALSE, INFINITE);
+    EnterCriticalSection(&mlock);
+    --waiting;
+    result = ((result == WAIT_OBJECT_0 + ENENT_BROADCAST) && (waiting == 0));
+    LeaveCriticalSection(&mlock);
+    if(result)
+        ResetEvent(events[ENENT_BROADCAST]);
+    EnterCriticalSection(&mutex);
+}
+
+void CxConditional::signal()
+{
+    EnterCriticalSection(&mlock);
+    if(waiting)
+    {
+        SetEvent(events[EVENT_SIGNAL]);
+    }
+    LeaveCriticalSection(&mlock);
+}
+
+void CxConditional::broadcast()
+{
+    EnterCriticalSection(&mlock);
+    if(waiting)
+        SetEvent(events[ENENT_BROADCAST]);
+    LeaveCriticalSection(&mlock);
+
+}
+
+CxConditional::CxConditional()
+{
+    waiting = 0;
+
+    InitializeCriticalSection(&mutex);
+    InitializeCriticalSection(&mlock);
+    events[EVENT_SIGNAL] = CreateEvent(nullptr, FALSE, FALSE, nullptr);
+    events[ENENT_BROADCAST] = CreateEvent(nullptr, TRUE, FALSE, nullptr);
+}
+
+CxConditional::~CxConditional()
+{
+    DeleteCriticalSection(&mlock);
+    DeleteCriticalSection(&mutex);
+    CloseHandle(events[EVENT_SIGNAL]);
+    CloseHandle(events[ENENT_BROADCAST]);
+}
+
+bool CxConditional::wait(cx::timems_t timeout)
+{
+    int result;
+    bool rtn = true;
+
+    if(!timeout)
+        return false;
+
+    EnterCriticalSection(&mlock);
+    ++waiting;
+    LeaveCriticalSection(&mlock);
+    LeaveCriticalSection(&mutex);
+    result = WaitForMultipleObjects(2, events, FALSE, timeout);
+    EnterCriticalSection(&mlock);
+    --waiting;
+    if(result == WAIT_OBJECT_0 || result == WAIT_OBJECT_0 + ENENT_BROADCAST)
+        rtn = true;
+    result = ((result == WAIT_OBJECT_0 + ENENT_BROADCAST) && (waiting == 0));
+    LeaveCriticalSection(&mlock);
+    if(result)
+        ResetEvent(events[ENENT_BROADCAST]);
+    EnterCriticalSection(&mutex);
+    return rtn;
+}
+#endif
+
+bool CxConditional::wait(struct timespec *ts)
+{
+    assert(ts != nullptr);
+
+    return wait((cx::timems_t)(ts->tv_sec * 1000 + (ts->tv_nsec / 1000000l)));
+}
+
+#else
+
+#include <stdio.h>
+
+#ifndef __PTH__
+CxConditional::attribute::attribute()
+{
+    CxThread::init();
+    pthread_condattr_init( &attr );
+#if _POSIX_TIMERS > 0 && defined(HAVE_PTHREAD_CONDATTR_SETCLOCK) && defined(POSIX_TIMERS)
+#if defined(_POSIX_MONOTONIC_CLOCK)
+    if(!pthread_condattr_setclock( &attr , CLOCK_MONOTONIC))
+        _posix_clocking = CLOCK_MONOTONIC;
+#else
+    pthread_condattr_setclock( &attr , CLOCK_REALTIME);
+#endif
+#endif
+}
+#endif
+
+CxConditional::CxConditional()
+{
+#ifdef  __PTH__
+    CxThread::init();
+    pth_cond_init(&cond);
+    pth_mutex_init(&mutex);
+#else
+    CX_ASSERT_MSG(pthread_cond_init(&cond, & singleAttribute()->attr) == 0, "conditional init failed");
+    CX_ASSERT_MSG(cx_pthread_mutex_init(&mutex, nullptr) == 0, "mutex init failed");
+#endif
+}
+
+CxConditional::~CxConditional()
+{
+#ifndef __PTH__
+    pthread_cond_destroy(&cond);
+    cx_pthread_mutex_destroy(&mutex);
+#endif
+}
+
+bool CxConditional::wait(cx::timems_t timeout)
+{
+    struct timespec ts;
+    set(&ts, timeout);
+    return wait(&ts);
+}
+
+bool CxConditional::wait(struct timespec *ts)
+{
+    assert(ts != nullptr);
+
+    if(pthread_cond_timedwait(&cond, &mutex, ts) == ETIMEDOUT)
+        return false;
+
+    return true;
+}
+
+#endif
+
+
+
+
+
+#ifdef  _WIN32
+
+void CxSingleWait::wait()
+{
+    WaitForSingleObject(m_event, INFINITE);
+}
+
+void CxSingleWait::signal()
+{
+    EnterCriticalSection(&mlock);
+    SetEvent(m_event);
+    LeaveCriticalSection(&mlock);
+}
+
+CxSingleWait::CxSingleWait()
+{
+    InitializeCriticalSection(&mlock);
+    m_event = CreateEvent(nullptr, FALSE, FALSE, nullptr);
+}
+
+CxSingleWait::~CxSingleWait()
+{
+    DeleteCriticalSection(&mlock);
+    CloseHandle(m_event);
+}
+
+bool CxSingleWait::wait(cx::timems_t timeout)
+{
+    int result;
+    bool rtn = true;
+
+    if(!timeout)
+        return false;
+
+    result = WaitForSingleObject(m_event, timeout);
+    if(result == WAIT_OBJECT_0)
+        rtn = true;
+    return rtn;
+}
+
+bool CxSingleWait::wait(struct timespec *ts)
+{
+    assert(ts != nullptr);
+
+    return wait((cx::timems_t)(ts->tv_sec * 1000 + (ts->tv_nsec / 1000000l)));
+}
+
+#else
+
+CxSingleWait::CxSingleWait()
+{
+    m_bSignaled = 0;
+#ifdef  __PTH__
+    CxThread::init();
+    pth_cond_init(&cond);
+    pth_mutex_init(&mutex);
+#else
+    CX_ASSERT_MSG(pthread_cond_init(&cond, & CxConditional::singleAttribute()->attr) == 0, "conditional init failed");
+    CX_ASSERT_MSG(cx_pthread_mutex_init(&mutex, nullptr) == 0, "mutex init failed");
+#endif
+}
+
+CxSingleWait::~CxSingleWait()
+{
+#ifndef __PTH__
+    pthread_cond_destroy(&cond);
+    cx_pthread_mutex_destroy(&mutex);
+#endif
+}
+
+bool CxSingleWait::wait(cx::timems_t timeout)
+{
+    struct timespec ts;
+    CxConditional::set(&ts, timeout);
+    return wait(&ts);
+}
+
+bool CxSingleWait::wait(struct timespec *ts)
+{
+    assert(ts != nullptr);
+
+    if(pthread_cond_timedwait(&cond, &mutex, ts) == ETIMEDOUT)
+        return false;
+
+    return true;
+}
+
+#endif
+
+
+
+
+
+
+
+
+#if defined(_MSCONDITIONAL_)
+
+CxConditionalAccess::CxConditionalAccess()
+{
+    waiting = pending = sharing = 0;
+    InitializeConditionVariable(&bcast);
+}
+
+CxConditionalAccess::~CxConditionalAccess()
+{
+}
+
+bool CxConditionalAccess::waitBroadcast(cx::timems_t timeout)
+{
+    assert(ts != nullptr);
+
+    if(SleepConditionVariableCS(&bcast, &mutex, timeout))
+        return true;
+
+    return false;
+}
+
+bool CxConditionalAccess::waitSignal(cx::timems_t timeout)
+{
+    assert(ts != nullptr);
+
+    if(SleepConditionVariableCS(&cond, &mutex, timeout))
+        return true;
+
+    return false;
+}
+
+bool CxConditionalAccess::waitBroadcast(struct timespec *ts)
+{
+    assert(ts != nullptr);
+
+    return waitBroadcast((cx::timems_t)(ts->tv_sec * 1000 + (ts->tv_nsec / 1000000l)));
+}
+
+bool CxConditionalAccess::waitSignal(struct timespec *ts)
+{
+    assert(ts != nullptr);
+
+    return waitSignal((cx::timems_t)(ts->tv_sec * 1000 + (ts->tv_nsec / 1000000l)));
+}
+
+#elif defined(_WIN32)
+
+void CxConditionalAccess::waitSignal()
+{
+    LeaveCriticalSection(&mutex);
+    WaitForSingleObject(&events[EVENT_SIGNAL], INFINITE);
+    EnterCriticalSection(&mutex);
+}
+
+void CxConditionalAccess::waitBroadcast()
+{
+    int result;
+
+    EnterCriticalSection(&mlock);
+    ++waiting;
+    LeaveCriticalSection(&mlock);
+    LeaveCriticalSection(&mutex);
+    result = WaitForSingleObject(&events[ENENT_BROADCAST], INFINITE);
+    EnterCriticalSection(&mlock);
+    --waiting;
+    result = ((result == WAIT_OBJECT_0) && (waiting == 0));
+    LeaveCriticalSection(&mlock);
+    if(result)
+        ResetEvent(events[ENENT_BROADCAST]);
+    EnterCriticalSection(&mutex);
+}
+
+CxConditionalAccess::CxConditionalAccess() : CxConditional()
+{
+    pending = waiting = sharing = 0;
+}
+
+CxConditionalAccess::~CxConditionalAccess()
+{
+}
+
+bool CxConditionalAccess::waitSignal(cx::timems_t timeout)
+{
+    int result;
+    bool rtn = true;
+
+    if(!timeout)
+        return false;
+
+    LeaveCriticalSection(&mutex);
+    result = WaitForSingleObject(events[EVENT_SIGNAL], timeout);
+    if(result == WAIT_OBJECT_0)
+        rtn = true;
+    EnterCriticalSection(&mutex);
+    return rtn;
+}
+
+bool CxConditionalAccess::waitSignal(struct timespec *ts)
+{
+    assert(ts != nullptr);
+
+    return waitSignal((cx::timems_t)(ts->tv_sec * 1000 + (ts->tv_nsec / 1000000l)));
+}
+
+
+bool CxConditionalAccess::waitBroadcast(cx::timems_t timeout)
+{
+    int result;
+    bool rtn = true;
+
+    if(!timeout)
+        return false;
+
+    EnterCriticalSection(&mlock);
+    ++waiting;
+    LeaveCriticalSection(&mlock);
+    LeaveCriticalSection(&mutex);
+    result = WaitForSingleObject(events[ENENT_BROADCAST], timeout);
+    EnterCriticalSection(&mlock);
+    --waiting;
+    if(result == WAIT_OBJECT_0)
+        rtn = true;
+    result = ((result == WAIT_OBJECT_0) && (waiting == 0));
+    LeaveCriticalSection(&mlock);
+    if(result)
+        ResetEvent(events[ENENT_BROADCAST]);
+    EnterCriticalSection(&mutex);
+    return rtn;
+}
+
+bool CxConditionalAccess::waitBroadcast(struct timespec *ts)
+{
+    assert(ts != nullptr);
+
+    return waitBroadcast((cx::timems_t)(ts->tv_sec * 1000 + (ts->tv_nsec / 1000000l)));
+}
+
+#else
+
+CxConditionalAccess::CxConditionalAccess()
+{
+    waiting = pending = sharing = 0;
+#ifdef  __PTH__
+    pth_cond_init(&bcast);
+#else
+    CX_ASSERT_MSG(pthread_cond_init(&bcast, &singleAttribute()->attr) == 0, "conditional init failed");
+#endif
+}
+
+CxConditionalAccess::~CxConditionalAccess()
+{
+#ifndef __PTH__
+    pthread_cond_destroy(&bcast);
+#endif
+}
+
+bool CxConditionalAccess::waitSignal(cx::timems_t timeout)
+{
+    struct timespec ts;
+    set(&ts, timeout);
+    return waitSignal(&ts);
+}
+
+bool CxConditionalAccess::waitBroadcast(struct timespec *ts)
+{
+    assert(ts != nullptr);
+
+    if(pthread_cond_timedwait(&bcast, &mutex, ts) == ETIMEDOUT)
+        return false;
+
+    return true;
+}
+
+bool CxConditionalAccess::waitBroadcast(cx::timems_t timeout)
+{
+    struct timespec ts;
+    set(&ts, timeout);
+    return waitBroadcast(&ts);
+}
+
+bool CxConditionalAccess::waitSignal(struct timespec *ts)
+{
+    assert(ts != nullptr);
+
+    if(pthread_cond_timedwait(&cond, &mutex, ts) == ETIMEDOUT)
+        return false;
+
+    return true;
+}
+
+#endif
+
+void CxConditionalAccess::modify()
+{
+    lock();
+    while(sharing) {
+        ++pending;
+        waitSignal();
+        --pending;
+    }
+}
+
+void CxConditionalAccess::commit()
+{
+    if(pending)
+        signal();
+    else if(waiting)
+        broadcast();
+    unlock();
+}
+
+void CxConditionalAccess::access()
+{
+    lock();
+    assert(!max_sharing || sharing < max_sharing);
+    while(pending) {
+        ++waiting;
+        waitBroadcast();
+        --waiting;
+    }
+    ++sharing;
+    unlock();
+}
+
+void CxConditionalAccess::release()
+{
+   lock();
+    assert(sharing);
+
+    --sharing;
+    if(pending && !sharing)
+        signal();
+    else if(waiting && !pending)
+        broadcast();
+    unlock();
+}
+
+void CxConditionalAccess::limit_sharing(unsigned max)
+{
+    max_sharing = max;
+}
+
+
+
+
+
+
+CxSemaphore::CxSemaphore(unsigned limit) :
+CxConditional()
+{
+    assert(limit > 0);
+
+    count = limit;
+    waits = 0;
+    used = 0;
+}
+
+void CxSemaphore::_unlock()
+{
+    release();
+}
+
+bool CxSemaphore::wait(cx::timems_t timeout)
+{
+    bool result = true;
+    struct timespec ts;
+    CxConditional::set(&ts, timeout);
+
+    lock();
+    while(used >= count && result) {
+        ++waits;
+        result = CxConditional::wait(&ts);
+        --waits;
+    }
+    if(result)
+        ++used;
+    unlock();
+    return result;
+}
+
+void CxSemaphore::wait()
+{
+    lock();
+    if(used >= count) {
+        ++waits;
+        CxConditional::wait();
+        --waits;
+    }
+    ++used;
+    unlock();
+}
+
+void CxSemaphore::release()
+{
+    lock();
+    if(used)
+        --used;
+    if(waits)
+        signal();
+    unlock();
+}
+
+void CxSemaphore::set(unsigned value)
+{
+    assert(value > 0);
+
+    unsigned diff;
+
+    lock();
+    count = value;
+    if(used >= count || !waits) {
+        unlock();
+        return;
+    }
+    diff = count - used;
+    if(diff > waits)
+        diff = waits;
+    unlock();
+    while(diff--) {
+        lock();
+        signal();
+        unlock();
+    }
+}
+
+
+
+
+
+
+CxBarrier::CxBarrier(unsigned limit) :
+CxConditional()
+{
+    count = limit;
+    waits = 0;
+}
+
+CxBarrier::~CxBarrier()
+{
+    lock();
+    if(waits)
+        broadcast();
+    unlock();
+}
+
+void CxBarrier::set(unsigned limit)
+{
+    assert(limit > 0);
+
+    lock();
+    count = limit;
+    if(count <= waits) {
+        waits = 0;
+        broadcast();
+    }
+    unlock();
+}
+
+void CxBarrier::dec()
+{
+    lock();
+    if(count)
+        --count;
+    unlock();
+}
+
+unsigned CxBarrier::operator--()
+{
+    unsigned result;
+    lock();
+    if(count)
+        --count;
+    result = count;
+    unlock();
+    return result;
+}
+
+void CxBarrier::inc()
+{
+    lock();
+    count++;
+    if(count <= waits) {
+        waits = 0;
+        broadcast();
+    }
+    unlock();
+}
+
+unsigned CxBarrier::operator++()
+{
+    unsigned result;
+    lock();
+    count++;
+    if(count <= waits) {
+        waits = 0;
+        broadcast();
+    }
+    result = count;
+    unlock();
+    return result;
+}
+
+bool CxBarrier::wait(cx::timems_t timeout)
+{
+    bool result;
+
+    CxConditional::lock();
+    if(!count) {
+        CxConditional::unlock();
+        return true;
+    }
+    if(++waits >= count) {
+        waits = 0;
+        CxConditional::broadcast();
+        CxConditional::unlock();
+        return true;
+    }
+    result = CxConditional::wait(timeout);
+    CxConditional::unlock();
+    return result;
+}
+
+void CxBarrier::wait()
+{
+    CxConditional::lock();
+    if(!count) {
+        CxConditional::unlock();
+        return;
+    }
+    if(++waits >= count) {
+        waits = 0;
+        CxConditional::broadcast();
+        CxConditional::unlock();
+        return;
+    }
+    CxConditional::wait();
+    CxConditional::unlock();
+}
+
+
+
+
+
+
+CxMutex::guard::guard()
+{
+    object = nullptr;
+}
+
+CxMutex::guard::guard(const void *obj)
+{
+    object = obj;
+    if(obj)
+        CxMutex::protect(object);
+}
+
+CxMutex::guard::~guard()
+{
+    release();
+}
+
+void CxMutex::guard::set(const void *obj)
+{
+    release();
+    object = obj;
+    if(obj)
+        CxMutex::protect(object);
+}
+
+void CxMutex::guard::release()
+{
+    if(object) {
+        CxMutex::release(object);
+        object = nullptr;
+    }
+}
+
+CxMutex::CxMutex()
+{
+#ifdef  __PTH__
+    pth_mutex_init(&mlock);
+#else
+    CX_ASSERT_MSG(cx_pthread_mutex_init(&mlock, nullptr) == 0, "mutex init failed");
+#endif
+}
+
+CxMutex::~CxMutex()
+{
+    cx_pthread_mutex_destroy(&mlock);
+}
+
+void CxMutex::indexing(unsigned index)
+{
+    if(index > 1) {
+        mutex_table = new mutex_index[index];
+        mutex_indexing = index;
+    }
+}
+
+void CxMutex::protect(const void *ptr)
+{
+    mutex_index *index = &mutex_table[hash_address(ptr, mutex_indexing)];
+    mutex_entry *entry, *empty = nullptr;
+
+    if(!ptr)
+        return;
+
+    index->acquire();
+    entry = index->list;
+    while(entry) {
+        if(entry->count && entry->pointer == ptr)
+            break;
+        if(!entry->count)
+            empty = entry;
+        entry = entry->next;
+    }
+    if(!entry) {
+        if(empty)
+            entry = empty;
+        else {
+            entry = new struct mutex_entry;
+            entry->count = 0;
+            cx_pthread_mutex_init(&entry->mutex, nullptr);
+            entry->next = index->list;
+            index->list = entry;
+        }
+    }
+    entry->pointer = ptr;
+    ++entry->count;
+//  printf("ACQUIRE %p, THREAD %d, POINTER %p, COUNT %d\n", entry, Thread::self(), entry->pointer, entry->count);
+    index->release();
+    cx_pthread_mutex_lock(&entry->mutex);
+}
+
+void CxMutex::release(const void *ptr)
+{
+    mutex_index *index = &mutex_table[hash_address(ptr, mutex_indexing)];
+    mutex_entry *entry;
+
+    if(!ptr)
+        return;
+
+    index->acquire();
+    entry = index->list;
+    while(entry) {
+        if(entry->count && entry->pointer == ptr)
+            break;
+        entry = entry->next;
+    }
+
+    assert(entry);
+    if(entry) {
+//      printf("RELEASE %p, THREAD %d, POINTER %p COUNT %d\n", entry, Thread::self(), entry->pointer, entry->count);
+        cx_pthread_mutex_unlock(&entry->mutex);
+        --entry->count;
+    }
+    index->release();
+}
+
+void CxMutex::_lock()
+{
+    cx_pthread_mutex_lock(&mlock);
+}
+
+void CxMutex::_unlock()
+{
+    cx_pthread_mutex_unlock(&mlock);
+}
+
+
+
+
+/*
+extern "C" {
+#ifdef  _WIN32
+    static unsigned __stdcall exec_thread(void *obj) {
+        assert(obj != nullptr);
+
+        CxThread *th = static_cast<CxThread *>(obj);
+        th->setPriority();
+        th->run();
+        th->exit();
+        return 0;
+    }
+#else
+    static void *exec_thread(void *obj)
+    {
+        assert(obj != nullptr);
+
+        CxThread *th = static_cast<CxThread *>(obj);
+        th->setPriority();
+        th->run();
+        th->exit();
+        return nullptr;
+    }
+#endif
+}
+*/
+
+static bool volatile f_bThreadRunInTry = false;
+
+void CxThread::initDump(const std::string & dumpFilePath)
+{
+    f_bThreadRunInTry = true;
+#ifdef _MSC_VER
+    //    CxThread::setMiniDumpFilePath(CxAppEnv::applicationFilePath() + ".MiniDump.dmp");
+    CxThread::setMiniDumpFilePath(dumpFilePath);
+#endif
+
+}
+
+cx::pid_os_t CxThread::getCurrentPid()
+{
+    cx::pid_os_t r;
+#ifdef _WIN32
+    r.hProcess = ::GetCurrentProcess();
+    r.dwProcessId = ::GetCurrentProcessId();
+    r.hThread = ::GetCurrentThread();
+    r.dwThreadId = ::GetCurrentThreadId();
+#else
+    r = ::getpid();
+#endif
+    return r;
+}
+
+// CreateMiniDump
+#ifdef _MSC_VER
+#include <dbghelp.h>
+#include <crtdbg.h>
+#pragma comment ( lib, "dbghelp.lib" )
+
+static bool volatile f_bMiniDumping = false;
+static std::string f_sMiniDumpFilePath;
+
+BOOL CALLBACK MyMiniDumpCallback(
+	PVOID                            pParam,
+	const PMINIDUMP_CALLBACK_INPUT   pInput,
+	PMINIDUMP_CALLBACK_OUTPUT        pOutput
+	);
+
+bool IsDataSectionNeeded(const WCHAR* pModuleName);
+
+void CxThread::setMiniDumpFilePath(const std::string & sFilePath)
+{
+    f_sMiniDumpFilePath = sFilePath;
+    f_bThreadRunInTry = sFilePath.size() > 0;
+}
+
+void CxThread::createMiniDump(EXCEPTION_POINTERS* pep)
+{
+    if (f_bMiniDumping) return;
+    f_bMiniDumping = true;
+
+	// Open the file
+	HANDLE hFile = CreateFileA((f_sMiniDumpFilePath.c_str()), GENERIC_READ | GENERIC_WRITE,
+		0, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
+	if ((hFile != nullptr) && (hFile != INVALID_HANDLE_VALUE))
+	{
+		// Create the minidump
+
+		MINIDUMP_EXCEPTION_INFORMATION mdei;
+
+		mdei.ThreadId = GetCurrentThreadId();
+		mdei.ExceptionPointers = pep;
+		mdei.ClientPointers = FALSE;
+
+		MINIDUMP_CALLBACK_INFORMATION mci;
+
+		mci.CallbackRoutine = (MINIDUMP_CALLBACK_ROUTINE)MyMiniDumpCallback;
+		mci.CallbackParam = 0;
+
+		MINIDUMP_TYPE mdt = (MINIDUMP_TYPE)(MiniDumpWithPrivateReadWriteMemory |
+			MiniDumpWithDataSegs |
+			MiniDumpWithHandleData |
+			MiniDumpWithFullMemoryInfo |
+			MiniDumpWithThreadInfo |
+			MiniDumpWithUnloadedModules);
+
+		BOOL rv = MiniDumpWriteDump(GetCurrentProcess(), GetCurrentProcessId(),
+			hFile, mdt, (pep != 0) ? &mdei : 0, 0, &mci);
+
+		if (!rv)
+			printf(("MiniDumpWriteDump failed. Error: %u \n"), GetLastError());
+		else
+			printf(("Minidump created.\n"));
+
+		// Close the file
+
+		CloseHandle(hFile);
+	}
+	else
+	{
+		printf(("CreateFile failed. Error: %u \n"), GetLastError());
+	}
+
+    f_bMiniDumping = false;
+}
+
+
+///////////////////////////////////////////////////////////////////////////////
+// Custom minidump callback
+//
+
+BOOL CALLBACK MyMiniDumpCallback(
+	PVOID                            pParam,
+	const PMINIDUMP_CALLBACK_INPUT   pInput,
+	PMINIDUMP_CALLBACK_OUTPUT        pOutput
+	)
+{
+	BOOL bRet = FALSE;
+
+
+	// Check parameters
+
+	if (pInput == 0)
+		return FALSE;
+
+	if (pOutput == 0)
+		return FALSE;
+
+
+	// Process the callbacks
+
+	switch (pInput->CallbackType)
+	{
+	case IncludeModuleCallback:
+	{
+								  // Include the module into the dump
+								  bRet = TRUE;
+	}
+		break;
+
+	case IncludeThreadCallback:
+	{
+								  // Include the thread into the dump
+								  bRet = TRUE;
+	}
+		break;
+
+	case ModuleCallback:
+	{
+						   // Are data sections available for this module ?
+
+						   if (pOutput->ModuleWriteFlags & ModuleWriteDataSeg)
+						   {
+							   // Yes, they are, but do we need them?
+
+							   if (!IsDataSectionNeeded(pInput->Module.FullPath))
+							   {
+								   wprintf(L"Excluding module data sections: %s \n", pInput->Module.FullPath);
+
+								   pOutput->ModuleWriteFlags &= (~ModuleWriteDataSeg);
+							   }
+						   }
+
+						   bRet = TRUE;
+	}
+		break;
+
+	case ThreadCallback:
+	{
+						   // Include all thread information into the minidump
+						   bRet = TRUE;
+	}
+		break;
+
+	case ThreadExCallback:
+	{
+							 // Include this information
+							 bRet = TRUE;
+	}
+		break;
+
+	case MemoryCallback:
+	{
+						   // We do not include any information here -> return FALSE
+						   bRet = FALSE;
+	}
+		break;
+
+	case CancelCallback:
+		break;
+	}
+
+	return bRet;
+
+}
+
+
+///////////////////////////////////////////////////////////////////////////////
+// This function determines whether we need data sections of the given module
+//
+
+bool IsDataSectionNeeded(const WCHAR* pModuleName)
+{
+	// Check parameters
+
+	if (pModuleName == 0)
+	{
+		_ASSERTE(("Parameter is null."));
+		return false;
+	}
+
+
+	// Extract the module name
+
+	WCHAR szFileName[_MAX_FNAME] = L"";
+
+	_wsplitpath(pModuleName, nullptr, nullptr, szFileName, nullptr);
+
+
+	// Compare the name with the list of known names and decide
+
+	// Note: For this to work, the executable name must be "mididump.exe"
+	if (wcsicmp(szFileName, L"mididump") == 0)
+	{
+		return true;
+	}
+	else if (wcsicmp(szFileName, L"ntdll") == 0)
+	{
+		return true;
+	}
+
+
+	// Complete
+
+	return false;
+
+}
+
+#endif
+
+
+#ifdef  _WIN32
+unsigned __stdcall CxThread::execThread(void *obj)
+{
+    assert(obj != nullptr);
+
+    if (f_bThreadRunInTry)
+    {
+#ifdef _MSC_VER
+        __try
+        {
+            CxThread *th = static_cast<CxThread *>(obj);
+            th->setPriority();
+            th->run();
+            th->exit();
+        }
+        __except (CxThread::createMiniDump(GetExceptionInformation()), EXCEPTION_EXECUTE_HANDLER)
+        {
+            std::cout << "CxThread EXCEPTION!!! --> raise(SIGINT)!!!" << std::endl;
+            raise(SIGINT);
+        }
+#else
+        try
+        {
+            CxThread *th = static_cast<CxThread *>(obj);
+            th->setPriority();
+            th->run();
+            th->exit();
+        }
+        catch (...)
+        {
+            std::cout << "CxThread EXCEPTION!!! --> raise(SIGINT)!!!" << std::endl;
+            raise(SIGINT);
+        }
+#endif
+    }
+    else
+    {
+        CxThread *th = static_cast<CxThread *>(obj);
+        th->setPriority();
+        th->run();
+        th->exit();
+    }
+
+    return 0;
+}
+#else
+void * CxThread::execThread(void *obj)
+{
+    assert(obj != nullptr);
+
+    if (f_bThreadRunInTry)
+    {
+        try
+        {
+            CxThread *th = static_cast<CxThread *>(obj);
+            th->setPriority();
+            th->run();
+            th->exit();
+        }
+        catch (...)
+        {
+            std::cout << "CxThread EXCEPTION!!! --> raise(SIGINT)!!!" << std::endl;
+            raise(SIGINT);
+        }
+    }
+    else
+    {
+        CxThread *th = static_cast<CxThread *>(obj);
+        th->setPriority();
+        th->run();
+        th->exit();
+    }
+
+    return nullptr;
+}
+#endif
+
+bool CxThread::equal(cx::pthread_t t1, cx::pthread_t t2)
+{
+#ifdef _WIN32
+    return t1 == t2;
+#else
+#ifdef  __PTH__
+    return (t1 == t2);
+#else
+    return pthread_equal(t1, t2) != 0;
+#endif
+#endif
+}
+
+// abstract class never runs...
+bool CxThread::is_active()
+{
+    return false;
+}
+
+CxThread::CxThread(size_t size)
+{
+    stack = size;
+    priority = 0;
+#ifdef  _WIN32
+    cancellor = INVALID_HANDLE_VALUE;
+#else
+    cancellor = nullptr;
+#endif
+    init();
+}
+
+#ifdef _WIN32
+
+void CxThread::setPriority()
+{
+    HANDLE hThread = GetCurrentThread();
+    priority += THREAD_PRIORITY_NORMAL;
+    if(priority < THREAD_PRIORITY_LOWEST)
+        priority = THREAD_PRIORITY_LOWEST;
+    else if(priority > THREAD_PRIORITY_HIGHEST)
+        priority = THREAD_PRIORITY_HIGHEST;
+
+    SetThreadPriority(hThread, priority);
+}
+#elif _POSIX_PRIORITY_SCHEDULING > 0
+
+void CxThread::setPriority()
+{
+#ifndef __PTH__
+    int policy;
+    struct sched_param sp;
+    cx::pthread_t ptid = cx_pthread_self();
+    int pri = 0;
+
+    if(!priority)
+        return;
+
+    if(pthread_getschedparam(ptid, &policy, &sp))
+        return;
+
+    if(priority > 0) {
+        policy = realtime_policy;
+        if(realtime_policy == SCHED_OTHER)
+            pri = sp.sched_priority + priority;
+        else
+            pri = sched_get_priority_min(policy) + priority;
+        policy = realtime_policy;
+        if(pri > sched_get_priority_max(policy))
+            pri = sched_get_priority_max(policy);
+    } else if(priority < 0) {
+        pri = sp.sched_priority - priority;
+        if(pri < sched_get_priority_min(policy))
+            pri = sched_get_priority_min(policy);
+    }
+
+    sp.sched_priority = pri;
+    pthread_setschedparam(ptid, policy, &sp);
+#endif
+}
+
+#else
+void CxThread::setPriority() {}
+#endif
+
+void CxThread::concurrency(int level)
+{
+#if defined(HAVE_PTHREAD_SETCONCURRENCY) && !defined(_WIN32)
+    pthread_setconcurrency(level);
+#endif
+}
+
+void CxThread::policy(int polid)
+{
+#if _POSIX_PRIORITY_SCHEDULING > 0
+    realtime_policy = polid;
+#endif
+}
+
+
+void CxThread::sleep(cx::timems_t timeout)
+{
+#if defined(__PTH__)
+    pth_usleep(timeout * 1000);
+#elif defined(HAVE_PTHREAD_DELAY)
+    timespec ts;
+    ts.tv_sec = timeout / 1000l;
+    ts.tv_nsec = (timeout % 1000l) * 1000000l;
+    pthread_delay(&ts);
+#elif defined(HAVE_PTHREAD_DELAY_NP)
+    timespec ts;
+    ts.tv_sec = timeout / 1000l;
+    ts.tv_nsec = (timeout % 1000l) * 1000000l;
+    pthread_delay_np(&ts);
+#elif defined(_WIN32)
+    ::Sleep(timeout);
+#else
+    usleep(timeout * 1000);
+//    nanosleep(timeout * 1000);
+#endif
+}
+
+void CxThread::yield()
+{
+#ifdef _WIN32
+    SwitchToThread();
+#elif defined(__PTH__)
+    pth_yield(nullptr);
+#elif defined(HAVE_PTHREAD_YIELD_NP)
+    pthread_yield_np();
+#elif defined(HAVE_PTHREAD_YIELD)
+    pthread_yield();
+#else
+    sched_yield();
+#endif
+}
+
+CxThread::~CxThread()
+{
+}
+
+void CxThread::exit()
+{
+    cx_pthread_exit(nullptr);
+}
+
+void CxThread::map()
+{
+    CxThread::init();
+#ifdef  __PTH__
+    pth_key_setdata(threadmap, this);
+#else
+#ifdef  _WIN32
+    TlsSetValue(threadmap, this);
+#else
+    pthread_setspecific(threadmap, this);
+#endif
+#endif
+}
+
+CxThread *CxThread::get()
+{
+#ifdef  __PTH__
+    return (CxThread *)pth_key_setdata(threadmap);
+#else
+#ifdef  _WIN32
+    return (CxThread *)TlsGetValue(threadmap);
+#else
+    return (CxThread *)pthread_getspecific(threadmap);
+#endif
+#endif
+}
+
+void CxThread::init()
+{
+    static volatile bool initialized = false;
+
+    if(!initialized) {
+#ifdef  __PTH__
+        pth_init();
+        pth_key_create(&threadmap, nullptr);
+        atexit(pthread_shutdown);
+#else
+#ifdef  _WIN32
+        threadmap = TlsAlloc();
+#else
+        pthread_key_create(&threadmap, nullptr);
+#endif
+#endif
+        initialized = true;
+    }
+}
+
+CxJoinableThread::CxJoinableThread(size_t size)
+    : CxThread(size)
+{
+#ifdef  _WIN32
+    running = INVALID_HANDLE_VALUE;
+    joining = false;
+#else
+    joining = false;
+    running = false;
+#endif
+}
+
+CxJoinableThread::~CxJoinableThread()
+{
+    join();
+}
+
+bool CxJoinableThread::is_active()
+{
+#ifdef  _WIN32
+    return (running != INVALID_HANDLE_VALUE) && !joining;
+#else
+    return running && !joining;
+#endif
+}
+
+#ifdef  _WIN32
+void CxJoinableThread::start(int adj)
+{
+    if(running != INVALID_HANDLE_VALUE)
+        return;
+
+    priority = adj;
+
+    if(stack == 1)
+        stack = 1024;
+
+    joining = false;
+    running = (HANDLE)_beginthreadex(nullptr, stack, &CxThread::execThread, this, 0, (unsigned int *)&tid);
+    if(!running)
+        running = INVALID_HANDLE_VALUE;
+}
+
+void CxJoinableThread::join()
+{
+    cx::pthread_t self = cx_pthread_self();
+    int rc;
+
+    // already joined, so we ignore...
+    if(running == INVALID_HANDLE_VALUE)
+        return;
+
+    // self join does cleanup...
+    if(equal(tid, self)) {
+        CloseHandle(running);
+        running = INVALID_HANDLE_VALUE;
+        CxThread::exit();
+    }
+
+    joining = true;
+    rc = WaitForSingleObject(running, INFINITE);
+    if(rc == WAIT_OBJECT_0 || rc == WAIT_ABANDONED) {
+        CloseHandle(running);
+        running = INVALID_HANDLE_VALUE;
+    }
+}
+
+#else
+
+void CxJoinableThread::start(int adj)
+{
+    int result;
+
+    if(running)
+        return;
+
+    joining = false;
+    priority = adj;
+
+#ifndef __PTH__
+    pthread_attr_t attr;
+    pthread_attr_init(&attr);
+    pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
+    pthread_attr_setinheritsched(&attr, PTHREAD_INHERIT_SCHED);
+#endif
+// we typically use "stack 1" for min stack...
+#ifdef  PTHREAD_STACK_MIN
+    if(stack && stack < PTHREAD_STACK_MIN)
+        stack = PTHREAD_STACK_MIN;
+#else
+    if(stack && stack < 2)
+        stack = 0;
+#endif
+#ifdef  __PTH__
+    pth_attr_t attr = PTH_ATTR_DEFAULT;
+    pth_attr_set(attr, PTH_ATTR_JOINABLE);
+    tid = pth_spawn(attr, &CxThread::execThread, this);
+#else
+    if(stack)
+        pthread_attr_setstacksize(&attr, stack);
+    result = pthread_create(&tid, &attr, &CxThread::execThread, this);
+    pthread_attr_destroy(&attr);
+    if(!result)
+        running = true;
+#endif
+}
+
+void CxJoinableThread::join()
+{
+    cx::pthread_t self = cx_pthread_self();
+
+    // already joined, so we ignore...
+    if(!running)
+        return;
+
+    if(equal(tid, self)) {
+        running = false;
+        CxThread::exit();
+    }
+
+    joining = true;
+
+#ifdef  __PTH__
+    if(pth_join(tid, nullptr))
+        running = false;
+#else
+    if(!pthread_join(tid, nullptr))
+        running = false;
+#endif
+}
+
+#endif
+
+
+
+
+
+bool CxDetachedThread::is_active()
+{
+    return active;
+}
+
+CxDetachedThread::CxDetachedThread(size_t size)
+{
+#ifdef  _WIN32
+    cancellor = INVALID_HANDLE_VALUE;
+#else
+    cancellor = nullptr;
+#endif
+    active = false;
+    stack = size;
+}
+
+void CxDetachedThread::exit()
+{
+    //todo
+//    delete this;
+    cx_pthread_exit(nullptr);
+}
+
+CxDetachedThread::~CxDetachedThread()
+{
+}
+
+void CxDetachedThread::start(int adj)
+{
+#ifdef _WIN32
+    HANDLE hThread;;
+
+    priority = adj;
+
+    if(stack == 1)
+        stack = 1024;
+
+    hThread = (HANDLE)_beginthreadex(nullptr, stack, &CxThread::execThread, this, 0, (unsigned int *)&tid);
+    if(hThread != INVALID_HANDLE_VALUE)
+        active = true;
+    CloseHandle(hThread);
+#else
+    priority = adj;
+#ifndef __PTH__
+    pthread_attr_t attr;
+    pthread_attr_init(&attr);
+    pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+    pthread_attr_setinheritsched(&attr, PTHREAD_INHERIT_SCHED);
+#endif
+// we typically use "stack 1" for min stack...
+#ifdef  PTHREAD_STACK_MIN
+    if(stack && stack < PTHREAD_STACK_MIN)
+        stack = PTHREAD_STACK_MIN;
+#else
+    if(stack && stack < 2)
+        stack = 0;
+#endif
+#ifdef  __PTH__
+    tid = pth_spawn(PTH_ATTR_DEFAULT, &CxThread::execThread, this);
+#else
+    if(stack)
+        pthread_attr_setstacksize(&attr, stack);
+    pthread_create(&tid, &attr, &CxThread::execThread, this);
+    pthread_attr_destroy(&attr);
+#endif
+    active = true;
+#endif
+}
+
+/*
+ *
+ HANDLE mutex;
+mutex = OpenMutex(MUTEX_ALL_ACCESS, FALSE, TEXT("memtest"));
+if (mutex == nullptr)
+{
+    printf("null and create\n");
+    mutex = CreateMutex(nullptr, FALSE, TEXT("memtest"));
+}
+
+int err = GetLastError();
+printf("error:%d\n", err);
+if (mutex == nullptr)
+{
+    printf("create mutex failed\n");
+    return 1;
+}
+
+ pthread_mutexattr_init(&attr);
+pthread_mutexattr_setpshared(&attr, PTHREAD_PROCESS_SHARED);
+
+pthread_mutex_init(&mutex, &attr);
+
+ *
+ */
+

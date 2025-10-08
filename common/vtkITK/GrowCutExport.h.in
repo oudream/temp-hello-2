@@ -1,0 +1,42 @@
+
+#ifndef GrowCut_EXPORT_H
+#define GrowCut_EXPORT_H
+
+#ifdef ITK_STATIC
+#  define GrowCut_EXPORT
+#  define GrowCut_HIDDEN
+#else
+#  ifndef GrowCut_EXPORT
+#    ifdef GrowCut_EXPORTS
+        /* We are building this library */
+#      define GrowCut_EXPORT __declspec(dllexport)
+#    else
+        /* We are using this library */
+#      define GrowCut_EXPORT __declspec(dllimport)
+#    endif
+#  endif
+
+#  ifndef GrowCut_HIDDEN
+#    define GrowCut_HIDDEN 
+#  endif
+#endif
+
+#ifndef GROWCUT_DEPRECATED
+#  define GROWCUT_DEPRECATED __declspec(deprecated)
+#endif
+
+#ifndef GROWCUT_DEPRECATED_EXPORT
+#  define GROWCUT_DEPRECATED_EXPORT GrowCut_EXPORT GROWCUT_DEPRECATED
+#endif
+
+#ifndef GROWCUT_DEPRECATED_NO_EXPORT
+#  define GROWCUT_DEPRECATED_NO_EXPORT GrowCut_HIDDEN GROWCUT_DEPRECATED
+#endif
+
+#if 0 /* DEFINE_NO_DEPRECATED */
+#  ifndef GROWCUT_NO_DEPRECATED
+#    define GROWCUT_NO_DEPRECATED
+#  endif
+#endif
+//#include "itkNamespace.h"
+#endif /* GrowCut_EXPORT_H */

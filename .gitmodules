@@ -1,0 +1,18 @@
+[submodule "3rd/opencv"]
+	path = 3rd/opencv
+	url = https://github.com/opencv/opencv.git
+[submodule "3rd/googletest"]
+	path = 3rd/googletest
+	url = https://github.com/google/googletest.git
+[submodule "3rd/vtk"]
+	path = 3rd/vtk
+	url = https://github.com/Kitware/VTK.git
+[submodule "3rd/benchmark"]
+	path = 3rd/benchmark
+	url = https://github.com/google/benchmark.git
+[submodule "3rd/itk"]
+	path = 3rd/itk
+	url = https://github.com/InsightSoftwareConsortium/ITK.git
+[submodule "3rd/rtk"]
+	path = 3rd/rtk
+	url = https://github.com/RTKConsortium/RTK.git

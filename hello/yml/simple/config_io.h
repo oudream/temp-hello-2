@@ -1,0 +1,4 @@
+#ifndef CX_CT_X2_CONFIG_IO_H
+#define CX_CT_X2_CONFIG_IO_H
+
+#endif //CX_CT_X2_CONFIG_IO_H

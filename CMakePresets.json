@@ -1,0 +1,48 @@
+{
+  "version": 3,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 21,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "CxCTX2-Debug",
+      "displayName": "Build with ct And hellos",
+      "generator": "Ninja",
+      "description": "Build CT with （Qt vtk itk/rtk opencv log yaml ...） support",
+      "binaryDir": "${sourceDir}/CxCTX2-Debug",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_TOOLCHAIN_FILE": "D:/ct/vcpkg/scripts/buildsystems/vcpkg.cmake",
+        "VCPKG_APPLOCAL_DEPS": "OFF",
+        "Qt6_DIR": "D:/ct/vcpkg/installed/x64-windows/share/Qt6"
+      },
+      "environment": {
+        "PATH": "D:\\ct\\vcpkg\\installed\\x64-windows\\debug\\bin;$penv{PATH}",
+        "QML_IMPORT_PATH": "D:\\ct\\vcpkg\\installed\\x64-windows\\debug\\Qt6\\qml",
+        "QT_PLUGIN_PATH": "D:\\ct\\vcpkg\\installed\\x64-windows\\debug\\Qt6\\plugins",
+        "QT_QPA_PLATFORM_PLUGIN_PATH": "D:\\ct\\vcpkg\\installed\\x64-windows\\debug\\Qt6\\plugins\\platforms"
+      }
+    },
+    {
+      "name": "CxCTX2-Release",
+      "displayName": "Build with ct And hellos",
+      "generator": "Ninja",
+      "description": "Build CT with （Qt vtk itk/rtk opencv log yaml ...） support",
+      "binaryDir": "${sourceDir}/CxCTX2-Release",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_TOOLCHAIN_FILE": "D:/ct/vcpkg/scripts/buildsystems/vcpkg.cmake",
+        "VCPKG_APPLOCAL_DEPS": "OFF",
+        "Qt6_DIR": "D:/ct/vcpkg/installed/x64-windows/share/Qt6"
+      },
+      "environment": {
+        "PATH": "D:\\ct\\vcpkg\\installed\\x64-windows\\bin;$penv{PATH}",
+        "QML_IMPORT_PATH": "D:\\ct\\vcpkg\\installed\\x64-windows\\Qt6\\qml",
+        "QT_PLUGIN_PATH": "D:\\ct\\vcpkg\\installed\\x64-windows\\Qt6\\plugins",
+        "QT_QPA_PLATFORM_PLUGIN_PATH": "D:\\ct\\vcpkg\\installed\\x64-windows\\Qt6\\plugins\\platforms"
+      }
+    }
+  ]
+}

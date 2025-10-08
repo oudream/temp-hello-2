@@ -1,0 +1,38 @@
+enable: true
+timeoutSec: 3.5
+configVersion: 2
+
+endpoint:
+  host: "0.0.0.0"
+  port: 8080
+  paths: ["/api", "/health"]
+
+plugins: ["metrics", "trace"]
+
+loggers:
+  - name: "app"
+    format: "%Y-%m-%d %H:%M:%S [%l] %v"
+    modules: ["core","net"]
+    sinks:
+      - type: "file"
+        level: "info"
+        rotation:
+          maxSizeMB: 100
+          keepFiles: 7
+          dailyRotate: true
+        tags: ["main","file"]
+      - type: "console"
+        level: "warn"
+        rotation:
+          maxSizeMB: 50
+          keepFiles: 3
+          dailyRotate: false
+        tags: ["stderr"]
+  - name: "audit"
+    format: "%H:%M:%S %v"
+    modules: ["security"]
+    sinks:
+      - type: "file"
+        level: "info"
+        rotation: { maxSizeMB: 200, keepFiles: 30, dailyRotate: true }
+        tags: ["audit"]

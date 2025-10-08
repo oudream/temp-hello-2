@@ -1,0 +1,147 @@
+
+### 根目录
+```text
+qss\
+    dark.qss
+
+app_ids.h
+main.cpp
+main_window.cpp
+main_window.h
+util.h
+
+```
+
+### ui 框架文件目录结构
+```text
+adapters\
+        u_command_helpers.cpp
+        u_command_helpers.h
+        u_event_adapter.cpp
+        u_event_adapter.h
+dialogs\
+        u_dialog_open.cpp
+        u_dialog_open.h
+        u_dialog_report.cpp
+        u_dialog_report.h
+pages\
+        u_assets_page.cpp
+        u_assets_page.h
+        u_inspect_page.cpp
+        u_inspect_page.h
+        u_page_base.cpp
+        u_page_base.h
+        u_project_page.cpp
+        u_project_page.h
+        u_reconstruct_page.cpp
+        u_reconstruct_page.h
+        u_thread_page.cpp
+        u_thread_page.h
+panels\
+        u_assets_panel.cpp
+        u_assets_panel.h
+        u_panel_base.cpp
+        u_panel_base.h
+        u_panel_camera.cpp
+        u_panel_camera.h
+        u_panel_knife.cpp
+        u_panel_knife.h
+        u_panel_log.cpp
+        u_panel_log.h
+        u_panel_measure.cpp
+        u_panel_measure.h
+        u_panel_render.cpp
+        u_panel_render.h
+views\
+        u_gizmo_knife.cpp
+        u_gizmo_knife.h
+        u_overlay_measure.cpp
+        u_overlay_measure.h
+        u_viewport_3d.cpp
+        u_viewport_3d.h
+        u_viewport_axial.cpp
+        u_viewport_axial.h
+        u_viewport_coronal.cpp
+        u_viewport_coronal.h
+        u_viewport_sagittal.cpp
+        u_viewport_sagittal.h
+        u_viewports_base.cpp
+        u_viewports_base.h
+        u_viewports_host.cpp
+        u_viewports_host.h
+        ribbon.cpp
+        ribbon.h
+        ribbon_block_model.cpp
+        ribbon_block_model.h
+        status_bar.cpp
+        status_bar.h
+
+```
+
+### model 文件目录结构
+```text
+commands
+        cmd_create_measure.cpp
+        cmd_create_measure.h
+        cmd_delete_measure.cpp
+        cmd_delete_measure.h
+        cmd_dolly_camera.cpp
+        cmd_dolly_camera.h
+        cmd_edit_measure.cpp
+        cmd_edit_measure.h
+        cmd_move_knife_plane.cpp
+        cmd_move_knife_plane.h
+        cmd_orbit_camera.cpp
+        cmd_orbit_camera.h
+        cmd_reset_camera.cpp
+        cmd_reset_camera.h
+        cmd_set_active_object.cpp
+        cmd_set_active_object.h
+        cmd_set_knife_lockaxis.cpp
+        cmd_set_knife_lockaxis.h
+        cmd_set_knife_thickness.cpp
+        cmd_set_knife_thickness.h
+        cmd_set_link_cameras.cpp
+        cmd_set_link_cameras.h
+        cmd_set_link_windowlevel.cpp
+        cmd_set_link_windowlevel.h
+        cmd_set_selection.cpp
+        cmd_set_selection.h
+        cmd_set_transfer_function.cpp
+        cmd_set_transfer_function.h
+        cmd_set_window_level.cpp
+        cmd_set_window_level.h
+objects\
+        mcamera.cpp
+        mcamera.h
+        mknife_plane.cpp
+        mknife_plane.h
+        mmeasure_item.cpp
+        mmeasure_item.h
+        mrender_style.cpp
+        mrender_style.h
+        mslice_set.cpp
+        mslice_set.h
+        mvolume.cpp
+        mvolume.h
+        
+mchange_tracker.cpp
+mchange_tracker.h
+mcommand.h
+mcommand_bus.cpp
+mcommand_bus.h
+medit_context.cpp
+medit_context.h
+mevent.h
+mevent_hub.cpp
+mevent_hub.h
+mobject.cpp
+mobject.h
+mrelation_index.cpp
+mrelation_index.h
+mscene.cpp
+mscene.h
+mtypes.cpp
+mtypes.h
+
+```

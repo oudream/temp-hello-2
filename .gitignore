@@ -1,0 +1,55 @@
+# Prerequisites
+*.d
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+# *.so
+# *.dylib
+# *.dll
+
+# Fortran module files
+# *.mod
+# *.smod
+
+# Compiled Static libraries
+# *.lai
+# *.la
+# *.a
+# *.lib
+
+# Executables
+# *.exe
+# *.out
+# *.app
+
+/.svn
+/.idea
+/cmake-*
+/build/build-*
+/build/cmake-*
+/build/qt/*.user
+/build/deploy/
+/build/aarch64/linaro/tk5web.tar
+/build/aarch64/linaro/tk_mqtt_tongke.tar
+/build/aarch64/linaro/tk_mqtt_roma.tar
+/build/aarch64/linaro/libstdc++.so.6.0.24
+/conf/
+/log/
+
+/assets/.idea
+
+/doc/
+
+/3rd/itk-debug/
+/CxCTX2-Debug/
+/CxCTX2-Release/
+/.git.zip

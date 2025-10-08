@@ -1,0 +1,1083 @@
+ssh root@192.168.91.138
+roottkgw
+
+cd ~/rk1808
+source envsetup.sh
+# input: 16
+cd  external/myapp
+cmake -m32 -D CMAKE_TOOLCHAIN_FILE="/root/rk1808/buildroot/output/rockchip_rk1808/host/usr/share/buildroot/toolchainfile.cmake" .
+make clean
+make
+
+nohup /usr/sbin/myapp 1>/usr/sbin/myapp.log 2>&1 &
+tail -f /usr/sbin/myapp.log
+
+cat /etc/issue
+> Welcome to RK1808 Buildroot
+
+cat /proc/version
+> Linux version 4.4.194 (root@ubuntu) (gcc version 6.3.1 20170404 (Linaro GCC 6.3-2017.05) ) #100 SMP PREEMPT Mon Feb 1 20:34:02 CST 2021
+
+uname -a
+> Linux tkgw 4.4.194 #100 SMP PREEMPT Mon Feb 1 20:34:02 CST 2021 aarch64 GNU/Linux
+
+cat /proc/cpuinfo
+> processor       : 0
+> BogoMIPS        : 48.00
+> Features        : fp asimd aes pmull sha1 sha2 crc32
+> CPU implementer : 0x41
+> CPU architecture: 8
+> CPU variant     : 0x0
+> CPU part        : 0xd04
+> CPU revision    : 2
+>
+> processor       : 1
+> BogoMIPS        : 48.00
+> Features        : fp asimd aes pmull sha1 sha2 crc32
+> CPU implementer : 0x41
+> CPU architecture: 8
+> CPU variant     : 0x0
+> CPU part        : 0xd04
+> CPU revision    : 2
+>
+> Serial          : ff73cb3604e0a2a2
+
+cat /proc/meminfo
+> MemTotal:        2045412 kB
+> MemFree:         1725912 kB
+> MemAvailable:    1902464 kB
+> Buffers:            8764 kB
+> Cached:           202256 kB
+> SwapCached:            0 kB
+> Active:            74784 kB
+> Inactive:         188616 kB
+> Active(anon):      59700 kB
+> Inactive(anon):    15360 kB
+> Active(file):      15084 kB
+> Inactive(file):   173256 kB
+> Unevictable:           0 kB
+> Mlocked:               0 kB
+> SwapTotal:             0 kB
+> SwapFree:              0 kB
+> Dirty:                 0 kB
+> Writeback:             0 kB
+> AnonPages:         52468 kB
+> Mapped:           110932 kB
+> Shmem:             22668 kB
+> Slab:              17988 kB
+> SReclaimable:       7856 kB
+> SUnreclaim:        10132 kB
+> KernelStack:        2704 kB
+> PageTables:         1344 kB
+> NFS_Unstable:          0 kB
+> Bounce:                0 kB
+> WritebackTmp:          0 kB
+> CommitLimit:     1022704 kB
+> Committed_AS:     756084 kB
+> VmallocTotal:   258867136 kB
+> VmallocUsed:           0 kB
+> VmallocChunk:          0 kB
+>
+
+  
+ 1008  vi gateway.sh 
+ 1009  sh gateway.sh 
+ 1010  vi gateway.sh 
+ 1011  sh gateway.sh 
+ 1012  vi gateway.sh 
+ 1013  #gateway app
+ 1014  vi gateway.sh 
+ 1015  sh gateway.sh 
+ 1016  make
+ 1017  ls
+ 1018  sh plc.sh 
+ 1019  sh gwcompile.sh 
+ 1020  cd ../..
+ 1021  find -name vpn*
+ 1022  make menuconfig
+ 1023  sh gwcompile.sh 
+ 1024  cd external/app-meter/
+ 1025  sh gwcompile.sh 
+ 1026  vi gwcompile.sh 
+ 1027  sh gwcompile.sh 
+ 1028  ifconfig
+ 1029  df -h
+ 1030  cd /etc/X11
+ 1031  sudo cp xorg.conf.failsafe xorg.conf
+ 1032  sudo reboot
+ 1033  cd /etc/X11
+ 1034  ls
+ 1035  cat xorg.conf
+ 1036  ifconfig
+ 1037  sudo apt-get update
+ 1038  cd ..
+ 1039  vi /etc/network/interfaces
+ 1040  ifconfig -a
+ 1041  vi /etc/network/interfaces
+ 1042  reboot
+ 1043  ifconfig
+ 1044  ifconfig -a
+ 1045  vi /etc/network/interfaces
+ 1046  sudo ifup ens33
+ 1047  vi /etc/network/interfaces
+ 1048  ifconfig ens33 up
+ 1049  service network restart
+ 1050  ifconfig 
+ 1051  vi /etc/network/interfaces
+ 1052  service network restart
+ 1053  sudo /etc/init.d/networking restart
+ 1054  service network-manager restart
+ 1055  ifconfig
+ 1056  vi /etc/network/interfaces
+ 1057  ifconfig
+ 1058  ifconfig ens33 up
+ 1059  vi /etc/network/interfaces
+ 1060  reboot
+ 1061  ping 192.168.100.129
+ 1062  ifconfig
+ 1063  ifconfig ens33 up
+ 1064  ifconfig
+ 1065  vi /etc/network/interfaces
+ 1066  service network-manager restart
+ 1067  ifconfig
+ 1068  sudo dhclient ens33
+ 1069  sudo ifconfig ens33
+ 1070  vi /etc/network/interfaces
+ 1071  ifconfig
+ 1072  reboot
+ 1073  systemctl restart network-manager.service
+ 1074  ifconfig
+ 1075  ifconfig ens33 up
+ 1076  systemctl restart network-manager.service
+ 1077  ifconfig
+ 1078  systemctl stop NetworkManager
+ 1079  systemctl disable NetworkManage
+ 1080  systemctl restart network
+ 1081  systemctl restart network-manager.service
+ 1082  ifconfig
+ 1083  vi /etc/sysconfig/network-scripts/ifcfg-ens33
+ 1084  cd /etc/
+ 1085  find -name ifcfg-*
+ 1086  service network-manager stop
+ 1087  rm -rf /var/lib/NetworkManager/NetworkManager.state
+ 1088  service network-manager start
+ 1089  ifconfig
+ 1090  ls
+ 1091  find -name *.yaml
+ 1092  vi /etc/network/interfaces
+ 1093  ifconfig
+ 1094  sudo dhclient ens33
+ 1095  ifconfig
+ 1096  apt-get update
+ 1097  ifconfig
+ 1098  service network-manager start
+ 1099  ifconfig
+ 1100  ifconfig ens33 up
+ 1101  ifconfig
+ 1102  service network-manager stop
+ 1103  service network-manager start
+ 1104  ifconfig
+ 1105  systemctl restart network-manager.service
+ 1106  ifconfig
+ 1107  vi /etc/network/interfaces
+ 1108  ifconfig
+ 1109  systemctl set-default multi-user.target
+ 1110  vi /etc/network/interfaces
+ 1111  systemctl restart network-manager.service
+ 1112  ifconfig
+ 1113  ifconfig eth0 up
+ 1114  vi /etc/network/interfaces
+ 1115  sudo /etc/init.d/networking restart
+ 1116  systemctl restart network-manager.service
+ 1117  ifconfig
+ 1118  reboot
+ 1119  ifconfig
+ 1120  systemctl restart network-manager.service
+ 1121  ifconfig
+ 1122  ls /etc/NetworkManager/
+ 1123  vi /etc/NetworkManager/NetworkManager.conf 
+ 1124  reboot
+ 1125  cd rk1808
+ 1126  source envsetup.sh 
+ 1127  cd external/app-meter/
+ 1128  sh p
+ 1129  vi protocol/plc/gwPlcApi.c 
+ 1130  sh plc.sh 
+ 1131  cd rk1808
+ 1132  grep -rn "RK_GPIO0" *
+ 1133  grep -rn "RK_FUNC_GPIO" *
+ 1134  cd rk1808
+ 1135  cd rk1808
+ 1136  git diff kernel/arch/arm64/configs/
+ 1137  cd kernel/arch/arm64/configs/
+ 1138  git diff
+ 1139  cd -
+ 1140  source envsetup.sh 
+ 1141  ./build.sh kernel
+ 1142  find -name misc_gpio_direction*
+ 1143  ./build.sh 
+ 1144  cd external/myapp/
+ 1145  make
+ 1146  cmake -D CMAKE_TOOLCHAIN_FILE="../../buildroot/output/rockchip_rk1808/host/usr/share/buildroot/toolchainfile.cmake" .
+ 1147  make
+ 1148  cd ../app-meter/
+ 1149  make
+ 1150  cp ../myapp/lib/libmisc.a hwIot/lib/
+ 1151  make
+ 1152  cmake -D CMAKE_TOOLCHAIN_FILE="../../buildroot/output/rockchip_rk1808/host/usr/share/buildroot/toolchainfile.cmake" .
+ 1153  make
+ 1154  ls hwIot/lib/
+ 1155  sh plc.sh 
+ 1156  vi hwIot/appMeter/CMakeLists.txt 
+ 1157  ll ../myapp/lib/
+ 1158  vi hwIot/include/misc_gpio.h 
+ 1159  vi ../myapp/source/misc/misc_gpio.c
+ 1160  make
+ 1161  cp ../myapp/lib/libcli.a hwIot/lib/
+ 1162  cp ../myapp/source/cli/libcli.a hwIot/lib/
+ 1163  cmake -D CMAKE_TOOLCHAIN_FILE="../../buildroot/output/rockchip_rk1808/host/usr/share/buildroot/toolchainfile.cmake" .
+ 1164  make
+ 1165  ls hwIot/lib/
+ 1166  vi hwIot/appMeter/CMakeLists.txt 
+ 1167  mv hwIot/lib/libcli.a hwIot/lib/libcli.a.bak
+ 1168  make
+ 1169  mv hwIot/lib/libcli.a.bak hwIot/lib/libcli.a
+ 1170  cmake -D CMAKE_TOOLCHAIN_FILE="../../buildroot/output/rockchip_rk1808/host/usr/share/buildroot/toolchainfile.cmake" .
+ 1171  make
+ 1172  cmake -D CMAKE_TOOLCHAIN_FILE="../../buildroot/output/rockchip_rk1808/host/usr/share/buildroot/toolchainfile.cmake" .
+ 1173  make
+ 1174  cd ../myapp/
+ 1175  cmake -D CMAKE_TOOLCHAIN_FILE="../../buildroot/output/rockchip_rk1808/host/usr/share/buildroot/toolchainfile.cmake" .
+ 1176  make
+ 1177  cd ../app-meter/
+ 1178  cp ../myapp/lib/libgpio.a hwIot/lib/
+ 1179  sh plc.sh 
+ 1180  make
+ 1181  sh plc.sh 
+ 1182  cmake -D CMAKE_TOOLCHAIN_FILE="../../buildroot/output/rockchip_rk1808/host/usr/share/buildroot/toolchainfile.cmake" .
+ 1183  sh gwcompile.sh 
+ 1184  ls hwIot/appEnvironment/
+ 1185  sh gateway.sh 
+ 1186  ls ../../buildroot/output/rockchip_rk1808/target/usr/lib
+ 1187  sh gwcompile.sh 
+ 1188  cd ../myapp/
+ 1189  du -ah
+ 1190  du --help
+ 1191  du -ah -d 1
+ 1192  ll
+ 1193  cmake -D CMAKE_TOOLCHAIN_FILE="../../buildroot/output/rockchip_rk1808/host/usr/share/buildroot/toolchainfile.cmake" .
+ 1194  make
+ 1195  cd ../app-meter/
+ 1196  sh gwcompile.sh 
+ 1197  cd ../myapp/
+ 1198  make
+ 1199  find -name libsdk.a
+ 1200  find -name libhuawei*
+ 1201  cmake -D CMAKE_TOOLCHAIN_FILE="../../buildroot/output/rockchip_rk1808/host/usr/share/buildroot/toolchainfile.cmake" .
+ 1202  make
+ 1203  cmake -D CMAKE_TOOLCHAIN_FILE="../../buildroot/output/rockchip_rk1808/host/usr/share/buildroot/toolchainfile.cmake" .
+ 1204  make
+ 1205  cmake -D CMAKE_TOOLCHAIN_FILE="../../buildroot/output/rockchip_rk1808/host/usr/share/buildroot/toolchainfile.cmake" .
+ 1206  make
+ 1207  cmake -D CMAKE_TOOLCHAIN_FILE="../../buildroot/output/rockchip_rk1808/host/usr/share/buildroot/toolchainfile.cmake" .
+ 1208  make
+ 1209  ls source/gateway/
+ 1210  rm -rf source/gateway/hwSdk/
+ 1211  cmake -D CMAKE_TOOLCHAIN_FILE="../../buildroot/output/rockchip_rk1808/host/usr/share/buildroot/toolchainfile.cmake" .
+ 1212  make
+ 1213  cmake -D CMAKE_TOOLCHAIN_FILE="../../buildroot/output/rockchip_rk1808/host/usr/share/buildroot/toolchainfile.cmake" .
+ 1214  make
+ 1215  cmake -D CMAKE_TOOLCHAIN_FILE="../../buildroot/output/rockchip_rk1808/host/usr/share/buildroot/toolchainfile.cmake" .
+ 1216  make
+ 1217  cmake -D CMAKE_TOOLCHAIN_FILE="../../buildroot/output/rockchip_rk1808/host/usr/share/buildroot/toolchainfile.cmake" .
+ 1218  make
+ 1219  cmake -D CMAKE_TOOLCHAIN_FILE="../../buildroot/output/rockchip_rk1808/host/usr/share/buildroot/toolchainfile.cmake" .
+ 1220  make
+ 1221  cmake -D CMAKE_TOOLCHAIN_FILE="../../buildroot/output/rockchip_rk1808/host/usr/share/buildroot/toolchainfile.cmake" .
+ 1222  make
+ 1223  vi source/sysstat/version.h 
+ 1224  make
+ 1225  vi source/sysstat/version.h 
+ 1226  make
+ 1227  cmake -D CMAKE_TOOLCHAIN_FILE="../../buildroot/output/rockchip_rk1808/host/usr/share/buildroot/toolchainfile.cmake" .
+ 1228  make
+ 1229  cmake -D CMAKE_TOOLCHAIN_FILE="../../buildroot/output/rockchip_rk1808/host/usr/share/buildroot/toolchainfile.cmake" .
+ 1230  make
+ 1231  cmake -D CMAKE_TOOLCHAIN_FILE="../../buildroot/output/rockchip_rk1808/host/usr/share/buildroot/toolchainfile.cmake" .
+ 1232  make
+ 1233  cmake -D CMAKE_TOOLCHAIN_FILE="../../buildroot/output/rockchip_rk1808/host/usr/share/buildroot/toolchainfile.cmake" .
+ 1234  make
+ 1235  make clean
+ 1236  cmake -D CMAKE_TOOLCHAIN_FILE="../../buildroot/output/rockchip_rk1808/host/usr/share/buildroot/toolchainfile.cmake" .
+ 1237  make
+ 1238  vi CMakeLists.txt 
+ 1239  make
+ 1240  make clean
+ 1241  cmake -D CMAKE_TOOLCHAIN_FILE="../../buildroot/output/rockchip_rk1808/host/usr/share/buildroot/toolchainfile.cmake" .
+ 1242  make
+ 1243  make clean
+ 1244  make
+ 1245  cmake -D CMAKE_TOOLCHAIN_FILE="../../buildroot/output/rockchip_rk1808/host/usr/share/buildroot/toolchainfile.cmake" .
+ 1246  make
+ 1247  cd ../../
+ 1248  find -name libpthread.so.0
+ 1249  cd -
+ 1250  cmake -D CMAKE_TOOLCHAIN_FILE="../../buildroot/output/rockchip_rk1808/host/usr/share/buildroot/toolchainfile.cmake" .
+ 1251  make
+ 1252  cp ../app-meter/lib/libpthread.so.0 lib/
+ 1253  make
+ 1254  cmake -D CMAKE_TOOLCHAIN_FILE="../../buildroot/output/rockchip_rk1808/host/usr/share/buildroot/toolchainfile.cmake" .
+ 1255  make
+ 1256  ls lib/
+ 1257  cmake -D CMAKE_TOOLCHAIN_FILE="../../buildroot/output/rockchip_rk1808/host/usr/share/buildroot/toolchainfile.cmake" .
+ 1258  ls lib/
+ 1259  make
+ 1260  ls lib/
+ 1261  cmake -D CMAKE_TOOLCHAIN_FILE="../../buildroot/output/rockchip_rk1808/host/usr/share/buildroot/toolchainfile.cmake" .
+ 1262  ls lib/
+ 1263  make
+ 1264  ls lib
+ 1265  find -name libpaho-mqtt*
+ 1266  mv buildroot/output/rockchip_rk1808/target/usr/lib/libpaho-mqtt3a.so buildroot/output/rockchip_rk1808/target/usr/lib/-libpaho-mqtt3a.so
+ 1267  cd external/myapp/
+ 1268  make
+ 1269  mv lib/libpaho-mqtt3a.a ../../buildroot/output/rockchip_rk1808/target/usr/lib/
+ 1270  make
+ 1271  ll myapp 
+ 1272  make
+ 1273  make clean
+ 1274  make
+ 1275  cd ../app-meter/
+ 1276  sh plc.sh 
+ 1277  ls lib/
+ 1278  sh plc.sh 
+ 1279  cd ../myapp/
+ 1280  make
+ 1281  make clean
+ 1282  make
+ 1283  cd ../app-meter/
+ 1284  make
+ 1285  cd ../myapp/
+ 1286  make
+ 1287  cd rk1808
+ 1288  source envsetup.sh 
+ 1289  cd external/app-meter/
+ 1290  make
+ 1291  sh plc.sh 
+ 1292  make
+ 1293  sh plc.sh 
+ 1294  cd ../myapp/
+ 1295  make
+ 1296  cd ../app-meter/
+ 1297  sh plc.sh 
+ 1298  cd /
+ 1299  ls
+ 1300  cd ~
+ 1301  ls
+ 1302  ll
+ 1303  cd -
+ 1304  cd cd ~
+ 1305  cd ~
+ 1306  cd rk1808/external/myapp/
+ 1307  make
+ 1308  cd ../app-meter/
+ 1309  sh plc.sh 
+ 1310  cd ../myapp/
+ 1311  make
+ 1312  cd ../app-meter/
+ 1313  sh plc.sh 
+ 1314  cd ../myapp/
+ 1315  make
+ 1316  cd ../app-meter/
+ 1317  sh plc.sh 
+ 1318  sh modus.sh 
+ 1319  sh plc.sh 
+ 1320  sh modus.sh 
+ 1321  sh plc.sh 
+ 1322  sh modus.sh 
+ 1323  sh plc.sh 
+ 1324  sh modus.sh 
+ 1325  sh th.sh 
+ 1326  sh modus
+ 1327  sh modus.sh 
+ 1328  cd ../myapp/
+ 1329  make
+ 1330  cd ../app-meter/
+ 1331  sh modus.sh 
+ 1332  cd ../myapp/
+ 1333  make
+ 1334  cd ../app-meter/
+ 1335  sh modus.sh 
+ 1336  cd ../myapp/
+ 1337  mae
+ 1338  make
+ 1339  cd ../app-meter/
+ 1340  sh modus.sh 
+ 1341  cd ../myapp/
+ 1342  make
+ 1343  cd ../app-meter/
+ 1344  sh th.sh
+ 1345  LS
+ 1346  ls
+ 1347  cd hwIot/
+ 1348  ls
+ 1349  mv ../appTH ./
+ 1350  ls
+ 1351  cd ../
+ 1352  sh th.sh 
+ 1353  cd hwIot/
+ 1354  vi CMakeLists.txt 
+ 1355  sh th.sh 
+ 1356  cd ..
+ 1357  sh th.sh 
+ 1358  vi hwIot/CMakeLists.txt 
+ 1359  vi CMakeLists.txt 
+ 1360  sh th.sh 
+ 1361  cd ../myapp/
+ 1362  make
+ 1363  cd ../app-meter/
+ 1364  sh th.sh 
+ 1365  sh modus.sh 
+ 1366  sh plc.sh 
+ 1367  cd rk1808
+ 1368  source envsetup.sh 
+ 1369  cd external/app-meter/
+ 1370  sh modus.sh 
+ 1371  cd rk1808
+ 1372  source envsetup.sh 
+ 1373  cd external/app-meter/
+ 1374  sh plc.sh 
+ 1375  cd external/app-meter/
+ 1376  sh plc.sh 
+ 1377  cd  rk1808
+ 1378  source envsetup.sh 
+ 1379  cd external/app-meter/
+ 1380  sh plc.sh 
+ 1381  sh modus.sh 
+ 1382  cd -
+ 1383  cd rk1808
+ 1384  source envsetup.sh 
+ 1385  cd external/app-meter/
+ 1386  sh modus.sh 
+ 1387  cd ../..
+ 1388  source envsetup.sh 
+ 1389  cd external/app-meter/
+ 1390  sh plc.sh 
+ 1391  cd ../..
+ 1392  source envsetup.sh 
+ 1393  cd rk1808
+ 1394  source envsetup.sh 
+ 1395  cd external/app-meter/
+ 1396  sh modus.sh 
+ 1397  cd rk1808
+ 1398  source envsetup.sh 
+ 1399  cd external/myapp/
+ 1400  make
+ 1401  cd rk1808
+ 1402  source envsetup.sh 
+ 1403  cd external/myapp/
+ 1404  make
+ 1405  cd ../app-meter/
+ 1406  cmake -D CMAKE_TOOLCHAIN_FILE="../../buildroot/output/rockchip_rk1808/host/usr/share/buildroot/toolchainfile.cmake" .
+ 1407  sh modusSwitch.sh 
+ 1408  cmake -D CMAKE_TOOLCHAIN_FILE="../../buildroot/output/rockchip_rk1808/host/usr/share/buildroot/toolchainfile.cmake" .
+ 1409  sh modusSwitch.sh 
+ 1410  make clean
+ 1411  sh modusSwitch.sh 
+ 1412  cd hwIot/
+ 1413  ls
+ 1414  rm -rf basic
+ 1415  cd ..
+ 1416  sh modusSwitch.sh 
+ 1417  ls hwIot/
+ 1418  ls hwIot/lib/
+ 1419  sh modusSwitch.sh 
+ 1420  make clean
+ 1421  make
+ 1422  sh modusSwitch.sh 
+ 1423  mv hwIot/devMng/appQueueManage.c hwIot/basic/
+ 1424  make clean
+ 1425  sh modusSwitch.sh 
+ 1426  mv hwIot/devMng/gwAppMsgPro.c hwIot/basic/
+ 1427  sh modusSwitch.sh 
+ 1428  sh modus.sh 
+ 1429  sh modusSwitch.sh 
+ 1430  cd ../myapp/
+ 1431  make
+ 1432  cd -
+ 1433  sh modusSwitch.sh 
+ 1434  cd rk1808
+ 1435  source envsetup.sh 
+ 1436  cd external/myapp/
+ 1437  make
+ 1438  cd ../app-meter/
+ 1439  sh modus.sh 
+ 1440  cd ../app-meter/
+ 1441  sh modus.sh 
+ 1442  sh plc.sh 
+ 1443  vi hwIot/appEnvironment/CMakeLists.txt 
+ 1444  sh plc.sh 
+ 1445  sh modusSwitch.sh 
+ 1446  cd ../myapp/
+ 1447  make
+ 1448  cd rk1808
+ 1449  source envsetup.sh 
+ 1450  cd external/app-meter/
+ 1451  rm hwIot/lib/
+ 1452  rm -rf hwIot/lib/
+ 1453  mkdir hwIot/lib
+ 1454  sh modbus
+ 1455  sh modbus.
+ 1456  sh modus.sh 
+ 1457  vi hwIot/appEnvironment/CMakeLists.txt 
+ 1458  sh modus.sh 
+ 1459  cd rk1808
+ 1460  source envsetup.sh 
+ 1461  cd external/myapp/
+ 1462  make
+ 1463  cd rk1808
+ 1464  source envsetup.sh 
+ 1465  cd external/myapp/
+ 1466  make
+ 1467  cd ../app-meter/
+ 1468  sh modus.sh 
+ 1469  cd ../myapp/
+ 1470  make
+ 1471  cd ../myapp/
+ 1472  cd ../app-meter/
+ 1473  sh modus.sh 
+ 1474  cd rk1808
+ 1475  source envsetup.sh 
+ 1476  cd external/myapp/
+ 1477  make
+ 1478  cd ../app-meter/
+ 1479  sh modus.sh 
+ 1480  sh plc.sh 
+ 1481  sh modusSwitch.sh 
+ 1482  cd ../../
+ 1483  find -name sqlite
+ 1484  ls external/
+ 1485  ls rockface
+ 1486  ls external/rockface/
+ 1487  find -name sqlite*
+ 1488  find -name rockface-rk1808-Linux
+ 1489  cd rk1808
+ 1490  cd external/
+ 1491  ls
+ 1492  mv myapp/ myapp_1224
+ 1493  ls
+ 1494  cd rk1808
+ 1495  cd external/myapp
+ 1496  cd ../..
+ 1497  source envsetup.sh 
+ 1498  cd -
+ 1499  make
+ 1500  ll
+ 1501  cd ../../kernel/
+ 1502  df -u
+ 1503  df --help
+ 1504  du --help
+ 1505  du -d 1
+ 1506  find -name aux.c
+ 1507  ll /drivers/gpu/drm/nouveau/nvkm/subdev/i2c/aux.c
+ 1508  ll drivers/gpu/drm/nouveau/nvkm/subdev/i2c/aux.c
+ 1509  cd ..
+ 1510  ./build.sh kernel
+ 1511  cd -
+ 1512  cd ..
+ 1513  cd external/myapp
+ 1514  make
+ 1515  make clean
+ 1516  make
+ 1517  ls
+ 1518  cd ..
+ 1519  ls
+ 1520  vi runapp.sh 
+ 1521  ./build.sh 
+ 1522  ·
+ 1523  find -name update-h.img
+ 1524  find -name update_h.img
+ 1525  ls
+ 1526  sh buildheader.sh 
+ 1527  ls rockdev/
+ 1528  sh buildheaderimg.sh 
+ 1529  ls rockdev/
+ 1530  ll rockdev/
+ 1531  sh buildheader.sh 
+ 1532  rm buildheader.sh 
+ 1533  vi buildheader.sh 
+ 1534  sh buildheader.sh 
+ 1535  ls
+ 1536  sh buildheaderimg.sh 
+ 1537  ll rockdev/
+ 1538  ./build.sh 
+ 1539  ls
+ 1540  make menuconfig
+ 1541  make recovery-dirclean
+ 1542  make recovery
+ 1543  ./build.sh 
+ 1544  ./envsetup.sh 
+ 1545  ./build.sh 
+ 1546  cd rk1808
+ 1547  source envsetup.sh 
+ 1548  cd kernel/drivers/net/
+ 1549  cd phy/
+ 1550  cd rk1808
+ 1551  source envsetup.sh 
+ 1552  ls
+ 1553  sh buildheaderimg.sh 
+ 1554  ls
+ 1555  sh buildheader.sh 
+ 1556  cd rk1808
+ 1557  source envsetup.sh 
+ 1558  vi external/myapp/source/ssp/sspChipInit.c 
+ 1559  cd external/myapp
+ 1560  make
+ 1561  make clean
+ 1562  make
+ 1563  cd ../..
+ 1564  vi buildroot/package/rockchip/myapp/myapp.mk 
+ 1565  cd external/myapp
+ 1566  ls
+ 1567  ls conf/
+ 1568  :q
+ 1569  cd -
+ 1570  make
+ 1571  cd ..
+ 1572  ls
+ 1573  sh runapp.sh 
+ 1574  ls
+ 1575  sh buildheaderimg.sh 
+ 1576  ls
+ 1577  vi buildheaderimg.sh 
+ 1578  sh buildheaderimg.sh 
+ 1579  ./build.sh 
+ 1580  l/drivers/net/
+ 1581  cd phy/
+ 1582  cd rk1808
+ 1583  source envsetup.sh 
+ 1584  ls
+ 1585  sh buildheaderimg.sh 
+ 1586  ls
+ 1587  sh buildheader.sh 
+ 1588  cd rk1808
+ 1589  ls
+ 1590  ./envsetup.sh 
+ 1591  cd external/myapp
+ 1592  make clean
+ 1593  make
+ 1594  mv source/gateway/IEC104 source/gateway/hwIot/
+ 1595  make
+ 1596  cd rk1808
+ 1597  source envsetup.sh 
+ 1598  cd external/myapp
+ 1599  make
+ 1600  make clean
+ 1601  make
+ 1602  rm source/gateway/hwIot/IEC104/*.h
+ 1603  make
+ 1604  ls
+ 1605  cd ../..
+ 1606  ls
+ 1607  ./buildheader.sh
+ 1608  chmod +x buildheader.sh 
+ 1609  ./buildheader.sh
+ 1610  ./runapp.sh 
+ 1611  ls
+ 1612  ./buildheader.sh 
+ 1613  find -name librknn_api.so
+ 1614  ll buildroot/output/rockchip_rk1808/build/rockx/sdk/rockx-rk1808-Linux/lib64/librknn_api.so
+ 1615  ll external/rockface/sdk/rockface-rk1808-Linux/lib64/librknn_api.so
+ 1616  ll external/RKNPUTools/rknn-api/Linux/rknn_api_sdk/rknn_api/arm/lib64/librknn_api.so
+ 1617  ll external/rknpu/rknn/rknn_api/librknn_api/lib64/librknn_api.so
+ 1618  ll external/rknn_demo/rknn/rknn_api/
+ 1619  make
+ 1620  ./runapp.sh 
+ 1621  ./buildheader.sh 
+ 1622  ./runapp.sh 
+ 1623  ./buildheader.sh 
+ 1624  cd external/myapp
+ 1625  make
+ 1626  vi source/gateway/hwIot/IEC104/iec10x_main.c 
+ 1627  make
+ 1628  cd rk1808
+ 1629  source envsetup.sh 
+ 1630  cd external/app-meter/
+ 1631  ls
+ 1632  sh plc.sh 
+ 1633  cd rk1808
+ 1634  source envsetup.sh 
+ 1635  cd external/myapp
+ 1636  cd rk1808
+ 1637  find -name *paho-mqtt*
+ 1638  cd rk1808
+ 1639  source envsetup.sh 
+ 1640  cd external/myapp
+ 1641  ls
+ 1642  sh runapp.sh 
+ 1643  mv source/gateway/hwIot/gateway/langxin.c source/hanclouds-sdk-for-linux/
+ 1644  sh runapp.sh 
+ 1645  ls source/hanclouds-sdk-for-linux/
+ 1646  find -name libhanclouds*
+ 1647  ll lib/libhanclouds.a 
+ 1648  sh runapp.sh 
+ 1649  make clean
+ 1650  sh runapp.sh 
+ 1651  make clean
+ 1652  sh runapp.sh 
+ 1653  make clean
+ 1654  sh runapp.sh 
+ 1655  ls lib
+ 1656  sh runapp.sh 
+ 1657  make clean
+ 1658  sh runapp.sh 
+ 1659  ls lib
+ 1660  make clean
+ 1661  sh runapp.sh 
+ 1662  make
+ 1663  find -name langxin.c
+ 1664  find -name lanxin.c
+ 1665  sh runapp.sh 
+ 1666  make
+ 1667  cd ../app-meter/
+ 1668  find -name common_gpio*
+ 1669  vi hwIot/include/common_gpio.h
+ 1670  cd ..
+ 1671  ls
+ 1672  mv app-meter app-meter_bak
+ 1673  cd app-meter
+ 1674  sh plc.sh 
+ 1675  ls
+ 1676  mkdir output
+ 1677  sh plc.sh 
+ 1678  cd ../..
+ 1679  cd external/app-meter
+ 1680  ls lib
+ 1681  ls hwIot/lib/
+ 1682  make clean
+ 1683  sh plc.sh 
+ 1684  cd ../myapp
+ 1685  make
+ 1686  docker ps
+ 1687  docker ps -a
+ 1688  make
+ 1689  cd ../app-meter
+ 1690  sh gwcompile.sh 
+ 1691  sh plc.sh 
+ 1692  cd ../myapp
+ 1693  make
+ 1694  cd ../app-meter
+ 1695  sh modus.sh 
+ 1696  sh plc.sh 
+ 1697  find -name appPlc
+ 1698  ls -al hwIot/appMeter/appPlc
+ 1699  make clean
+ 1700  sh plc.sh 
+ 1701  ls -al hwIot/appMeter/appPlc
+ 1702  cd rk1808
+ 1703  source envsetup.sh 
+ 1704  cd external/app-meter
+ 1705  ls
+ 1706  sh th.sh 
+ 1707  make clean
+ 1708  sh th.sh 
+ 1709  sh plc.sh 
+ 1710  sh modus.sh 
+ 1711  sh plc.sh 
+ 1712  sh modus.sh 
+ 1713  sh gwcompile.sh 
+ 1714  sh th.sh 
+ 1715  cd ../myapp
+ 1716  make
+ 1717  cd ../app-meter
+ 1718  sh th.sh 
+ 1719  make clean
+ 1720  sh gwcompile.sh 
+ 1721  make clean
+ 1722  sh gwcompile.sh 
+ 1723  sh th.sh 
+ 1724  sh gwcompile.sh 
+ 1725  sh th.sh 
+ 1726  sh gwcompile.sh 
+ 1727  cd ../myapp
+ 1728  make
+ 1729  sh gwcompile.sh 
+ 1730  cd ../app-meter
+ 1731  sh gwcompile.sh 
+ 1732  cd ../..
+ 1733  find -name afptool*
+ 1734  cd rk1808
+ 1735  source envsetup.sh 
+ 1736  cd external/app-meter
+ 1737  sh modus.sh 
+ 1738  cd ../../
+ 1739  find -name afptool
+ 1740  cd rk1808
+ 1741  source envsetup.sh 
+ 1742  cd external/app-meter
+ 1743  sh modus.sh 
+ 1744  cd rk1808
+ 1745  source envsetup.sh 
+ 1746  cd external/app-meter
+ 1747  sh modus.sh 
+ 1748  sh gwcompile.sh 
+ 1749  sh modus.sh 
+ 1750  sh gwcompile.sh 
+ 1751  cd rk1808
+ 1752  source envsetup.sh 
+ 1753  cd external/app-meter
+ 1754  cd ../myapp
+ 1755  make
+ 1756  make clean
+ 1757  make
+ 1758  cd rk1808
+ 1759  source envsetup.sh 
+ 1760  cd external/myapp
+ 1761  make
+ 1762  cd rk1808
+ 1763  source envsetup.sh 
+ 1764  cd external/myapp
+ 1765  make
+ 1766  make clean
+ 1767  make
+ 1768  cd rk1808
+ 1769  source en
+ 1770  source envsetup.sh 
+ 1771  cd external/myapp
+ 1772  make
+ 1773  cd ../..
+ 1774  ls
+ 1775  cd ../
+ 1776  ls
+ 1777  ls -al
+ 1778  rm -f rk1808.tar.gz 
+ 1779  cd rk1808
+ 1780  source envsetup.sh 
+ 1781  cd external/myapp
+ 1782  make
+ 1783  cd rk1808
+ 1784  find -name *gcc
+ 1785  cd ..
+ 1786  ls
+ 1787  docker ps
+ 1788  docker pull aarch64/java
+ 1789  ping www.baidu.co
+ 1790  ping www.baidu.com
+ 1791  docker pull aarch64/java
+ 1792  ping registry-1.docker.io
+ 1793  docker pull docker.mirrors.ustc.edu.cn/library/aarch64/java
+ 1794  sudo apt install qemu-user-static
+ 1795  docker run -it ericvh/arm64-ubuntu-dev /bin/bash
+ 1796  ping registry-1.docker.io
+ 1797  docker pull aarch64/java
+ 1798  docker pull mirrors.aliyun.com/aarch64/java
+ 1799  cd rk1808
+ 1800  source envsetup.sh 
+ 1801  cd external/myapp
+ 1802  make
+ 1803  cd rk1808
+ 1804  source envsetup.sh 
+ 1805  cd external/app-meter
+ 1806  sh plc.sh 
+ 1807  cd ..
+ 1808  ls
+ 1809  cd rknpu/rknn/rknn_api/examples/rknn_yolo_demo/
+ 1810  ls
+ 1811  pwd
+ 1812  cmake -D CMAKE_TOOLCHAIN_FILE="/root/rk1808/buildroot/output/rockchip_rk1808/host/usr/share/buildroot/toolchainfile.cmake" .
+ 1813  ls
+ 1814  make
+ 1815  ls
+ 1816  ls rknn_yolo_demo 
+ 1817  cd ../../../
+ 1818  cd ../..
+ 1819  cd ..
+ 1820  find -name libopencv_highgui.so.3.4
+ 1821  cd external/rknpu/rknn/rknn_api/examples/libs/opencv/lib/
+ 1822  ls -al
+ 1823  cd rk1808
+ 1824  grep -rn "_OpenDevice" .
+ 1825  cd rk1808
+ 1826  grep -rn "Failed to open device" .
+ 1827  source envsetup.sh 
+ 1828  cd external/rknpu/rknn/rknn_api/examples/rknn_yolo_demo/
+ 1829  vi src/main.cc 
+ 1830  make
+ 1831  vi src/main.cc 
+ 1832  make
+ 1833  vi src/main.cc 
+ 1834  make
+ 1835  vi src/main.cc 
+ 1836  make
+ 1837  ls
+ 1838  vi model/yolov3.rknn 
+ 1839  tar -vf model/ model.tar
+ 1840  tar -zvf model.tar.gz model/
+ 1841  tar -c
+ 1842  tar -c model.tar.gz model/
+ 1843  tar -czf model.tar.gz model/
+ 1844  ls
+ 1845  tar -cf model.tar model/
+ 1846  ls
+ 1847  rm -f model.tar.gz 
+ 1848  vi model/yolov3.rknn 
+ 1849  ls 
+ 1850  cd ..
+ 1851  ls
+ 1852  cd ..
+ 1853  ls
+ 1854  ls -al librknn_api/lib64/librknn_api.so 
+ 1855  cd ..
+ 1856  ls
+ 1857  cd ..
+ 1858  ls
+ 1859  cd rknpu/rknn/rknn_api/examples/rknn_yolo_demo/
+ 1860  make -m32
+ 1861  vi Makefile 
+ 1862  history
+ 1863  cmake -m32 -D CMAKE_TOOLCHAIN_FILE="/root/rk1808/buildroot/output/rockchip_rk1808/host/usr/share/buildroot/toolchainfile.cmake" .
+ 1864  make
+ 1865  make clean
+ 1866  cmake -m32 -D CMAKE_TOOLCHAIN_FILE="/root/rk1808/buildroot/output/rockchip_rk1808/host/usr/share/buildroot/toolchainfile.cmake" .
+ 1867  make
+ 1868  vi Makefile 
+ 1869  make
+ 1870  make clean
+ 1871  vi Makefile 
+ 1872  make all
+ 1873  cd rk1808
+ 1874  source envsetup.sh 
+ 1875  cd rknpu/rknn/rknn_api/examples/rknn_yolo_demo/
+ 1876  cd external/rknpu/rknn/rknn_api/examples/rknn_yolo_demo/
+ 1877  vi src/main.cc 
+ 1878  cd rk1808
+ 1879  source envsetup.sh 
+ 1880  cd buildroot/
+ 1881  cd ../kernel/
+ 1882  make menuconfig
+ 1883  cd ../buildroot/
+ 1884  make menuconfig
+ 1885  cd ..
+ 1886  find -name rk1808_linux_defconfig
+ 1887  ./build.sh kernel
+ 1888  vi kernel/arch/arm64/configs/rk1808_linux_defconfig
+ 1889  find -name rk1808_linux_defconfig
+ 1890  ls kernel/arch/arm64/configs/
+ 1891  ls
+ 1892  cd ..
+ 1893  ls
+ 1894  ll
+ 1895  ll /home/liusq/work/
+ 1896  cd rk1808
+ 1897  ls
+ 1898  cd rk1808
+ 1899  cd external/rknpu/rknn/rknn_api/examples/rknn_yolo_demo/
+ 1900  vi src/main.cc 
+ 1901  make
+ 1902  vi src/main.cc 
+ 1903  cd rk1808/external/
+ 1904  ls
+ 1905  rknpu
+ 1906  cd rknpu/rknn/rknn_api/librknn_api/lib64/
+ 1907  ls
+ 1908  strings librknn_api.so |grep version
+ 1909  ls -al librknn_api.so 
+ 1910  cd ../lib
+ 1911  ls
+ 1912  strings librknn_api.so |grep version
+ 1913  cd -
+ 1914  cd ../../../../
+ 1915  cd ../
+ 1916  find -name librknn_api.so
+ 1917  strings rockface/sdk/rockface-rk1808-Linux/lib64/librknn_api.so |grep version
+ 1918  strings rockx/sdk/rockx-rk1808-Linux/lib64/librknn_api.so |grep versoin
+ 1919  strings rockx/sdk/rockx-rk1808-Linux/lib64/librknn_api.so |grep version
+ 1920  strings rknn_demo/rknn/rknn_api/librknn_api.so|grep version
+ 1921  strings rknn_demo/rknn/rknn_api/librknn_api.so | grep version
+ 1922  ll rknn_demo/rknn/rknn_api/librknn_api.so
+ 1923  strings rknn_demo/rknn/rknn_api/librknn_api.so | grep rknn_init
+ 1924  strings rknn_demo/rknn/rknn_api/librknn_api.so | grep version
+ 1925  cd rknpu/rknn/rknn_api/librknn_api/lib64/
+ 1926  strings librknn_api.so |grep version
+ 1927  cd /
+ 1928  ~
+ 1929  cd home
+ 1930  cd ..
+ 1931  cd /home/liusq/
+ 1932  cd work/rk1808_linux/
+ 1933  ls
+ 1934  find -name rknn_yv
+ 1935  cd kernel/
+ 1936  git diff
+ 1937  find -name .config
+ 1938  ls
+ 1939  chmod +x check-config.sh 
+ 1940  ./check-config.sh 
+ 1941  ./check-config.sh .config
+ 1942  cd ..
+ 1943  find -name config.gz
+ 1944  kernel
+ 1945  cd kernel/
+ 1946  make menuconfig
+ 1947  cd ..
+ 1948  ./build.sh kernel
+ 1949  cd kernel/
+ 1950  make menuconfig
+ 1951  cd ..
+ 1952  ./build.sh kernel/
+ 1953  ./build.sh kernel
+ 1954  cd kernel/
+ 1955  make menuconfig
+ 1956  vi arch/arm64/configs/rk1808_linux_defconfig
+ 1957  make menuconfig
+ 1958  find -name Kconfig
+ 1959  vi arch/arm64/Kconfig
+ 1960  make menuconfig
+ 1961  vi arch/arm64/Kconfig
+ 1962  git diff
+ 1963  make menuconfig
+ 1964  vi Kconfig 
+ 1965  echo $SRCARCH
+ 1966  echo SRCARCH
+ 1967  echo $(SRCARCH)
+ 1968  echo $SRCARCH
+ 1969  git diff
+ 1970  cd ..
+ 1971  cd rk1808
+ 1972  cd external/app-meter
+ 1973  cd ../..
+ 1974  source envsetup.sh 
+ 1975  cd -
+ 1976  sh plc.sh 
+ 1977  cd rk1808
+ 1978  ls
+ 1979  source envsetup.sh 
+ 1980  cd kernel/
+ 1981  make menuconfig
+ 1982  cd rk1808
+ 1983  ls
+ 1984  cd kernel/
+ 1985  ls
+ 1986  ls drivers/gpio/
+ 1987  vi drivers/gpio/Kconfig 
+ 1988  cd rk1808
+ 1989  source envsetup.sh 
+ 1990  ./build.sh 
+ 1991  find -name *paho-mqtt3as*
+ 1992  cd ..
+ 1993  ll
+ 1994  df -h
+ 1995  passwd
+ 1996  cd /etc/ssh/
+ 1997  ll
+ 1998  vim sshd_config 
+ 1999  ifconfig
+ 2000  shutdown -h 0
+ 2001  cd rk1808
+ 2002  source envsetup.sh 
+ 2003  cd  external/myapp
+ 2004  ls 
+ 2005  ls source/
+ 2006  history
+ 2007  history > /opt/rk.history.2021-3-18.txt
+
