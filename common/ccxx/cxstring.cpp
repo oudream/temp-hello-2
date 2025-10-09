@@ -3,18 +3,18 @@
 using namespace std;
 
 const char f_cHexChar16[16] = {
-    '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'
+        '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'
 };
 
 const bool f_cPathChar[128] = {
-    false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
-    false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
-    false, true, false, true, true, true, true, true, true, true, false, true, true, true, true, false,
-    true, true, true, true, true, true, true, true, true, true, false, true, false, true, false, false,
-    true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true,
-    true, true, true, true, true, true, true, true, true, true, true, true, false, true, true, true,
-    true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true,
-    true, true, true, true, true, true, true, true, true, true, true, true, false, true, true, false
+        false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
+        false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
+        false, true, false, true, true, true, true, true, true, true, false, true, true, true, true, false,
+        true, true, true, true, true, true, true, true, true, true, false, true, false, true, false, false,
+        true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+        true, true, true, true, true, true, true, true, true, true, true, true, false, true, true, true,
+        true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+        true, true, true, true, true, true, true, true, true, true, true, true, false, true, true, false
 };
 
 
@@ -71,7 +71,7 @@ string CxString::toString(const float &f)
 {
     ostringstream outSs;
     outSs.precision(6);
-    outSs<<f;
+    outSs << f;
     return outSs.str();
 //    stringstream ss;
 //    ss << f;
@@ -82,7 +82,7 @@ string CxString::toString(const double &d)
 {
     ostringstream outSs;
     outSs.precision(15);
-    outSs<<d;
+    outSs << d;
     return outSs.str();
 //    stringstream ss;
 //    ss << d;
@@ -855,7 +855,8 @@ string CxString::toHexString(const char *pData, int iLength, bool bHasEmptyChar)
         string sHex(iLength * 3, 0);
         char *hexData = const_cast<char *>( sHex.data());
         const cx::uchar *data = (const cx::uchar *) pData;
-        int i=0;for (; i < iLength; ++i)
+        int i = 0;
+        for (; i < iLength; ++i)
         {
             int j = (data[i] >> 4) & 0xf;
             if (j <= 9)
@@ -876,7 +877,8 @@ string CxString::toHexString(const char *pData, int iLength, bool bHasEmptyChar)
         string sHex(iLength * 2, 0);
         char *hexData = const_cast<char *>( sHex.data());
         const cx::uchar *data = (const cx::uchar *) pData;
-        int i=0;for (; i < iLength; ++i)
+        int i = 0;
+        for (; i < iLength; ++i)
         {
             int j = (data[i] >> 4) & 0xf;
             if (j <= 9)
@@ -900,7 +902,8 @@ string CxString::toHexString(const cx::uchar *pData, int iLength, bool bHasEmpty
         string sHex(iLength * 3, 0);
         char *hexData = const_cast<char *>( sHex.data());
         const cx::uchar *data = (const cx::uchar *) pData;
-        int i=0;for (; i < iLength; ++i)
+        int i = 0;
+        for (; i < iLength; ++i)
         {
             int j = (data[i] >> 4) & 0xf;
             if (j <= 9)
@@ -921,7 +924,8 @@ string CxString::toHexString(const cx::uchar *pData, int iLength, bool bHasEmpty
         string sHex(iLength * 2, 0);
         char *hexData = const_cast<char *>( sHex.data());
         const cx::uchar *data = (const cx::uchar *) pData;
-        int i=0;for (; i < iLength; ++i)
+        int i = 0;
+        for (; i < iLength; ++i)
         {
             int j = (data[i] >> 4) & 0xf;
             if (j <= 9)
@@ -1283,13 +1287,13 @@ cx::uint64 CxString::hexToUint64(const string &s, bool *bOk)
 
 std::string CxString::insertSplit(const string &s, char cSplit, int iStep)
 {
-    if (s.empty() || iStep<=0) return s;
+    if (s.empty() || iStep <= 0) return s;
     int h = s.size() % iStep;
     int g = s.size() / iStep + (h == 0 ? -1 : 0);
     string r = s;
     r.append(g, 0);
-    char *o = (char *)s.c_str();
-    char *p = (char *)r.c_str();
+    char *o = (char *) s.c_str();
+    char *p = (char *) r.c_str();
     int e = r.size();
     int i = iStep;
     int j = iStep;
@@ -1562,10 +1566,11 @@ map<string, string> CxString::splitToMap(const vector<string> &ss, char cMid, bo
 
 std::map<string, string> CxString::splitToMap(const string &s, char kvSep, char pairSep, bool trimWS, bool keepEmptyPair)
 {
-    auto trim = [](std::string& t) {
+    auto trim = [](std::string &t)
+    {
         size_t i = 0, j = t.size();
-        while (i < j && (unsigned char)t[i] <= cx::CHAR_SPACE) ++i;
-        while (j > i && (unsigned char)t[j - 1] <= cx::CHAR_SPACE) --j;
+        while (i < j && (unsigned char) t[i] <= cx::CHAR_SPACE) ++i;
+        while (j > i && (unsigned char) t[j - 1] <= cx::CHAR_SPACE) --j;
         if (i != 0 || j != t.size()) t = t.substr(i, j - i);
     };
 
@@ -1573,25 +1578,37 @@ std::map<string, string> CxString::splitToMap(const string &s, char kvSep, char 
     const size_t n = s.size();
     size_t i = 0;
 
-    while (i < n) {
+    while (i < n)
+    {
         size_t segEnd = s.find(pairSep, i);
         if (segEnd == std::string::npos) segEnd = n;
 
-        if (segEnd == i) {
-            if (!keepEmptyPair) { i = segEnd + (segEnd < n); continue; }
+        if (segEnd == i)
+        {
+            if (!keepEmptyPair)
+            {
+                i = segEnd + (segEnd < n);
+                continue;
+            }
         }
 
         size_t eq = s.find(kvSep, i);
-        if (eq == std::string::npos || eq >= segEnd) {
+        if (eq == std::string::npos || eq >= segEnd)
+        {
             i = segEnd + (segEnd < n);
             continue;
         }
 
         std::string key = s.substr(i, eq - i);
         std::string val = s.substr(eq + 1, segEnd - (eq + 1));
-        if (trimWS) { trim(key); trim(val); }
+        if (trimWS)
+        {
+            trim(key);
+            trim(val);
+        }
 
-        if (!key.empty()) {
+        if (!key.empty())
+        {
             out[key] = val;
         }
 
@@ -1700,7 +1717,9 @@ std::map<string, string> CxString::splitToMap_mix(const string &ss, char cMid, c
     }
     return r;
 }
-int CxString::count(const std::string& ss, const char cCharacter){
+
+int CxString::count(const std::string &ss, const char cCharacter)
+{
     int nCount = 0;
     size_t start = 0;
     size_t end;
@@ -1715,7 +1734,8 @@ int CxString::count(const std::string& ss, const char cCharacter){
     return nCount;
 }
 
-int CxString::count(const std::string& ss, const std::string& sSub){
+int CxString::count(const std::string &ss, const std::string &sSub)
+{
     int nCount = 0;
     size_t start = 0;
     size_t end;
@@ -2084,19 +2104,19 @@ string CxString::trim(const string &s, const string &sDelete)
 }
 
 
-string   CxString::trimAll(const string &src,char cDelete)
+string CxString::trimAll(const string &src, char cDelete)
 {
-     string s = src;
-     int index = 0;
-     if( !s.empty())
-     {
-       while((index = s.find(cDelete,index)) != string::npos)
-       {
-           s.erase(index,1);
+    string s = src;
+    int index = 0;
+    if (!s.empty())
+    {
+        while ((index = s.find(cDelete, index)) != string::npos)
+        {
+            s.erase(index, 1);
         }
     }
     return s;
- }
+}
 
 
 void fn_lower(char *str)
@@ -2304,9 +2324,9 @@ string CxString::format(const char *sFormat, ...)
 {
     char buffer[4096];
     va_list args;
-    va_start (args, sFormat);
+            va_start (args, sFormat);
     vsnprintf(buffer, sizeof(buffer), sFormat, args);
-    va_end (args);
+            va_end (args);
     return buffer;
 }
 
@@ -2572,13 +2592,13 @@ int CxString::lengthCString(int n, ...)
 {
     int rSize = 0;
     va_list vl;
-    va_start(vl, n);
+            va_start(vl, n);
     for (int i = 0; i < n; ++i)
     {
         char *pch = va_arg(vl, char *);
         rSize += strlen(pch);
     }
-    va_end(vl);
+            va_end(vl);
     return rSize + n;
 }
 
@@ -2587,7 +2607,7 @@ int CxString::copyCString(char *dest, int n, ...)
     int rSize = 0;
     int iSize = 0;
     va_list vl;
-    va_start(vl, n);
+            va_start(vl, n);
     for (int i = 0; i < n; ++i)
     {
         char *pch = va_arg(vl, char *);
@@ -2596,7 +2616,7 @@ int CxString::copyCString(char *dest, int n, ...)
         dest += iSize;
         rSize += iSize;
     }
-    va_end(vl);
+            va_end(vl);
     return rSize;
 }
 
@@ -3007,7 +3027,7 @@ std::wstring CxString::toWstring(const std::string &sSrc)
     r.resize(nLen, L' ');
 
     size_t nResult = mbstowcs((wchar_t *) r.c_str(), (const char *) sSrc.c_str(), nLen);
-    if (nResult<=0) r = std::wstring();
+    if (nResult <= 0) r = std::wstring();
     //MultiByteToWideChar(CP_ACP,0,(LPCSTR)sSrc.c_str(),nLen,(LPWSTR)r.c_str(),nLen);
     return r;
 }
@@ -3020,7 +3040,7 @@ std::string CxString::fromWstring(const std::wstring &sSrc)
 
     size_t nResult = wcstombs((char *) r.c_str(), (wchar_t *) sSrc.c_str(), nLen);
     //WideCharToMultiByte(CP_ACP,0,(LPCWSTR)sSrc.c_str(),nLen,(LPSTR)r.c_str(),nLen,nullptr,nullptr);
-    if(nResult<=0) r = std::string{};
+    if (nResult <= 0) r = std::string{};
     return r;
 }
 
@@ -3094,15 +3114,16 @@ CxString::equal(const std::vector<std::string> &ss1, const std::vector<std::stri
     return true;
 }
 
-std::vector<std::pair<const char*, int>> CxString::splitToPair(const char* src, int srcLen, int splitSize)
+std::vector<std::pair<const char *, int>> CxString::splitToPair(const char *src, int srcLen, int splitSize)
 {
-    std::vector<std::pair<const char*, int>> result;
+    std::vector<std::pair<const char *, int>> result;
     if (splitSize == 0 || src == nullptr)
         return result;
 
     result.reserve((srcLen + splitSize - 1) / splitSize);
 
-    for (int i = 0; i < srcLen; i += splitSize) {
+    for (int i = 0; i < srcLen; i += splitSize)
+    {
         int len = (std::min)(splitSize, srcLen - i);
         result.emplace_back(src + i, len);
     }

@@ -38,14 +38,16 @@ class CCXX_EXPORT CxUuid
 public:
     static std::string createGuidString();
 
-    static std::string guidToString(const GUID & guid);
+    static std::string guidToString(const GUID &guid);
 
-    static GUID guidFromString(const std::string & sGuidString);
+    static GUID guidFromString(const std::string &sGuidString);
 
 #ifdef __ANDROID__
     static GUID createGuid(JNIEnv *env);
 #else
+
     static GUID createGuid();
+
 #endif
 };
 

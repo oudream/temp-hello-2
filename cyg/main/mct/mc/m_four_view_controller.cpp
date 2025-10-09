@@ -77,7 +77,7 @@ bool FourViewController::loadVtiFile(const QString &file)
         reader->Update();
 
         if (errObs->GetError()) {
-            LogHelper::Warning() << "VTK load error:" << errObs->GetErrorMessage();
+//            LogHelper::Warning() << "VTK load error:" << errObs->GetErrorMessage();
             return false;
         }
 

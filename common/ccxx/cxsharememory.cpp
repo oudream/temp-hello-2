@@ -33,7 +33,7 @@
 #define INSERT_OFFSET   0
 #endif
 
-static  bool use_mapping = true;
+static bool use_mapping = true;
 
 void CxShareMemory::disable()
 {
@@ -79,20 +79,20 @@ bool CxShareMemory::create(const char *fn, size_t len)
     used = 0;
     map = nullptr;
 
-    if(!use_mapping)
+    if (!use_mapping)
     {
         assert(len > 0);    // cannot use dummy for r/o...
-        map = (cx::caddr_t)malloc(len);
-        if(!map)fault();
+        map = (cx::caddr_t) malloc(len);
+        if (!map)fault();
 
         size = len;
         return true;
     }
 
-    if(*fn == '/')
+    if (*fn == '/')
         ++fn;
 
-    if(len)
+    if (len)
     {
         mode |= GENERIC_WRITE;
         share |= FILE_SHARE_WRITE;
@@ -101,11 +101,11 @@ bool CxShareMemory::create(const char *fn, size_t len)
     else
         fd = OpenFileMapping(FILE_MAP_ALL_ACCESS, FALSE, fn);
 
-    if(fd == INVALID_HANDLE_VALUE || fd == nullptr)
+    if (fd == INVALID_HANDLE_VALUE || fd == nullptr)
         return false;
 
-    map = (cx::caddr_t)MapViewOfFile(fd, FILE_MAP_ALL_ACCESS, 0, 0, len);
-    if(map)
+    map = (cx::caddr_t) MapViewOfFile(fd, FILE_MAP_ALL_ACCESS, 0, 0, len);
+    if (map)
     {
         size = len;
         VirtualLock(map, size);
@@ -130,20 +130,24 @@ void CxShareMemory::remove(const char *id)
 
 void CxShareMemory::release()
 {
-    if(map) {
-        if(use_mapping) {
+    if (map)
+    {
+        if (use_mapping)
+        {
             VirtualUnlock(map, size);
             UnmapViewOfFile(fd);
             CloseHandle(fd);
             map = nullptr;
             fd = INVALID_HANDLE_VALUE;
         }
-        else {
+        else
+        {
             free(map);
             map = nullptr;
         }
     }
-    if(erase) {
+    if (erase)
+    {
         remove(idname);
         erase = false;
     }
@@ -326,17 +330,17 @@ bool CxShareMemory::create(const char *fn, size_t len)
         prot |= PROT_WRITE;
         fd = shm_open(fn, O_RDWR | O_CREAT, 0664);
         if(fd > -1) {
-            #ifdef __APPLE__
+#ifdef __APPLE__
                 if(ftruncate(fd, len)==-1) {
                     ::close(fd);
                     fd = -1;
                 }
-            #else
+#else
                 if(ftruncate(fd, len)) {
                     ::close(fd);
                     fd = -1;
                 }
-            #endif
+#endif
         }
     }
     else {
@@ -425,8 +429,8 @@ void CxShareMemory::fault() const
 void *CxShareMemory::sbrk(size_t len)
 {
     assert(len > 0);
-    void *mp = (void *)(map + used);
-    if(used + len > size)
+    void *mp = (void *) (map + used);
+    if (used + len > size)
         fault();
     used += len;
     return mp;
@@ -434,44 +438,48 @@ void *CxShareMemory::sbrk(size_t len)
 
 bool CxShareMemory::copy(size_t offset, void *buffer, size_t bufsize) const
 {
-    if(!map || (offset + bufsize > size)) {
+    if (!map || (offset + bufsize > size))
+    {
         fault();
         return false;
     }
 
-    const void *member = (const void *)(map + offset);
+    const void *member = (const void *) (map + offset);
 
-    do {
+    do
+    {
         memcpy(buffer, member, bufsize);
-    } while(memcmp(buffer, member, bufsize));
+    }
+    while (memcmp(buffer, member, bufsize));
 
     return true;
 }
 
 void *CxShareMemory::offset(size_t offset) const
 {
-    if(offset >= size)
+    if (offset >= size)
         return nullptr;
-    return (void *)(map + offset);
+    return (void *) (map + offset);
 }
 
 char *CxShareMemory::set(char *str, size_t size, const char *s)
 {
-    if(!str)
+    if (!str)
         return nullptr;
 
-    if(size < 2)
+    if (size < 2)
         return str;
 
-    if(!s)
+    if (!s)
         s = "";
 
     size_t l = strlen(s);
 
-    if(l >= size)
+    if (l >= size)
         l = size - 1;
 
-    if(!l) {
+    if (!l)
+    {
         *str = 0;
         return str;
     }

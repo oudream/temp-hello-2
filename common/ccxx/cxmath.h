@@ -7,10 +7,10 @@ class CCXX_EXPORT CxMath
 {
 public:
     // The greatest common divisor
-    static int gcd(int a,int b);
+    static int gcd(int a, int b);
 
     // The least common multiple
-    static int lcm(int a,int b);
+    static int lcm(int a, int b);
 
     //
     static int random(int iMax = 0);

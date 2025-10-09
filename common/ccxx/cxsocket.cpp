@@ -43,8 +43,9 @@
 
 typedef struct multicast_internet
 {
-    union {
-        struct ip_mreq  ipv4;
+    union
+    {
+        struct ip_mreq ipv4;
 #ifdef  AF_INET6
         struct ipv6_mreq ipv6;
 #endif
@@ -97,7 +98,7 @@ static int v6only = 0;
 
 static void socket_mapping(int family, cx::socket_t so)
 {
-    if(so == INVALID_SOCKET)
+    if (so == INVALID_SOCKET)
         return;
 
 #if defined(IPV6_V6ONLY) && defined(IPPROTO_IPV6)
@@ -116,7 +117,7 @@ static volatile int f_iWinsockStartup = 0;
 
 static void _socketcleanup()
 {
-    while (f_iWinsockStartup>0)
+    while (f_iWinsockStartup > 0)
     {
         --f_iWinsockStartup;
         WSACleanup();
@@ -127,9 +128,12 @@ static void _socketcleanup()
 //*win32
 #ifdef _WIN32
 extern "C" {
-inline char *cx_strdup(const char *s) { return _strdup(s); }
-inline int cx_stricmp(const char *s1, const char *s2) { return _stricmp(s1, s2); }
-inline int cx_strnicmp(const char *s1, const char *s2, size_t l) { return _strnicmp(s1, s2, l); }
+inline char *cx_strdup(const char *s)
+{ return _strdup(s); }
+inline int cx_stricmp(const char *s1, const char *s2)
+{ return _stricmp(s1, s2); }
+inline int cx_strnicmp(const char *s1, const char *s2, size_t l)
+{ return _strnicmp(s1, s2, l); }
 }
 #elif defined(__PTH__)
 #define cx_strdup                   strdup
@@ -150,18 +154,19 @@ inline int cx_strnicmp(const char *s1, const char *s2, size_t l) { return _strni
 
 void CxSocket::init()
 {
-    if(f_iWinsockStartup > 0)
+    if (f_iWinsockStartup > 0)
         return;
 
-    unsigned short version = MAKEWORD(2,2);
+    unsigned short version = MAKEWORD(2, 2);
     WSADATA status;
     status.wVersion = 0;
     WSAStartup(version, &status);
 
-    CX_ASSERT_MSG( status.wVersion == version, "socket init failure" );
+    CX_ASSERT_MSG(status.wVersion == version, "socket init failure");
     atexit(_socketcleanup);
     ++f_iWinsockStartup;
 }
+
 #else
 void CxSocket::init()
 {
@@ -204,81 +209,83 @@ void CxSocket::init(const char *progname)
 
 void CxSocket::v4mapping(bool enable)
 {
-    if(enable)
+    if (enable)
         v6only = 0;
     else
         v6only = 1;
 }
 
 #ifdef  _WIN32
+
 int CxSocket::error()
 {
-    switch(WSAGetLastError())
+    switch (WSAGetLastError())
     {
-    case WSANOTINITIALISED:
-    case WSAENETDOWN:
-    case WSASYSNOTREADY:
-        return ENETDOWN;
-    case WSAEFAULT:
-        return EFAULT;
-    case WSAEINTR:
-    case WSAECANCELLED:
-    case WSA_OPERATION_ABORTED:
-    case WSA_IO_INCOMPLETE:
-    case WSASYSCALLFAILURE:
-    case WSA_E_CANCELLED:
-        return EINTR;
-    case WSA_IO_PENDING:
-    case WSAEINPROGRESS:
-        return EINPROGRESS;
-    case WSAEINVAL:
-        return EINVAL;
-    case WSAEMFILE:
-        return EMFILE;
-    case WSAENETUNREACH:
-        return ENETUNREACH;
-    case WSAENOBUFS:
-    case WSAETOOMANYREFS:
-    case WSA_NOT_ENOUGH_MEMORY:
-        return ENOMEM;
-    case WSAEACCES:
-        return EACCES;
-    case WSAEBADF:
-    case WSAENOTSOCK:
-    case WSA_INVALID_HANDLE:
-        return EBADF;
-    case WSAEOPNOTSUPP:
-        return ENOSYS;
-    case WSAEWOULDBLOCK:
-    case WSAEALREADY:
-        return EAGAIN;
-    case WSAENOPROTOOPT:
-        return ENOPROTOOPT;
-    case WSAEADDRINUSE:
-        return EADDRINUSE;
-    case WSAENETRESET:
-        return ENETRESET;
-    case WSAECONNABORTED:
-        return ECONNABORTED;
-    case WSAECONNRESET:
-        return ECONNRESET;
-    case WSAEISCONN:
-        return EISCONN;
-    case WSAENOTCONN:
-        return ENOTCONN;
-    case WSAESHUTDOWN:
-        return ESHUTDOWN;
-    case WSAETIMEDOUT:
-        return ETIMEDOUT;
-    case WSAECONNREFUSED:
-        return ECONNREFUSED;
-    case WSAEHOSTDOWN:
-        return EHOSTDOWN;
-    case WSAEHOSTUNREACH:
-        return EHOSTUNREACH;
+        case WSANOTINITIALISED:
+        case WSAENETDOWN:
+        case WSASYSNOTREADY:
+            return ENETDOWN;
+        case WSAEFAULT:
+            return EFAULT;
+        case WSAEINTR:
+        case WSAECANCELLED:
+        case WSA_OPERATION_ABORTED:
+        case WSA_IO_INCOMPLETE:
+        case WSASYSCALLFAILURE:
+        case WSA_E_CANCELLED:
+            return EINTR;
+        case WSA_IO_PENDING:
+        case WSAEINPROGRESS:
+            return EINPROGRESS;
+        case WSAEINVAL:
+            return EINVAL;
+        case WSAEMFILE:
+            return EMFILE;
+        case WSAENETUNREACH:
+            return ENETUNREACH;
+        case WSAENOBUFS:
+        case WSAETOOMANYREFS:
+        case WSA_NOT_ENOUGH_MEMORY:
+            return ENOMEM;
+        case WSAEACCES:
+            return EACCES;
+        case WSAEBADF:
+        case WSAENOTSOCK:
+        case WSA_INVALID_HANDLE:
+            return EBADF;
+        case WSAEOPNOTSUPP:
+            return ENOSYS;
+        case WSAEWOULDBLOCK:
+        case WSAEALREADY:
+            return EAGAIN;
+        case WSAENOPROTOOPT:
+            return ENOPROTOOPT;
+        case WSAEADDRINUSE:
+            return EADDRINUSE;
+        case WSAENETRESET:
+            return ENETRESET;
+        case WSAECONNABORTED:
+            return ECONNABORTED;
+        case WSAECONNRESET:
+            return ECONNRESET;
+        case WSAEISCONN:
+            return EISCONN;
+        case WSAENOTCONN:
+            return ENOTCONN;
+        case WSAESHUTDOWN:
+            return ESHUTDOWN;
+        case WSAETIMEDOUT:
+            return ETIMEDOUT;
+        case WSAECONNREFUSED:
+            return ECONNREFUSED;
+        case WSAEHOSTDOWN:
+            return EHOSTDOWN;
+        case WSAEHOSTUNREACH:
+            return EHOSTUNREACH;
     }
     return EINVAL;
 }
+
 #else
 int CxSocket::error()
 {
@@ -291,14 +298,14 @@ bool CxSocket::is_null(const char *str)
 {
     assert(str != nullptr);
 
-    while(*str && strchr("0:.*", *str) != nullptr)
+    while (*str && strchr("0:.*", *str) != nullptr)
         ++str;
 
     // allow field separation...
-    if(*str <= ' ')
+    if (*str <= ' ')
         return true;
 
-    if(*str)
+    if (*str)
         return false;
 
     return true;
@@ -309,17 +316,17 @@ bool CxSocket::is_numeric(const char *str)
     assert(str != nullptr);
 
     // if raw ipv6, then we can just exit, no chance to confuse with names
-    if(strchr(str, ':'))
+    if (strchr(str, ':'))
         return true;
 
-    while(*str && strchr("0123456789.", *str) != nullptr)
+    while (*str && strchr("0123456789.", *str) != nullptr)
         ++str;
 
     // allow field separators
-    if(*str <= ' ')
+    if (*str <= ' ')
         return true;
 
-    if(*str)
+    if (*str)
         return false;
 
     return true;
@@ -328,20 +335,20 @@ bool CxSocket::is_numeric(const char *str)
 int CxSocket::local(cx::socket_t sock, struct sockaddr_storage *addr)
 {
     socklen_t slen = sizeof(sockaddr_storage);
-    return _getsockname_(sock, (struct sockaddr *)addr, &slen);
+    return _getsockname_(sock, (struct sockaddr *) addr, &slen);
 }
 
 int CxSocket::remote(cx::socket_t sock, struct sockaddr_storage *addr)
 {
     socklen_t slen = sizeof(sockaddr_storage);
-    return _getpeername_(sock, (struct sockaddr *)addr, &slen);
+    return _getpeername_(sock, (struct sockaddr *) addr, &slen);
 }
 
 int CxSocket::type(cx::socket_t so)
 {
     int sotype;
     socklen_t slen = sizeof(sotype);
-    if(getsockopt(so, SOL_SOCKET, SO_TYPE, (cx::caddr_t)&sotype, &slen))
+    if (getsockopt(so, SOL_SOCKET, SO_TYPE, (cx::caddr_t) &sotype, &slen))
         return 0;
     return sotype;
 }
@@ -352,22 +359,23 @@ unsigned CxSocket::segsize(cx::socket_t so, unsigned size)
     socklen_t alen = sizeof(size);
 #endif
 
-    switch(type(so)) {
-    case SOCK_STREAM:
+    switch (type(so))
+    {
+        case SOCK_STREAM:
 #ifdef  TCP_MAXSEG
-        if(size)
-            setsockopt(so, IPPROTO_TCP, TCP_MAXSEG, (char *)&size, sizeof(size));
+            if (size)
+                setsockopt(so, IPPROTO_TCP, TCP_MAXSEG, (char *) &size, sizeof(size));
 #endif
-        break;
-    case SOCK_DCCP:
+            break;
+        case SOCK_DCCP:
 #ifdef  DCCP_MAXSEG
-        if(size)
-            setsockopt(so, IPPROTO_DCCP, DCCP_MAXSEG, (char *)&size, sizeof(size));
+            if(size)
+                setsockopt(so, IPPROTO_DCCP, DCCP_MAXSEG, (char *)&size, sizeof(size));
 #endif
-        break;
+            break;
     }
 #ifdef  IP_MTU
-    getsockopt(so, IPPROTO_IP, IP_MTU, (char*)(&size), &alen);
+    getsockopt(so, IPPROTO_IP, IP_MTU, (char *) (&size), &alen);
 #else
     size = 0;
 #endif
@@ -381,20 +389,22 @@ bool CxSocket::ccid(cx::socket_t so, cx::uint8 ccid)
     bool supported = false;
 
     // maybe also not dccp socket...
-    if(getsockopt(so, SOL_DCCP, DCCP_SOCKOPT_AVAILABLE_CCIDS, (char *)&ccids, &len) < 0)
+    if (getsockopt(so, SOL_DCCP, DCCP_SOCKOPT_AVAILABLE_CCIDS, (char *) &ccids, &len) < 0)
         return false;
 
-    for(unsigned pos = 0; pos < sizeof(ccids); ++pos) {
-        if(ccid == ccids[pos]) {
+    for (unsigned pos = 0; pos < sizeof(ccids); ++pos)
+    {
+        if (ccid == ccids[pos])
+        {
             supported = true;
             break;
         }
     }
 
-    if(!supported)
+    if (!supported)
         return false;
 
-    if(setsockopt(so, SOL_DCCP, DCCP_SOCKOPT_CCID, (char *)&ccid, sizeof(ccid)) < 0)
+    if (setsockopt(so, SOL_DCCP, DCCP_SOCKOPT_CCID, (char *) &ccid, sizeof(ccid)) < 0)
         return false;
 
     return true;
@@ -406,7 +416,7 @@ ssize_t CxSocket::recvinet(cx::socket_t so, void *data, size_t len, int flags, s
     assert(len > 0);
 
     socklen_t slen = sizeof(struct sockaddr_internet);
-    return _recvfrom_(so, (cx::caddr_t)data, len, flags, (struct sockaddr *)addr, &slen);
+    return _recvfrom_(so, (cx::caddr_t) data, len, flags, (struct sockaddr *) addr, &slen);
 }
 
 ssize_t CxSocket::recv(cx::socket_t so, void *data, size_t len, int flags)
@@ -414,7 +424,7 @@ ssize_t CxSocket::recv(cx::socket_t so, void *data, size_t len, int flags)
     assert(data != nullptr);
     assert(len > 0);
 
-    return _recv_(so, (cx::caddr_t)data, len, flags);
+    return _recv_(so, (cx::caddr_t) data, len, flags);
 }
 
 ssize_t CxSocket::recvfrom(cx::socket_t so, void *data, size_t len, int flags, struct sockaddr_storage *addr)
@@ -423,7 +433,7 @@ ssize_t CxSocket::recvfrom(cx::socket_t so, void *data, size_t len, int flags, s
     assert(len > 0);
 
     socklen_t slen = sizeof(struct sockaddr_storage);
-    return _recvfrom_(so, (cx::caddr_t)data, len, flags, (struct sockaddr *)addr, &slen);
+    return _recvfrom_(so, (cx::caddr_t) data, len, flags, (struct sockaddr *) addr, &slen);
 }
 
 size_t CxSocket::readfrom(void *data, size_t len, struct sockaddr_storage *from)
@@ -432,17 +442,18 @@ size_t CxSocket::readfrom(void *data, size_t len, struct sockaddr_storage *from)
     assert(len > 0);
 
     // wait for input by timer if possible...
-    if(iowait && iowait != cx::LONG_MINUS_ONE && !CxSocket::wait(so, iowait))
+    if (iowait && iowait != cx::LONG_MINUS_ONE && !CxSocket::wait(so, iowait))
         return 0;
 
     socklen_t slen = sizeof(struct sockaddr_storage);
-    ssize_t result = _recvfrom_(so, (cx::caddr_t)data, len, 0, (struct sockaddr *)from, &slen);
+    ssize_t result = _recvfrom_(so, (cx::caddr_t) data, len, 0, (struct sockaddr *) from, &slen);
 
-    if(result < 0) {
+    if (result < 0)
+    {
         ioerr = CxSocket::error();
         return 0;
     }
-    return (size_t)result;
+    return (size_t) result;
 }
 
 ssize_t CxSocket::send(cx::socket_t so, const void *data, size_t dlen, int flags)
@@ -450,7 +461,7 @@ ssize_t CxSocket::send(cx::socket_t so, const void *data, size_t dlen, int flags
     assert(data != nullptr);
     assert(dlen > 0);
 
-    return _send_(so, (cx::caddr_t)data, dlen, MSG_NOSIGNAL | flags);
+    return _send_(so, (cx::caddr_t) data, dlen, MSG_NOSIGNAL | flags);
 }
 
 ssize_t CxSocket::sendto(cx::socket_t so, const void *data, size_t dlen, int flags, const struct sockaddr *dest)
@@ -459,10 +470,10 @@ ssize_t CxSocket::sendto(cx::socket_t so, const void *data, size_t dlen, int fla
     assert(dlen > 0);
 
     socklen_t slen = 0;
-    if(dest)
+    if (dest)
         slen = len(dest);
 
-    return _sendto_(so, (cx::caddr_t)data, dlen, MSG_NOSIGNAL | flags, dest, slen);
+    return _sendto_(so, (cx::caddr_t) data, dlen, MSG_NOSIGNAL | flags, dest, slen);
 }
 
 size_t CxSocket::write(const void *data, size_t dlen)
@@ -470,12 +481,13 @@ size_t CxSocket::write(const void *data, size_t dlen)
     assert(data != nullptr);
     assert(dlen > 0);
 
-    ssize_t result = _send_(so, (cx::caddr_t)data, dlen, MSG_NOSIGNAL);
-    if(result < 0) {
+    ssize_t result = _send_(so, (cx::caddr_t) data, dlen, MSG_NOSIGNAL);
+    if (result < 0)
+    {
         ioerr = CxSocket::error();
         return 0;
     }
-    return (size_t)result;
+    return (size_t) result;
 }
 
 size_t CxSocket::writeto(const void *data, size_t dlen, const struct sockaddr *dest)
@@ -484,23 +496,24 @@ size_t CxSocket::writeto(const void *data, size_t dlen, const struct sockaddr *d
     assert(dlen > 0);
 
     socklen_t slen = 0;
-    if(dest)
+    if (dest)
         slen = len(dest);
 
-    ssize_t result = _sendto_(so, (cx::caddr_t)data, dlen, MSG_NOSIGNAL, dest, slen);
-    if(result < 0) {
+    ssize_t result = _sendto_(so, (cx::caddr_t) data, dlen, MSG_NOSIGNAL, dest, slen);
+    if (result < 0)
+    {
         ioerr = CxSocket::error();
         return 0;
     }
-    return (size_t)result;
+    return (size_t) result;
 }
 
 size_t CxSocket::writes(const char *str)
 {
-    if(!str)
+    if (!str)
         return 0;
 
-    if(!*str)
+    if (!*str)
         return 0;
 
     return writeto(str, strlen(str), nullptr);
@@ -514,11 +527,12 @@ size_t CxSocket::readline(char *data, size_t max)
     *data = 0;
 
     ssize_t result = CxSocket::readline(so, data, max, iowait);
-    if(result < 0) {
+    if (result < 0)
+    {
         ioerr = CxSocket::error();
         return 0;
     }
-    return (size_t)result;
+    return (size_t) result;
 }
 
 ssize_t CxSocket::readline(cx::socket_t so, char *data, size_t max, cx::timems_t timeout)
@@ -531,25 +545,29 @@ ssize_t CxSocket::readline(cx::socket_t so, char *data, size_t max, cx::timems_t
     int nleft = max - 1;        // leave space for null byte
     int nstat, c;
 
-    if(max < 1)
+    if (max < 1)
         return -1;
 
     data[0] = 0;
-    while(nleft && !nl) {
-        if(timeout) {
-            if(!wait(so, timeout))
+    while (nleft && !nl)
+    {
+        if (timeout)
+        {
+            if (!wait(so, timeout))
                 return 0;
         }
         nstat = _recv_(so, data, nleft, MSG_PEEK);
-        if(nstat < 0)
+        if (nstat < 0)
             return -1;
 
-        if(nstat == 0)
+        if (nstat == 0)
             return max - nleft - 1;
 
-        for(c = 0; c < nstat; ++c) {
-            if(data[c] == '\n') {
-                if(c > 0 && data[c - 1] == '\r')
+        for (c = 0; c < nstat; ++c)
+        {
+            if (data[c] == '\n')
+            {
+                if (c > 0 && data[c - 1] == '\r')
                     crlf = true;
                 ++c;
                 nl = true;
@@ -557,11 +575,12 @@ ssize_t CxSocket::readline(cx::socket_t so, char *data, size_t max, cx::timems_t
             }
         }
 
-        nstat = _recv_(so, (cx::caddr_t)data, c, 0);
-        if(nstat < 0)
+        nstat = _recv_(so, (cx::caddr_t) data, c, 0);
+        if (nstat < 0)
             break;
 
-        if(crlf) {
+        if (crlf)
+        {
             --nstat;
             data[nstat - 1] = '\n';
         }
@@ -570,7 +589,7 @@ ssize_t CxSocket::readline(cx::socket_t so, char *data, size_t max, cx::timems_t
         nleft -= nstat;
     }
 
-    if(nl)
+    if (nl)
         --data;
 
     *data = 0;
@@ -579,77 +598,81 @@ ssize_t CxSocket::readline(cx::socket_t so, char *data, size_t max, cx::timems_t
 
 int CxSocket::loopback(cx::socket_t so, bool enable)
 {
-    union {
+    union
+    {
         struct sockaddr_storage saddr;
         struct sockaddr_in inaddr;
     } us;
 
-    struct sockaddr *addr = (struct sockaddr *)&us.saddr;
+    struct sockaddr *addr = (struct sockaddr *) &us.saddr;
     int family;
     socklen_t len = sizeof(us.saddr);
     int opt = 0;
 
-    if(enable)
+    if (enable)
         opt = 1;
 
-    if(so == INVALID_SOCKET)
+    if (so == INVALID_SOCKET)
         return EBADF;
 
     _getsockname_(so, addr, &len);
     family = us.inaddr.sin_family;
-    switch(family) {
-    case AF_INET:
-        if(!setsockopt(so, IPPROTO_IP, IP_MULTICAST_LOOP, (char *)&opt, sizeof(opt)))
-            return 0;
-        break;
+    switch (family)
+    {
+        case AF_INET:
+            if (!setsockopt(so, IPPROTO_IP, IP_MULTICAST_LOOP, (char *) &opt, sizeof(opt)))
+                return 0;
+            break;
 #if defined(AF_INET6) && defined(IPROTO_IPV6)
-    case AF_INET6:
-        if(!setsockopt(so, IPPROTO_IPV6, IPV6_MULTICAST_LOOP, (char *)&opt, sizeof(opt)))
-            return 0;
+            case AF_INET6:
+                if(!setsockopt(so, IPPROTO_IPV6, IPV6_MULTICAST_LOOP, (char *)&opt, sizeof(opt)))
+                    return 0;
 #endif
     }
     int err = CxSocket::error();
-    if(!err)
+    if (!err)
         err = EIO;
     return err;
 }
 
 int CxSocket::ttl(cx::socket_t so, unsigned char t)
 {
-    union {
+    union
+    {
         struct sockaddr_storage saddr;
         struct sockaddr_in inaddr;
     } us;
 
-    struct sockaddr *addr = (struct sockaddr *)&us.saddr;
+    struct sockaddr *addr = (struct sockaddr *) &us.saddr;
     int family;
     socklen_t len = sizeof(us.saddr);
 
-    if(so == INVALID_SOCKET)
+    if (so == INVALID_SOCKET)
         return EBADF;
 
     _getsockname_(so, addr, &len);
     family = us.inaddr.sin_family;
-    switch(family) {
-    case AF_INET:
-        if(!setsockopt(so, IPPROTO_IP, IP_TTL, (char *)&t, sizeof(t)))
-            return 0;
-        break;
+    switch (family)
+    {
+        case AF_INET:
+            if (!setsockopt(so, IPPROTO_IP, IP_TTL, (char *) &t, sizeof(t)))
+                return 0;
+            break;
 #if defined(AF_INET6) && defined(IPPROTO_IPV6)
-    case AF_INET6:
-        if(!setsockopt(so, IPPROTO_IPV6, IPV6_UNICAST_HOPS, (char *)&t, sizeof(t)))
-            return 0;
+            case AF_INET6:
+                if(!setsockopt(so, IPPROTO_IPV6, IPV6_UNICAST_HOPS, (char *)&t, sizeof(t)))
+                    return 0;
 #endif
     }
     int err = CxSocket::error();
-    if(!err)
+    if (!err)
         err = EIO;
     return err;
 }
 
 int CxSocket::priority(cx::socket_t so, int pri)
 {
-    if(so == INVALID_SOCKET)
+    if (so == INVALID_SOCKET)
         return EBADF;
 #ifdef  SO_PRIORITY
     if(!setsockopt(so, SOL_SOCKET, SO_PRIORITY, (char *)&pri, (socklen_t)sizeof(pri)))
@@ -665,15 +688,15 @@ int CxSocket::priority(cx::socket_t so, int pri)
 
 int CxSocket::tos(cx::socket_t so, int ts)
 {
-    if(so == INVALID_SOCKET)
+    if (so == INVALID_SOCKET)
         return EBADF;
 
 #ifdef  SOL_IP
-    if(!setsockopt(so, SOL_IP, IP_TOS,(char *)&ts, (socklen_t)sizeof(ts)))
+    if (!setsockopt(so, SOL_IP, IP_TOS, (char *) &ts, (socklen_t) sizeof(ts)))
         return 0;
 
     int err = CxSocket::error();
-    if(!err)
+    if (!err)
         err = EIO;
     return err;
 #else
@@ -683,22 +706,22 @@ int CxSocket::tos(cx::socket_t so, int ts)
 
 int CxSocket::broadcast(cx::socket_t so, bool enable)
 {
-    if(so == INVALID_SOCKET)
+    if (so == INVALID_SOCKET)
         return EBADF;
     int opt = (enable ? 1 : 0);
-    if(!::setsockopt(so, SOL_SOCKET, SO_BROADCAST,
-              (char *)&opt, (socklen_t)sizeof(opt)))
+    if (!::setsockopt(so, SOL_SOCKET, SO_BROADCAST,
+                      (char *) &opt, (socklen_t) sizeof(opt)))
         return 0;
 
     int err = CxSocket::error();
-    if(!err)
+    if (!err)
         err = EIO;
     return err;
 }
 
 int CxSocket::nodelay(cx::socket_t so)
 {
-    if(so == INVALID_SOCKET)
+    if (so == INVALID_SOCKET)
         return EBADF;
 //#if defined(TCP_NODELAY)
 #ifndef _WIN32
@@ -710,21 +733,21 @@ int CxSocket::nodelay(cx::socket_t so)
     return ENOSYS;
 #endif
     int err = CxSocket::error();
-    if(!err)
+    if (!err)
         err = EIO;
     return err;
 }
 
 int CxSocket::keepalive(cx::socket_t so, bool enable)
 {
-    if(so == INVALID_SOCKET)
+    if (so == INVALID_SOCKET)
         return EBADF;
 #if defined(SO_KEEPALIVE) || defined(_WIN32)
     int opt = (enable ? ~0 : 0);
-    if(!::setsockopt(so, SOL_SOCKET, SO_KEEPALIVE, (char *)&opt, (socklen_t)sizeof(opt)))
+    if (!::setsockopt(so, SOL_SOCKET, SO_KEEPALIVE, (char *) &opt, (socklen_t) sizeof(opt)))
         return 0;
     int err = CxSocket::error();
-    if(!err)
+    if (!err)
         err = EIO;
     return err;
 #else
@@ -739,65 +762,67 @@ int CxSocket::multicast(cx::socket_t so, unsigned ttl)
     bool enable;
     int rtn;
 
-    if(so == INVALID_SOCKET)
+    if (so == INVALID_SOCKET)
         return EBADF;
 
-    if(ttl)
+    if (ttl)
         enable = true;
     else
         enable = false;
 
-    _getsockname_(so, (struct sockaddr *)&addr, &len);
-    if(!enable)
-        switch(addr.address.sa_family)
+    _getsockname_(so, (struct sockaddr *) &addr, &len);
+    if (!enable)
+        switch (addr.address.sa_family)
         {
-        case AF_INET:
-            memset(&addr.ipv4.sin_addr, 0, sizeof(addr.ipv4.sin_addr));
-            break;
+            case AF_INET:
+                memset(&addr.ipv4.sin_addr, 0, sizeof(addr.ipv4.sin_addr));
+                break;
 #ifdef  AF_INET6
+            case AF_INET6:
+                memset(&addr.ipv6.sin6_addr, 0, sizeof(addr.ipv6.sin6_addr));
+                break;
+#endif
+            default:
+                break;
+        }
+    switch (addr.address.sa_family)
+    {
+#if defined(AF_INET6) && defined(IPPROTO_IPV6)
         case AF_INET6:
-            memset(&addr.ipv6.sin6_addr, 0, sizeof(addr.ipv6.sin6_addr));
-            break;
+            rtn = ::setsockopt(so, IPPROTO_IPV6, IPV6_MULTICAST_IF, (char *)&addr.ipv6.sin6_addr, sizeof(addr.ipv6.sin6_addr));
+            if(!rtn)
+                rtn = ::setsockopt(so, IPPROTO_IPV6, IPV6_MULTICAST_HOPS, (char *)&ttl, sizeof(ttl));
+            if(rtn) {
+                rtn = CxSocket::error();
+                if(!rtn)
+                    rtn = EIO;
+            }
+            return rtn;
+#endif
+        case AF_INET:
+#ifdef  IP_MULTICAST_IF
+            rtn = ::setsockopt(so, IPPROTO_IP, IP_MULTICAST_IF, (char *) &addr.ipv4.sin_addr, sizeof(addr.ipv4.sin_addr));
+            if (!rtn)
+                rtn = ::setsockopt(so, IPPROTO_IP, IP_MULTICAST_TTL, (char *) &ttl, sizeof(ttl));
+            if (rtn)
+            {
+                rtn = CxSocket::error();
+                if (!rtn)
+                    rtn = EIO;
+            }
+            return rtn;
+#else
+            return ENOSYS;
 #endif
         default:
-            break;
-        }
-    switch(addr.address.sa_family) {
-#if defined(AF_INET6) && defined(IPPROTO_IPV6)
-    case AF_INET6:
-        rtn = ::setsockopt(so, IPPROTO_IPV6, IPV6_MULTICAST_IF, (char *)&addr.ipv6.sin6_addr, sizeof(addr.ipv6.sin6_addr));
-        if(!rtn)
-            rtn = ::setsockopt(so, IPPROTO_IPV6, IPV6_MULTICAST_HOPS, (char *)&ttl, sizeof(ttl));
-        if(rtn) {
-            rtn = CxSocket::error();
-            if(!rtn)
-                rtn = EIO;
-        }
-        return rtn;
-#endif
-    case AF_INET:
-#ifdef  IP_MULTICAST_IF
-        rtn = ::setsockopt(so, IPPROTO_IP, IP_MULTICAST_IF, (char *)&addr.ipv4.sin_addr, sizeof(addr.ipv4.sin_addr));
-        if(!rtn)
-            rtn = ::setsockopt(so, IPPROTO_IP, IP_MULTICAST_TTL, (char *)&ttl, sizeof(ttl));
-        if(rtn) {
-            rtn = CxSocket::error();
-            if(!rtn)
-                rtn = EIO;
-        }
-        return rtn;
-#else
-        return ENOSYS;
-#endif
-    default:
-        return ENOSYS;
+            return ENOSYS;
     }
 }
 
 int CxSocket::join(const struct addrinfo *addr)
 {
     int rtn = CxSocket::join(so, addr);
-    if(rtn)
+    if (rtn)
         ioerr = rtn;
     return rtn;
 }
@@ -805,7 +830,7 @@ int CxSocket::join(const struct addrinfo *addr)
 int CxSocket::drop(const struct addrinfo *addr)
 {
     int rtn = CxSocket::drop(so, addr);
-    if(rtn)
+    if (rtn)
         ioerr = rtn;
     return rtn;
 }
@@ -814,11 +839,11 @@ int CxSocket::wait(cx::timems_t timeout)
 {
     bool mode = true;
 
-    if(timeout == cx::LONG_MINUS_ONE)
+    if (timeout == cx::LONG_MINUS_ONE)
         mode = false;
 
     int rtn = CxSocket::blocking(so, mode);
-    if(!rtn)
+    if (!rtn)
         iowait = timeout;
     else
         ioerr = rtn;
@@ -828,12 +853,12 @@ int CxSocket::wait(cx::timems_t timeout)
 
 int CxSocket::blocking(cx::socket_t so, bool enable)
 {
-    if(so == INVALID_SOCKET)
+    if (so == INVALID_SOCKET)
         return EBADF;
 
 #ifdef _WIN32
     unsigned long flag = (enable ? 0 : 1);
-    if(!ioctlsocket(so, FIONBIO, &flag))
+    if (!ioctlsocket(so, FIONBIO, &flag))
         return 0;
 
 #else
@@ -846,19 +871,20 @@ int CxSocket::blocking(cx::socket_t so, bool enable)
         return 0;
 #endif
     int err = CxSocket::error();
-    if(!err)
+    if (!err)
         err = EIO;
     return err;
 }
 
 int CxSocket::disconnect(cx::socket_t so)
 {
-    union {
+    union
+    {
         struct sockaddr_storage saddr;
         struct sockaddr_in inaddr;
     } us;
 
-    struct sockaddr *addr = (struct sockaddr *)&us.saddr;
+    struct sockaddr *addr = (struct sockaddr *) &us.saddr;
     socklen_t len = sizeof(us.saddr);
 
 #ifdef _WIN32
@@ -870,14 +896,14 @@ int CxSocket::disconnect(cx::socket_t so)
     memset(addr, 0, sizeof(us.saddr));
     us.inaddr.sin_family = AF_UNSPEC;
 #endif
-    if((size_t)len > sizeof(us.saddr))
+    if ((size_t) len > sizeof(us.saddr))
         len = sizeof(us.saddr);
-    if(so == INVALID_SOCKET)
+    if (so == INVALID_SOCKET)
         return EBADF;
-    if(!_connect_(so, addr, len))
+    if (!_connect_(so, addr, len))
         return 0;
     int err = CxSocket::error();
-    if(!err)
+    if (!err)
         err = EIO;
     return err;
 }
@@ -893,38 +919,41 @@ int CxSocket::join(cx::socket_t so, const struct addrinfo *node)
     int family;
     int rtn = 0;
 
-    if(so == INVALID_SOCKET)
+    if (so == INVALID_SOCKET)
         return EBADF;
 
-    _getsockname_(so, (struct sockaddr *)&addr, &len);
-    while(!rtn && node && node->ai_addr) {
-        target = (const struct sockaddr_internet *)node->ai_addr;
+    _getsockname_(so, (struct sockaddr *) &addr, &len);
+    while (!rtn && node && node->ai_addr)
+    {
+        target = (const struct sockaddr_internet *) node->ai_addr;
         family = node->ai_family;
         node = node->ai_next;
-        if(family != addr.address.sa_family)
+        if (family != addr.address.sa_family)
             continue;
-        switch(addr.address.sa_family) {
+        switch (addr.address.sa_family)
+        {
 #if defined(AF_INET6) && defined(IPV6_ADD_MEMBERSHIP) && defined(IPPROTO_IPV6)
-        case AF_INET6:
-            mcast.ipv6.ipv6mr_interface = 0;
-            memcpy(&mcast.ipv6.ipv6mr_multiaddr, &target->ipv6.sin6_addr, sizeof(target->ipv6.sin6_addr));
-            rtn = ::setsockopt(so, IPPROTO_IPV6, IPV6_ADD_MEMBERSHIP, (char *)&mcast, sizeof(mcast.ipv6));
-            break;
+            case AF_INET6:
+                mcast.ipv6.ipv6mr_interface = 0;
+                memcpy(&mcast.ipv6.ipv6mr_multiaddr, &target->ipv6.sin6_addr, sizeof(target->ipv6.sin6_addr));
+                rtn = ::setsockopt(so, IPPROTO_IPV6, IPV6_ADD_MEMBERSHIP, (char *)&mcast, sizeof(mcast.ipv6));
+                break;
 #endif
 #if defined(IP_ADD_MEMBERSHIP)
-        case AF_INET:
-            mcast.ipv4.imr_interface.s_addr = INADDR_ANY;
-            memcpy(&mcast.ipv4.imr_multiaddr, &target->ipv4.sin_addr, sizeof(target->ipv4.sin_addr));
-            rtn = ::setsockopt(so, IPPROTO_IP, IP_ADD_MEMBERSHIP, (char *)&mcast, sizeof(mcast.ipv4));
-            break;
+            case AF_INET:
+                mcast.ipv4.imr_interface.s_addr = INADDR_ANY;
+                memcpy(&mcast.ipv4.imr_multiaddr, &target->ipv4.sin_addr, sizeof(target->ipv4.sin_addr));
+                rtn = ::setsockopt(so, IPPROTO_IP, IP_ADD_MEMBERSHIP, (char *) &mcast, sizeof(mcast.ipv4));
+                break;
 #endif
-        default:
-            return ENOSYS;
+            default:
+                return ENOSYS;
         }
     }
-    if(rtn) {
+    if (rtn)
+    {
         rtn = CxSocket::error();
-        if(!rtn)
+        if (!rtn)
             rtn = EIO;
     }
     return rtn;
@@ -941,40 +970,43 @@ int CxSocket::drop(cx::socket_t so, const struct addrinfo *node)
     int family;
     int rtn = 0;
 
-    if(so == INVALID_SOCKET)
+    if (so == INVALID_SOCKET)
         return EBADF;
 
-    _getsockname_(so, (struct sockaddr *)&addr, &len);
-    while(!rtn && node && node->ai_addr) {
-        target = (const struct sockaddr_internet *)node->ai_addr;
+    _getsockname_(so, (struct sockaddr *) &addr, &len);
+    while (!rtn && node && node->ai_addr)
+    {
+        target = (const struct sockaddr_internet *) node->ai_addr;
         family = node->ai_family;
         node = node->ai_next;
 
-        if(family != addr.address.sa_family)
+        if (family != addr.address.sa_family)
             continue;
 
-        switch(addr.address.sa_family) {
+        switch (addr.address.sa_family)
+        {
 #if defined(AF_INET6) && defined(IPV6_DROP_MEMBERSHIP) && defined(IPPROTO_IPV6)
-        case AF_INET6:
-            mcast.ipv6.ipv6mr_interface = 0;
-            memcpy(&mcast.ipv6.ipv6mr_multiaddr, &target->ipv6.sin6_addr, sizeof(target->ipv6.sin6_addr));
-            rtn = ::setsockopt(so, IPPROTO_IPV6, IPV6_DROP_MEMBERSHIP, (char *)&mcast, sizeof(mcast.ipv6));
-            break;
+            case AF_INET6:
+                mcast.ipv6.ipv6mr_interface = 0;
+                memcpy(&mcast.ipv6.ipv6mr_multiaddr, &target->ipv6.sin6_addr, sizeof(target->ipv6.sin6_addr));
+                rtn = ::setsockopt(so, IPPROTO_IPV6, IPV6_DROP_MEMBERSHIP, (char *)&mcast, sizeof(mcast.ipv6));
+                break;
 #endif
 #if defined(IP_DROP_MEMBERSHIP)
-        case AF_INET:
-            mcast.ipv4.imr_interface.s_addr = INADDR_ANY;
-            memcpy(&mcast.ipv4.imr_multiaddr, &target->ipv4.sin_addr, sizeof(target->ipv4.sin_addr));
-            rtn = ::setsockopt(so, IPPROTO_IP, IP_DROP_MEMBERSHIP, (char *)&mcast, sizeof(mcast.ipv4));
-            break;
+            case AF_INET:
+                mcast.ipv4.imr_interface.s_addr = INADDR_ANY;
+                memcpy(&mcast.ipv4.imr_multiaddr, &target->ipv4.sin_addr, sizeof(target->ipv4.sin_addr));
+                rtn = ::setsockopt(so, IPPROTO_IP, IP_DROP_MEMBERSHIP, (char *) &mcast, sizeof(mcast.ipv4));
+                break;
 #endif
-        default:
-            return ENOSYS;
+            default:
+                return ENOSYS;
         }
     }
-    if(rtn) {
+    if (rtn)
+    {
         rtn = CxSocket::error();
-        if(!rtn)
+        if (!rtn)
             rtn = EIO;
     }
     return rtn;
@@ -988,35 +1020,38 @@ cx::socket_t CxSocket::create(const struct addrinfo *node, int stype, int sproto
     int sfamily = AF_UNSPEC;
     int cprotocol, ctype;
 
-    while(node) {
-        if(stype && node->ai_socktype && node->ai_socktype != stype)
+    while (node)
+    {
+        if (stype && node->ai_socktype && node->ai_socktype != stype)
             goto next;
 
-        if(sprotocol && node->ai_protocol && node->ai_protocol != sprotocol)
+        if (sprotocol && node->ai_protocol && node->ai_protocol != sprotocol)
             goto next;
 
-        if(node->ai_family != sfamily) {
-            if(so != INVALID_SOCKET)
+        if (node->ai_family != sfamily)
+        {
+            if (so != INVALID_SOCKET)
                 CxSocket::close(so);
             sfamily = node->ai_family;
-            if(stype)
+            if (stype)
                 ctype = stype;
             else
                 ctype = node->ai_socktype;
-            if(sprotocol)
+            if (sprotocol)
                 cprotocol = sprotocol;
             else
                 cprotocol = node->ai_protocol;
             so = CxSocket::create(sfamily, ctype, cprotocol);
         }
-        if(so != INVALID_SOCKET) {
-            if(!_connect_(so, node->ai_addr, node->ai_addrlen))
+        if (so != INVALID_SOCKET)
+        {
+            if (!_connect_(so, node->ai_addr, node->ai_addrlen))
                 return so;
         }
-next:
+        next:
         node = node->ai_next;
     }
-    if(so != INVALID_SOCKET)
+    if (so != INVALID_SOCKET)
         CxSocket::close(so);
     return INVALID_SOCKET;
 }
@@ -1038,14 +1073,17 @@ int CxSocket::connectto(cx::socket_t so, struct addrinfo *node)
     int rtn = -1;
     int socket_family;
 
-    if(so == INVALID_SOCKET)
+    if (so == INVALID_SOCKET)
         return EBADF;
 
     socket_family = family(so);
 
-    while(node) {
-        if(node->ai_family == socket_family) {
-            if(!_connect_(so, node->ai_addr, node->ai_addrlen)) {
+    while (node)
+    {
+        if (node->ai_family == socket_family)
+        {
+            if (!_connect_(so, node->ai_addr, node->ai_addrlen))
+            {
                 rtn = 0;
                 goto exit;
             }
@@ -1053,14 +1091,15 @@ int CxSocket::connectto(cx::socket_t so, struct addrinfo *node)
         node = node->ai_next;
     }
 
-exit:
+    exit:
 #ifndef _WIN32
     if(!rtn || errno == EINPROGRESS)
         return 0;
 #endif
-    if(rtn) {
+    if (rtn)
+    {
         rtn = CxSocket::error();
-        if(!rtn)
+        if (!rtn)
             rtn = EIO;
     }
     return rtn;
@@ -1073,21 +1112,22 @@ int CxSocket::error(cx::socket_t so)
     int opt;
     socklen_t slen = sizeof(opt);
 
-    if(getsockopt(so, SOL_SOCKET, SO_ERROR, (cx::caddr_t)&opt, &slen))
+    if (getsockopt(so, SOL_SOCKET, SO_ERROR, (cx::caddr_t) &opt, &slen))
         return ENOSYS;
 
     return opt;
 }
 
 #ifdef _WIN32
+
 unsigned CxSocket::pending(cx::socket_t so)
 {
     u_long opt;
-    if(so == INVALID_SOCKET)
+    if (so == INVALID_SOCKET)
         return 0;
 
     ioctlsocket(so, FIONREAD, &opt);
-    return (unsigned)opt;
+    return (unsigned) opt;
 }
 
 #else
@@ -1115,11 +1155,11 @@ int CxSocket::sendTimeout(cx::socket_t so, cx::msepoch_t to)
     tv.tv_sec = to / 1000;
     tv.tv_usec = (to % 1000) * 1000;
 
-    if(! setsockopt(so, SOL_SOCKET, SO_SNDTIMEO, (char *)&tv, sizeof(tv)))
+    if (!setsockopt(so, SOL_SOCKET, SO_SNDTIMEO, (char *) &tv, sizeof(tv)))
         return 0;
 
     int err = CxSocket::error();
-    if(!err)
+    if (!err)
         err = EIO;
     return err;
 #else
@@ -1137,11 +1177,11 @@ int CxSocket::receiveTimeout(cx::socket_t so, cx::msepoch_t to)
     tv.tv_sec = to / 1000;
     tv.tv_usec = (to % 1000) * 1000;
 
-    if(! setsockopt(so, SOL_SOCKET, SO_RCVTIMEO, (char *)&tv, sizeof(tv)))
+    if (!setsockopt(so, SOL_SOCKET, SO_RCVTIMEO, (char *) &tv, sizeof(tv)))
         return 0;
 
     int err = CxSocket::error();
-    if(!err)
+    if (!err)
         err = EIO;
     return err;
 #else
@@ -1154,11 +1194,11 @@ int CxSocket::sendsize(cx::socket_t so, unsigned size)
     assert(so != INVALID_SOCKET);
 
 #ifdef  SO_SNDBUF
-    if(!setsockopt(so, SOL_SOCKET, SO_SNDBUF, (cx::caddr_t)&size, sizeof(size)))
+    if (!setsockopt(so, SOL_SOCKET, SO_SNDBUF, (cx::caddr_t) &size, sizeof(size)))
         return 0;
 
     int err = CxSocket::error();
-    if(!err)
+    if (!err)
         err = EIO;
     return err;
 #else
@@ -1171,10 +1211,10 @@ int CxSocket::sendwait(cx::socket_t so, unsigned size)
     assert(so != INVALID_SOCKET);
 
 #ifdef  SO_SNDLOWAT
-    if(!setsockopt(so, SOL_SOCKET, SO_SNDLOWAT, (cx::caddr_t)&size, sizeof(size)))
+    if (!setsockopt(so, SOL_SOCKET, SO_SNDLOWAT, (cx::caddr_t) &size, sizeof(size)))
         return 0;
     int err = CxSocket::error();
-    if(!err)
+    if (!err)
         err = EIO;
     return err;
 #else
@@ -1185,10 +1225,10 @@ int CxSocket::sendwait(cx::socket_t so, unsigned size)
 int CxSocket::recvsize(cx::socket_t so, unsigned size)
 {
 #ifdef  SO_RCVBUF
-    if(!setsockopt(so, SOL_SOCKET, SO_RCVBUF, (cx::caddr_t)&size, sizeof(size)))
+    if (!setsockopt(so, SOL_SOCKET, SO_RCVBUF, (cx::caddr_t) &size, sizeof(size)))
         return 0;
     int err = CxSocket::error();
-    if(!err)
+    if (!err)
         err = EIO;
     return err;
 #else
@@ -1200,13 +1240,13 @@ bool CxSocket::connected() const
 {
     char buf;
 
-    if(so == INVALID_SOCKET)
+    if (so == INVALID_SOCKET)
         return false;
 
-    if(!wait())
+    if (!wait())
         return true;
 
-    if(_recv_(so, &buf, 1, MSG_DONTWAIT | MSG_PEEK) < 1)
+    if (_recv_(so, &buf, 1, MSG_DONTWAIT | MSG_PEEK) < 1)
         return false;
 
     return true;
@@ -1214,7 +1254,7 @@ bool CxSocket::connected() const
 
 bool CxSocket::is_pending(unsigned qio) const
 {
-    if(pending() >= qio)
+    if (pending() >= qio)
         return true;
 
     return false;
@@ -1233,22 +1273,23 @@ bool CxSocket::wait(cx::socket_t so, cx::timems_t timeout)
     struct timeval *tvp = &tv;
     fd_set grp;
 
-    if(so == INVALID_SOCKET)
+    if (so == INVALID_SOCKET)
         return false;
 
-    if(timeout == cx::LONG_MINUS_ONE)
+    if (timeout == cx::LONG_MINUS_ONE)
         tvp = nullptr;
-    else {
+    else
+    {
         tv.tv_usec = (timeout % 1000) * 1000;
         tv.tv_sec = timeout / 1000;
     }
 
     FD_ZERO(&grp);
     FD_SET(so, &grp);
-    status = _select_((int)(so + 1), &grp, nullptr, nullptr, tvp);
-    if(status < 1)
+    status = _select_((int) (so + 1), &grp, nullptr, nullptr, tvp);
+    if (status < 1)
         return false;
-    if(FD_ISSET(so, &grp))
+    if (FD_ISSET(so, &grp))
         return true;
     return false;
 }
@@ -1261,22 +1302,23 @@ bool CxSocket::waitSending(cx::timems_t timeout) const
     struct timeval *tvp = &tv;
     fd_set grp;
 
-    if(so == INVALID_SOCKET)
+    if (so == INVALID_SOCKET)
         return false;
 
-    if(timeout == cx::LONG_MINUS_ONE)
+    if (timeout == cx::LONG_MINUS_ONE)
         tvp = nullptr;
-    else {
+    else
+    {
         tv.tv_usec = (timeout % 1000) * 1000;
         tv.tv_sec = timeout / 1000;
     }
 
     FD_ZERO(&grp);
     FD_SET(so, &grp);
-    status = _select_((int)(so + 1), nullptr, &grp, nullptr, tvp);
-    if(status < 1)
+    status = _select_((int) (so + 1), nullptr, &grp, nullptr, tvp);
+    if (status < 1)
         return false;
-    if(FD_ISSET(so, &grp))
+    if (FD_ISSET(so, &grp))
         return true;
     return false;
 }
@@ -1290,40 +1332,41 @@ struct ::addrinfo *CxSocket::hinting(cx::socket_t so, struct addrinfo *hint)
 {
     assert(hint != nullptr);
 
-    union {
+    union
+    {
         struct sockaddr_storage st;
         struct sockaddr_in in;
     } us;
-    struct sockaddr *sa = (struct sockaddr *)&us.st;
+    struct sockaddr *sa = (struct sockaddr *) &us.st;
     socklen_t slen = sizeof(us.st);
 
     memset(hint, 0, sizeof(struct addrinfo));
     memset(sa, 0, sizeof(us.st));
-    if(_getsockname_(so, sa, &slen))
+    if (_getsockname_(so, sa, &slen))
         return nullptr;
     hint->ai_family = us.in.sin_family;
     slen = sizeof(hint->ai_socktype);
-    getsockopt(so, SOL_SOCKET, SO_TYPE, (cx::caddr_t)&hint->ai_socktype, &slen);
+    getsockopt(so, SOL_SOCKET, SO_TYPE, (cx::caddr_t) &hint->ai_socktype, &slen);
     return hint;
 }
 
 int CxSocket::bindto(cx::socket_t so, const struct sockaddr *iface)
 {
-    if(!_bind_(so, iface, len(iface)))
+    if (!_bind_(so, iface, len(iface)))
         return 0;
     return CxSocket::error();
 }
 
 int CxSocket::listento(cx::socket_t so, int backlog)
 {
-    if(_listen_(so, backlog))
+    if (_listen_(so, backlog))
         return CxSocket::error();
     return 0;
 }
 
 int CxSocket::connectto(cx::socket_t so, const struct sockaddr *iface)
 {
-    if(!_connect_(so, iface, len(iface)))
+    if (!_connect_(so, iface, len(iface)))
         return 0;
     return CxSocket::error();
 }
@@ -1331,8 +1374,8 @@ int CxSocket::connectto(cx::socket_t so, const struct sockaddr *iface)
 cx::socket_t CxSocket::acceptfrom(cx::socket_t so, struct sockaddr_storage *addr)
 {
     socklen_t len = sizeof(struct sockaddr_storage);
-    if(addr)
-        return _accept_(so, (struct sockaddr *)addr, &len);
+    if (addr)
+        return _accept_(so, (struct sockaddr *) addr, &len);
     else
         return _accept_(so, nullptr, nullptr);
 }
@@ -1345,21 +1388,23 @@ unsigned CxSocket::keyhost(const struct sockaddr *addr, unsigned keysize)
     unsigned key = 0;
     cx::caddr_t cp = nullptr;
     unsigned len;
-switch(addr->sa_family) {
+    switch (addr->sa_family)
+    {
 #ifdef  AF_INET6
-    case AF_INET6:
-        cp = (cx::caddr_t)(&((const struct sockaddr_in6 *)(addr))->sin6_addr);
-        len = 16;
-        break;
+        case AF_INET6:
+            cp = (cx::caddr_t) (&((const struct sockaddr_in6 *) (addr))->sin6_addr);
+            len = 16;
+            break;
 #endif
-    case AF_INET:
-        cp = (cx::caddr_t)(&((const struct sockaddr_in *)(addr))->sin_addr);
-        len = 4;
-        break;
-    default:
-        return 0;
+        case AF_INET:
+            cp = (cx::caddr_t) (&((const struct sockaddr_in *) (addr))->sin_addr);
+            len = 4;
+            break;
+        default:
+            return 0;
     }
-    while(len--) {
+    while (len--)
+    {
         key = key << 1;
         key ^= cp[len];
     }
@@ -1374,23 +1419,25 @@ unsigned CxSocket::keyindex(const struct sockaddr *addr, unsigned keysize)
     unsigned key = 0;
     cx::caddr_t cp = nullptr;
     unsigned len;
-switch(addr->sa_family) {
+    switch (addr->sa_family)
+    {
 #ifdef  AF_INET6
-    case AF_INET6:
-        cp = (cx::caddr_t)(&((const struct sockaddr_in6 *)(addr))->sin6_addr);
-        len = 16;
-        key = service(addr);
-        break;
+        case AF_INET6:
+            cp = (cx::caddr_t) (&((const struct sockaddr_in6 *) (addr))->sin6_addr);
+            len = 16;
+            key = service(addr);
+            break;
 #endif
-    case AF_INET:
-        cp = (cx::caddr_t)(&((const struct sockaddr_in *)(addr))->sin_addr);
-        len = 4;
-        key = service(addr);
-        break;
-    default:
-        return 0;
+        case AF_INET:
+            cp = (cx::caddr_t) (&((const struct sockaddr_in *) (addr))->sin_addr);
+            len = 4;
+            key = service(addr);
+            break;
+        default:
+            return 0;
     }
-    while(len--) {
+    while (len--)
+    {
         key = key << 1;
         key ^= cp[len];
     }
@@ -1401,13 +1448,14 @@ short CxSocket::service(const struct sockaddr *addr)
 {
     assert(addr != nullptr);
 
-    switch(addr->sa_family) {
+    switch (addr->sa_family)
+    {
 #ifdef  AF_INET6
-    case AF_INET6:
-        return ntohs(((const struct sockaddr_in6 *)(addr))->sin6_port);
+        case AF_INET6:
+            return ntohs(((const struct sockaddr_in6 *) (addr))->sin6_port);
 #endif
-    case AF_INET:
-        return ntohs(((const struct sockaddr_in *)(addr))->sin_port);
+        case AF_INET:
+            return ntohs(((const struct sockaddr_in *) (addr))->sin_port);
     }
     return 0;
 }
@@ -1422,46 +1470,47 @@ char *CxSocket::query(const struct sockaddr *addr, char *name, socklen_t size)
 #endif
 
     *name = 0;
-    if(!addr)
+    if (!addr)
         return nullptr;
 
-    switch(addr->sa_family) {
+    switch (addr->sa_family)
+    {
 #ifdef  AF_UNIX
-    case AF_UNIX:
-        CxStringC::set(name, size, ((const struct sockaddr_un *)(addr))->sun_path);
-        return name;
+        case AF_UNIX:
+            CxStringC::set(name, size, ((const struct sockaddr_un *)(addr))->sun_path);
+            return name;
 #endif
 #ifdef  _WIN32
 #ifdef  AF_INET6
-    case AF_INET6:
-        struct sockaddr_in6 saddr6;
-        memcpy(&saddr6, addr, sizeof(saddr6));
-        saddr6.sin6_port = 0;
-        WSAAddressToStringA((struct sockaddr *)&saddr6, sizeof(saddr6), nullptr, name, &slen);
-        return name;
+        case AF_INET6:
+            struct sockaddr_in6 saddr6;
+            memcpy(&saddr6, addr, sizeof(saddr6));
+            saddr6.sin6_port = 0;
+            WSAAddressToStringA((struct sockaddr *) &saddr6, sizeof(saddr6), nullptr, name, &slen);
+            return name;
 #endif
-    case AF_INET:
-        struct sockaddr_in saddr;
-        memcpy(&saddr, addr, sizeof(saddr));
-        saddr.sin_port = 0;
-        WSAAddressToStringA((struct sockaddr *)&saddr, sizeof(saddr), nullptr, name, &slen);
-        return name;
+        case AF_INET:
+            struct sockaddr_in saddr;
+            memcpy(&saddr, addr, sizeof(saddr));
+            saddr.sin_port = 0;
+            WSAAddressToStringA((struct sockaddr *) &saddr, sizeof(saddr), nullptr, name, &slen);
+            return name;
 #else
 #ifdef  HAVE_INET_NTOP
 #ifdef  AF_INET6
-    case AF_INET6:
-        inet_ntop(addr->sa_family, &((const struct sockaddr_in6 *)(addr))->sin6_addr, name, size);
-        return name;
+            case AF_INET6:
+                inet_ntop(addr->sa_family, &((const struct sockaddr_in6 *)(addr))->sin6_addr, name, size);
+                return name;
 #endif
-    case AF_INET:
-        inet_ntop(addr->sa_family, &((const struct sockaddr_in *)(addr))->sin_addr, name, size);
-        return name;
+            case AF_INET:
+                inet_ntop(addr->sa_family, &((const struct sockaddr_in *)(addr))->sin_addr, name, size);
+                return name;
 #else
-    case AF_INET:
-        ENTER_EXCLUSIVE
-        CxStringC::set(name, size, inet_ntoa(((const struct sockaddr_in *)(addr))->sin_addr));
-        LEAVE_EXCLUSIVE
-        return name;
+            case AF_INET:
+                ENTER_EXCLUSIVE
+                CxStringC::set(name, size, inet_ntoa(((const struct sockaddr_in *)(addr))->sin_addr));
+                LEAVE_EXCLUSIVE
+                return name;
 #endif
 #endif
     }
@@ -1477,37 +1526,40 @@ int CxSocket::via(struct sockaddr *iface, const struct sockaddr *dest)
     cx::socket_t so = INVALID_SOCKET;
     socklen_t slen = len(dest);
 
-    if(slen)
+    if (slen)
         memset(iface, 0, slen);
 
     iface->sa_family = AF_UNSPEC;
-    switch(dest->sa_family) {
+    switch (dest->sa_family)
+    {
 #ifdef  AF_INET6
-    case AF_INET6:
+        case AF_INET6:
 #endif
-    case AF_INET:
-        so = ::socket(dest->sa_family, SOCK_DGRAM, 0);
-        if((cx::socket_t)so == INVALID_SOCKET)
-            return -1;
-        socket_mapping(dest->sa_family, so);
-        if(!_connect_(so, dest, slen))
-            rtn = _getsockname_(so, iface, &slen);
-        break;
-    default:
-        return ENOSYS;
+        case AF_INET:
+            so = ::socket(dest->sa_family, SOCK_DGRAM, 0);
+            if ((cx::socket_t) so == INVALID_SOCKET)
+                return -1;
+            socket_mapping(dest->sa_family, so);
+            if (!_connect_(so, dest, slen))
+                rtn = _getsockname_(so, iface, &slen);
+            break;
+        default:
+            return ENOSYS;
     }
-    switch(iface->sa_family) {
-    case AF_INET:
-        ((struct sockaddr_in*)(iface))->sin_port = 0;
-        break;
+    switch (iface->sa_family)
+    {
+        case AF_INET:
+            ((struct sockaddr_in *) (iface))->sin_port = 0;
+            break;
 #ifdef  AF_INET6
-    case AF_INET6:
-        ((struct sockaddr_in6*)(iface))->sin6_port = 0;
-        break;
+        case AF_INET6:
+            ((struct sockaddr_in6 *) (iface))->sin6_port = 0;
+            break;
 #endif
     }
 
-    if((cx::socket_t)so != INVALID_SOCKET) {
+    if ((cx::socket_t) so != INVALID_SOCKET)
+    {
 #ifdef  _WIN32
         ::closesocket(so);
 #else
@@ -1516,7 +1568,7 @@ int CxSocket::via(struct sockaddr *iface, const struct sockaddr *dest)
 #endif
         so = INVALID_SOCKET;
     }
-    if(rtn)
+    if (rtn)
         rtn = CxSocket::error();
     return rtn;
 }
@@ -1526,28 +1578,28 @@ bool CxSocket::eq_subnet(const struct sockaddr *s1, const struct sockaddr *s2)
     assert(s1 != nullptr && s2 != nullptr);
 
     unsigned char *a1, *a2;
-    if(s1->sa_family != s2->sa_family)
+    if (s1->sa_family != s2->sa_family)
         return false;
 
-    if(s1->sa_family != AF_INET)
+    if (s1->sa_family != AF_INET)
         return true;
 
-    a1 = (unsigned char *)&(((const struct sockaddr_in *)(s1))->sin_addr);
-    a2 = (unsigned char *)&(((const struct sockaddr_in *)(s1))->sin_addr);
+    a1 = (unsigned char *) &(((const struct sockaddr_in *) (s1))->sin_addr);
+    a2 = (unsigned char *) &(((const struct sockaddr_in *) (s1))->sin_addr);
 
-    if(*a1 == *a2 && *a1 < 128)
+    if (*a1 == *a2 && *a1 < 128)
         return true;
 
-    if(*a1 != *a2)
+    if (*a1 != *a2)
         return false;
 
-    if(*a1 > 127 && *a1 < 192 && a1[1] == a2[1])
+    if (*a1 > 127 && *a1 < 192 && a1[1] == a2[1])
         return true;
 
-    if(a1[1] != a2[1])
+    if (a1[1] != a2[1])
         return false;
 
-    if(a1[2] != a2[2])
+    if (a1[2] != a2[2])
         return false;
 
     return true;
@@ -1555,16 +1607,18 @@ bool CxSocket::eq_subnet(const struct sockaddr *s1, const struct sockaddr *s2)
 
 unsigned CxSocket::store(struct sockaddr_internet *storage, const struct sockaddr *address)
 {
-    if(storage == nullptr || address == nullptr)
+    if (storage == nullptr || address == nullptr)
         return 0;
 
-    if(address->sa_family == AF_INET) {
+    if (address->sa_family == AF_INET)
+    {
         memcpy(&storage->ipv4, address, sizeof(storage->ipv4));
         return sizeof(storage->ipv4);
     }
 
 #ifdef  AF_INET6
-    if(address->sa_family == AF_INET6) {
+    if (address->sa_family == AF_INET6)
+    {
         memcpy(&storage->ipv6, address, sizeof(storage->ipv6));
         return sizeof(storage->ipv6);
     }
@@ -1575,11 +1629,12 @@ unsigned CxSocket::store(struct sockaddr_internet *storage, const struct sockadd
 
 unsigned CxSocket::copy(struct sockaddr *s1, const struct sockaddr *s2)
 {
-    if(s1 == nullptr || s2 == nullptr)
+    if (s1 == nullptr || s2 == nullptr)
         return 0;
 
     socklen_t slen = len(s1);
-    if(slen > 0) {
+    if (slen > 0)
+    {
         memcpy(s1, s2, slen);
         return slen;
     }
@@ -1590,28 +1645,29 @@ bool CxSocket::eq_host(const struct sockaddr *s1, const struct sockaddr *s2)
 {
     assert(s1 != nullptr && s2 != nullptr);
 
-    if(s1->sa_family != s2->sa_family)
+    if (s1->sa_family != s2->sa_family)
         return false;
 
-    switch(s1->sa_family) {
-    case AF_INET:
-        if(memcmp(&(((const struct sockaddr_in *)s1)->sin_addr),
-            &(((const struct sockaddr_in *)s2)->sin_addr), 4))
+    switch (s1->sa_family)
+    {
+        case AF_INET:
+            if (memcmp(&(((const struct sockaddr_in *) s1)->sin_addr),
+                       &(((const struct sockaddr_in *) s2)->sin_addr), 4))
                 return false;
 
-        return true;
+            return true;
 #ifdef  AF_INET6
-    case AF_INET6:
-        if(memcmp(&(((const struct sockaddr_in6 *)s1)->sin6_addr),
-            &(((const struct sockaddr_in6 *)s2)->sin6_addr), 4))
+        case AF_INET6:
+            if (memcmp(&(((const struct sockaddr_in6 *) s1)->sin6_addr),
+                       &(((const struct sockaddr_in6 *) s2)->sin6_addr), 4))
                 return false;
 
-        return true;
+            return true;
 #endif
-    default:
-        if(memcmp(s1, s2, len(s1)))
-            return false;
-        return true;
+        default:
+            if (memcmp(s1, s2, len(s1)))
+                return false;
+            return true;
     }
     return false;
 }
@@ -1621,40 +1677,41 @@ bool CxSocket::equal(const struct sockaddr *s1, const struct sockaddr *s2)
 {
     assert(s1 != nullptr && s2 != nullptr);
 
-    if(s1->sa_family != s2->sa_family)
+    if (s1->sa_family != s2->sa_family)
         return false;
 
-    switch(s1->sa_family) {
-    case AF_INET:
-        if(memcmp(&(((const struct sockaddr_in *)s1)->sin_addr),
-            &(((const struct sockaddr_in *)s2)->sin_addr), 4))
+    switch (s1->sa_family)
+    {
+        case AF_INET:
+            if (memcmp(&(((const struct sockaddr_in *) s1)->sin_addr),
+                       &(((const struct sockaddr_in *) s2)->sin_addr), 4))
                 return false;
 
-        if(!((const struct sockaddr_in *)s1)->sin_port || !((const struct sockaddr_in *)s2)->sin_port)
+            if (!((const struct sockaddr_in *) s1)->sin_port || !((const struct sockaddr_in *) s2)->sin_port)
+                return true;
+
+            if (((const struct sockaddr_in *) s1)->sin_port != ((const struct sockaddr_in *) s2)->sin_port)
+                return false;
+
             return true;
-
-        if(((const struct sockaddr_in *)s1)->sin_port != ((const struct sockaddr_in *)s2)->sin_port)
-            return false;
-
-        return true;
 #ifdef  AF_INET6
-    case AF_INET6:
-        if(memcmp(&(((const struct sockaddr_in6 *)s1)->sin6_addr),
-            &(((const struct sockaddr_in6 *)s2)->sin6_addr), 4))
+        case AF_INET6:
+            if (memcmp(&(((const struct sockaddr_in6 *) s1)->sin6_addr),
+                       &(((const struct sockaddr_in6 *) s2)->sin6_addr), 4))
                 return false;
 
-        if(!((const struct sockaddr_in6 *)s1)->sin6_port || !((const struct sockaddr_in6 *)s2)->sin6_port)
+            if (!((const struct sockaddr_in6 *) s1)->sin6_port || !((const struct sockaddr_in6 *) s2)->sin6_port)
+                return true;
+
+            if (((const struct sockaddr_in6 *) s1)->sin6_port != ((const struct sockaddr_in6 *) s2)->sin6_port)
+                return false;
+
             return true;
-
-        if(((const struct sockaddr_in6 *)s1)->sin6_port != ((const struct sockaddr_in6 *)s2)->sin6_port)
-            return false;
-
-        return true;
 #endif
-    default:
-        if(memcmp(s1, s2, len(s1)))
-            return false;
-        return true;
+        default:
+            if (memcmp(s1, s2, len(s1)))
+                return false;
+            return true;
     }
     return false;
 }
@@ -1694,11 +1751,13 @@ CxSocket::CxSocket(struct addrinfo *addr)
 #endif
     assert(addr != nullptr);
 
-    while(addr) {
+    while (addr)
+    {
         so = ::socket(addr->ai_family, addr->ai_socktype, addr->ai_protocol);
         socket_mapping(addr->ai_family, so);
-        if(so != INVALID_SOCKET) {
-            if(!_connect_(so, addr->ai_addr, addr->ai_addrlen))
+        if (so != INVALID_SOCKET)
+        {
+            if (!_connect_(so, addr->ai_addr, addr->ai_addrlen))
                 return;
         }
         addr = addr->ai_next;
@@ -1724,7 +1783,7 @@ CxSocket::CxSocket(const CxSocket &s)
     HANDLE pidH = GetCurrentProcess();
     HANDLE dupH;
 
-    if(DuplicateHandle(pidH, reinterpret_cast<HANDLE>(s.so), pidH, &dupH, 0, FALSE, DUPLICATE_SAME_ACCESS))
+    if (DuplicateHandle(pidH, reinterpret_cast<HANDLE>(s.so), pidH, &dupH, 0, FALSE, DUPLICATE_SAME_ACCESS))
         so = reinterpret_cast<SOCKET>(dupH);
     else
         so = INVALID_SOCKET;
@@ -1753,13 +1812,14 @@ cx::socket_t CxSocket::create(int family, int type, int protocol)
 
 void CxSocket::cancel()
 {
-    if(so != INVALID_SOCKET)
+    if (so != INVALID_SOCKET)
         ::shutdown(so, SHUT_RDWR);
 }
 
 void CxSocket::release()
 {
-    if(so != INVALID_SOCKET) {
+    if (so != INVALID_SOCKET)
+    {
 #ifdef  _WIN32
         ::closesocket(so);
 #else
@@ -1784,14 +1844,14 @@ void CxSocket::close(cx::socket_t so)
 
 CxSocket::operator bool()
 {
-    if(so == INVALID_SOCKET)
+    if (so == INVALID_SOCKET)
         return false;
     return true;
 }
 
 bool CxSocket::operator!() const
 {
-    if(so == INVALID_SOCKET)
+    if (so == INVALID_SOCKET)
         return true;
     return false;
 }
@@ -1808,13 +1868,13 @@ size_t CxSocket::peek(void *data, size_t len) const
     assert(data != nullptr);
     assert(len > 0);
 
-    if(iowait && iowait != cx::LONG_MINUS_ONE && !CxSocket::wait(so, iowait))
+    if (iowait && iowait != cx::LONG_MINUS_ONE && !CxSocket::wait(so, iowait))
         return 0;
 
-    ssize_t rtn = _recv_(so, (cx::caddr_t)data, 1, MSG_DONTWAIT | MSG_PEEK);
-    if(rtn < 1)
+    ssize_t rtn = _recv_(so, (cx::caddr_t) data, 1, MSG_DONTWAIT | MSG_PEEK);
+    if (rtn < 1)
         return 0;
-    return (size_t)rtn;
+    return (size_t) rtn;
 }
 
 size_t CxSocket::printf(const char *format, ...)
@@ -1824,9 +1884,9 @@ size_t CxSocket::printf(const char *format, ...)
     char buf[1024];
     va_list args;
 
-    va_start(args, format);
+            va_start(args, format);
     vsnprintf(buf, sizeof(buf), format, args);
-    va_end(args);
+            va_end(args);
 
     return writes(buf);
 }
@@ -1838,28 +1898,28 @@ ssize_t CxSocket::printf(cx::socket_t so, const char *format, ...)
     char buf[536];
     va_list args;
 
-    va_start(args, format);
+            va_start(args, format);
     vsnprintf(buf, sizeof(buf), format, args);
-    va_end(args);
+            va_end(args);
 
     return sendto(so, buf, strlen(buf), 0, nullptr);
 }
 
 socklen_t CxSocket::len(const struct sockaddr *sa)
 {
-    if(!sa)
+    if (!sa)
         return 0;
 
-    switch(sa->sa_family)
+    switch (sa->sa_family)
     {
-    case AF_INET:
-        return sizeof(sockaddr_in);
+        case AF_INET:
+            return sizeof(sockaddr_in);
 #ifdef  AF_INET6
-    case AF_INET6:
-        return sizeof(sockaddr_in6);
+        case AF_INET6:
+            return sizeof(sockaddr_in6);
 #endif
-    default:
-        return sizeof(sockaddr_storage);
+        default:
+            return sizeof(sockaddr_storage);
     }
 }
 
@@ -1867,15 +1927,16 @@ int CxSocket::family(cx::socket_t so)
 {
     assert(so != INVALID_SOCKET);
 
-    union {
+    union
+    {
         struct sockaddr_storage saddr;
         struct sockaddr_in inaddr;
     } us;
 
     socklen_t len = sizeof(us.saddr);
-    struct sockaddr *addr = (struct sockaddr *)(&us.saddr);
+    struct sockaddr *addr = (struct sockaddr *) (&us.saddr);
 
-    if(_getsockname_(so, addr, &len))
+    if (_getsockname_(so, addr, &len))
         return AF_UNSPEC;
 
     return us.inaddr.sin_family;
@@ -1888,22 +1949,24 @@ std::string CxSocket::getSockAddress(cx::socket_t so)
     struct sockaddr_storage addr;
     int addrLen = sizeof(addr);
 
-    getsockname(so, (struct sockaddr*) &addr, &addrLen);
+    getsockname(so, (struct sockaddr *) &addr, &addrLen);
 
     char addrString[INET6_ADDRSTRLEN + 7];
     int addrStringLen = INET6_ADDRSTRLEN + 7;
 
-    if (addr.ss_family == AF_INET) {
-        struct sockaddr_in* ipv4Addr = (struct sockaddr_in*) &addr;
+    if (addr.ss_family == AF_INET)
+    {
+        struct sockaddr_in *ipv4Addr = (struct sockaddr_in *) &addr;
         ipv4Addr->sin_port = 0;
         WSAAddressToStringA((LPSOCKADDR) ipv4Addr, sizeof(struct sockaddr_storage), nullptr,
-                           (LPSTR) addrString, (LPDWORD) & addrStringLen);
+                            (LPSTR) addrString, (LPDWORD) &addrStringLen);
     }
-    else if (addr.ss_family == AF_INET6) {
-        struct sockaddr_in6* ipv6Addr = (struct sockaddr_in6*) &addr;
+    else if (addr.ss_family == AF_INET6)
+    {
+        struct sockaddr_in6 *ipv6Addr = (struct sockaddr_in6 *) &addr;
         ipv6Addr->sin6_port = 0;
         WSAAddressToStringA((LPSOCKADDR) ipv6Addr, sizeof(struct sockaddr_storage), nullptr,
-                           (LPSTR) addrString, (LPDWORD) & addrStringLen);
+                            (LPSTR) addrString, (LPDWORD) &addrStringLen);
     }
 
     r = std::string(addrString);
@@ -1936,22 +1999,24 @@ std::string CxSocket::getPeerAddress(cx::socket_t so)
     struct sockaddr_storage addr;
     int addrLen = sizeof(addr);
 
-    getpeername(so, (struct sockaddr*) &addr, &addrLen);
+    getpeername(so, (struct sockaddr *) &addr, &addrLen);
 
     char addrString[INET6_ADDRSTRLEN + 7];
     int addrStringLen = INET6_ADDRSTRLEN + 7;
 
-    if (addr.ss_family == AF_INET) {
-        struct sockaddr_in* ipv4Addr = (struct sockaddr_in*) &addr;
+    if (addr.ss_family == AF_INET)
+    {
+        struct sockaddr_in *ipv4Addr = (struct sockaddr_in *) &addr;
         ipv4Addr->sin_port = 0;
         WSAAddressToStringA((LPSOCKADDR) ipv4Addr, sizeof(struct sockaddr_storage), nullptr,
-                           (LPSTR) addrString, (LPDWORD) & addrStringLen);
+                            (LPSTR) addrString, (LPDWORD) &addrStringLen);
     }
-    else if (addr.ss_family == AF_INET6) {
-        struct sockaddr_in6* ipv6Addr = (struct sockaddr_in6*) &addr;
+    else if (addr.ss_family == AF_INET6)
+    {
+        struct sockaddr_in6 *ipv6Addr = (struct sockaddr_in6 *) &addr;
         ipv6Addr->sin6_port = 0;
         WSAAddressToStringA((LPSOCKADDR) ipv6Addr, sizeof(struct sockaddr_storage), nullptr,
-                           (LPSTR) addrString, (LPDWORD) & addrStringLen);
+                            (LPSTR) addrString, (LPDWORD) &addrStringLen);
     }
 
     r = std::string(addrString);
@@ -1985,7 +2050,7 @@ std::string CxSocket::getPeerAddress(cx::socket_t so)
  */
 
 
-std::string CxIpAddress::getIp(const sockaddr * oSockAddr)
+std::string CxIpAddress::getIp(const sockaddr *oSockAddr)
 {
     char sName[64];
     memset(sName, 0, sizeof(sName));
@@ -2087,7 +2152,7 @@ void CxIpAddress::setIsBind(bool value)
 
 void CxIpAddress::init(const std::string &sIp, cx::ushort iPort, bool isBind)
 {
-    if ( CxString::isValidPort(iPort) && CxString::isValidIp(sIp) )
+    if (CxString::isValidPort(iPort) && CxString::isValidIp(sIp))
     {
         _ip = CxString::trim(sIp);
         _port = iPort;
@@ -2117,8 +2182,8 @@ bool CxIpAddress::isSameIpAddress(const sockaddr *oSockAddr) const
 {
     if (oSockAddr->sa_family == AF_INET && _family == AF_INET)
     {
-        const sockaddr_in * oSelfSockAddr = (const sockaddr_in *)(&_sockAddr.front())/*_sockAddr.data()*/;
-        const sockaddr_in * oOtherSockAddr = (const sockaddr_in *)oSockAddr;
+        const sockaddr_in *oSelfSockAddr = (const sockaddr_in *) (&_sockAddr.front())/*_sockAddr.data()*/;
+        const sockaddr_in *oOtherSockAddr = (const sockaddr_in *) oSockAddr;
 #ifdef _WIN32
         return oSelfSockAddr->sin_port == oOtherSockAddr->sin_port && oSelfSockAddr->sin_addr.S_un.S_addr == oOtherSockAddr->sin_addr.S_un.S_addr;
 #else
@@ -2130,9 +2195,10 @@ bool CxIpAddress::isSameIpAddress(const sockaddr *oSockAddr) const
 #ifdef AF_INET6
         if (oSockAddr->sa_family == AF_INET6 && _family == AF_INET6)
         {
-            const sockaddr_in6 * oSelfSockAddr = (const sockaddr_in6 *)(&_sockAddr.front())/*_sockAddr.data()*/;
-            const sockaddr_in6 * oOtherSockAddr = (const sockaddr_in6 *)oSockAddr;
-            return oSelfSockAddr->sin6_port == oOtherSockAddr->sin6_port && memcmp(& oSelfSockAddr->sin6_addr, &oOtherSockAddr->sin6_addr, sizeof(in6_addr)) == 0;
+            const sockaddr_in6 *oSelfSockAddr = (const sockaddr_in6 *) (&_sockAddr.front())/*_sockAddr.data()*/;
+            const sockaddr_in6 *oOtherSockAddr = (const sockaddr_in6 *) oSockAddr;
+            return oSelfSockAddr->sin6_port == oOtherSockAddr->sin6_port &&
+                   memcmp(&oSelfSockAddr->sin6_addr, &oOtherSockAddr->sin6_addr, sizeof(in6_addr)) == 0;
         }
 #endif
     }
@@ -2158,17 +2224,17 @@ void CxIpAddress::updateSockAddr()
         struct in6_addr l_addr;
         memset(&l_addr, 0, sizeof(l_addr));
         struct in6_addr l_empty = l_addr;
-    #ifdef  _WIN32
+#ifdef  _WIN32
         struct sockaddr saddr;
         int slen = sizeof(saddr);
-        struct sockaddr_in6 *paddr = (struct sockaddr_in6 *)&saddr;
-        WSAStringToAddressA((LPSTR)_ip.c_str(), AF_INET6, nullptr, &saddr, &slen);
+        struct sockaddr_in6 *paddr = (struct sockaddr_in6 *) &saddr;
+        WSAStringToAddressA((LPSTR) _ip.c_str(), AF_INET6, nullptr, &saddr, &slen);
         l_addr = paddr->sin6_addr;
-    #else
+#else
         int ok = inet_pton(AF_INET6, _ip.c_str(), &l_addr);
-    #endif
+#endif
 
-        struct sockaddr_in6 * oIpv6 = (struct sockaddr_in6 *)(&_sockAddr.front())/*_sockAddr.data()*/;
+        struct sockaddr_in6 *oIpv6 = (struct sockaddr_in6 *) (&_sockAddr.front())/*_sockAddr.data()*/;
         oIpv6->sin6_family = AF_INET6;
         oIpv6->sin6_port = htons(_port);
         if (_isBind)
@@ -2187,7 +2253,7 @@ void CxIpAddress::updateSockAddr()
     else
     {
         _family = AF_INET;
-        struct sockaddr_in * oIpv4 = (struct sockaddr_in *)(&_sockAddr.front())/*_sockAddr.data()*/;
+        struct sockaddr_in *oIpv4 = (struct sockaddr_in *) (&_sockAddr.front())/*_sockAddr.data()*/;
         oIpv4->sin_family = AF_INET;
         oIpv4->sin_port = htons(_port);
         if (_isBind)
@@ -2209,15 +2275,16 @@ void CxIpAddress::updateSockAddr()
 
 void CxIpAddress::updateIpPort()
 {
-    const sockaddr * oSockAddr = (const sockaddr *)(&_sockAddr.front())/*_sockAddr.data()*/;
+    const sockaddr *oSockAddr = (const sockaddr *) (&_sockAddr.front())/*_sockAddr.data()*/;
     _family = oSockAddr->sa_family;
     _ip = getIp(oSockAddr);
     _port = getPort(oSockAddr);
     _isValid = CxString::isValidPort(_port) && CxString::isValidIp(_ip);
 }
 
-std::string CxIpAddress::getIpPort() const {
-    return CxString::format("%s:%d",_ip.c_str(),_port);
+std::string CxIpAddress::getIpPort() const
+{
+    return CxString::format("%s:%d", _ip.c_str(), _port);
 }
 
 
@@ -2241,7 +2308,7 @@ int getnameinfo(const struct sockaddr*,socklen_t,char*,DWORD,char*,DWORD,int) { 
 /* FIXME: Need WS protocol-independent API helpers.  */
 #endif
 
-typedef unsigned char   bit_t;
+typedef unsigned char bit_t;
 
 static int query_family = 0;
 
@@ -2305,25 +2372,26 @@ static unsigned bitcount(bit_t *bits, unsigned len)
 static int setfamily(int family, const char *host)
 {
     const char *hc = host;
-    if(!host)
-        return  family;
+    if (!host)
+        return family;
 
-    if(!family || family == AF_UNSPEC) {
+    if (!family || family == AF_UNSPEC)
+    {
 #ifdef  AF_INET6
-        if(strchr(host, ':'))
+        if (strchr(host, ':'))
             family = AF_INET6;
 #endif
 #ifdef  AF_UNIX
         if(*host == '/')
             family = AF_UNIX;
 #endif
-        while((*hc >= '0' && *hc <= '9') || *hc == '.')
+        while ((*hc >= '0' && *hc <= '9') || *hc == '.')
             ++hc;
-        if(!*hc)
+        if (!*hc)
             family = AF_INET;
     }
 
-    if(!family || family == AF_UNSPEC)
+    if (!family || family == AF_UNSPEC)
         family = query_family;
 
     return family;
@@ -2640,23 +2708,6 @@ static socklen_t unixaddr(struct sockaddr_un *addr, const char *path)
 #endif
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 CxIpAddressExtend::CxIpAddressExtend(int family, const char *a, int type, int protocol)
 {
     assert(a != nullptr && *a != 0);
@@ -2716,7 +2767,7 @@ CxIpAddressExtend::CxIpAddressExtend()
     list = nullptr;
 }
 
-CxIpAddressExtend::CxIpAddressExtend(const CxIpAddressExtend& from)
+CxIpAddressExtend::CxIpAddressExtend(const CxIpAddressExtend &from)
 {
     list = nullptr;
     copy(from.list);
@@ -2729,7 +2780,8 @@ CxIpAddressExtend::~CxIpAddressExtend()
 
 void CxIpAddressExtend::clear()
 {
-    if(list) {
+    if (list)
+    {
         freeaddrinfo(list);
         list = nullptr;
     }
@@ -2743,7 +2795,8 @@ void CxIpAddressExtend::set(const char *host, unsigned port)
 
     clear();
 
-    if(port) {
+    if (port)
+    {
         snprintf(buf, sizeof(buf), "%u", port);
         list = CxSocketExtend::query(host, buf);
     }
@@ -2770,38 +2823,42 @@ void CxIpAddressExtend::set(int family, const char *a, int type, int protocol)
     hint.ai_flags = AI_PASSIVE;
 #endif
 
-    if(!host)
+    if (!host)
         host = addr;
     else
         ++host;
 
-    if(*host != '[') {
+    if (*host != '[')
+    {
         ep = strchr(host, ':');
-        if(ep) {
+        if (ep)
+        {
             *(ep++) = 0;
             svc = ep;
         }
         goto proc;
     }
 #ifdef  AF_INET6
-    if(*host == '[') {
+    if (*host == '[')
+    {
         family = AF_INET6;
         ++host;
         ep = strchr(host, ']');
-        if(ep) {
+        if (ep)
+        {
             *(ep++) = 0;
-            if(*ep == ':')
+            if (*ep == ':')
                 svc = ++ep;
         }
     }
 #endif
-proc:
+    proc:
     hint.ai_family = family;
     hint.ai_socktype = type;
     hint.ai_protocol = protocol;
 
 #if defined(AF_INET6) && defined(AI_V4MAPPED)
-    if(hint.ai_family == AF_INET6 && !v6only)
+    if (hint.ai_family == AF_INET6 && !v6only)
         hint.ai_flags |= AI_V4MAPPED;
 #endif
 
@@ -2810,7 +2867,7 @@ proc:
 
 struct sockaddr *CxIpAddressExtend::get() const
 {
-    if(!list)
+    if (!list)
         return nullptr;
 
     return list->ai_addr;
@@ -2819,11 +2876,11 @@ struct sockaddr *CxIpAddressExtend::get() const
 int CxIpAddressExtend::family() const
 {
     struct sockaddr *ap;
-    if(!list)
+    if (!list)
         return 0;
 
     ap = list->ai_addr;
-    if(!ap)
+    if (!ap)
         return 0;
 
     return ap->sa_family;
@@ -2836,9 +2893,10 @@ struct sockaddr *CxIpAddressExtend::get(int family) const
 
     lp = list;
 
-    while(lp) {
+    while (lp)
+    {
         ap = lp->ai_addr;
-        if(ap && ap->sa_family == family)
+        if (ap && ap->sa_family == family)
             return ap;
         lp = lp->ai_next;
     }
@@ -2856,17 +2914,18 @@ bool CxIpAddressExtend::remove(struct sockaddr *addr)
     assert(addr != nullptr);
     struct addrinfo *node = list, *prior = nullptr;
 
-    while(node) {
-        if(node->ai_addr && CxSocket::equal(addr, node->ai_addr))
+    while (node)
+    {
+        if (node->ai_addr && CxSocket::equal(addr, node->ai_addr))
             break;
         prior = node;
         node = node->ai_next;
     }
 
-    if(!node)
+    if (!node)
         return false;
 
-    if(!prior)
+    if (!prior)
         list = node->ai_next;
     else
         prior->ai_next = node->ai_next;
@@ -2879,8 +2938,9 @@ bool CxIpAddressExtend::remove(struct sockaddr *addr)
 unsigned CxIpAddressExtend::insert(struct addrinfo *alist)
 {
     unsigned count = 0;
-    while(alist) {
-        if(insert(alist->ai_addr))
+    while (alist)
+    {
+        if (insert(alist->ai_addr))
             ++count;
         alist = alist->ai_next;
     }
@@ -2890,8 +2950,9 @@ unsigned CxIpAddressExtend::insert(struct addrinfo *alist)
 unsigned CxIpAddressExtend::remove(struct addrinfo *alist)
 {
     unsigned count = 0;
-    while(alist) {
-        if(remove(alist->ai_addr))
+    while (alist)
+    {
+        if (remove(alist->ai_addr))
             ++count;
         alist = alist->ai_next;
     }
@@ -2904,18 +2965,19 @@ bool CxIpAddressExtend::insert(struct sockaddr *addr)
 
     struct addrinfo *node = list;
 
-    while(node) {
-        if(node->ai_addr && CxSocket::equal(addr, node->ai_addr))
+    while (node)
+    {
+        if (node->ai_addr && CxSocket::equal(addr, node->ai_addr))
             return false;
         node = node->ai_next;
     }
 
-    node = (struct addrinfo *)malloc(sizeof(struct addrinfo));
+    node = (struct addrinfo *) malloc(sizeof(struct addrinfo));
     memset(node, 0, sizeof(struct addrinfo));
     node->ai_family = addr->sa_family;
     node->ai_addrlen = CxSocket::len(addr);
     node->ai_next = list;
-    node->ai_addr = (struct sockaddr *)malloc(node->ai_addrlen);
+    node->ai_addr = (struct sockaddr *) malloc(node->ai_addrlen);
     memcpy(node->ai_addr, addr, node->ai_addrlen);
     list = node;
     return true;
@@ -2927,12 +2989,13 @@ void CxIpAddressExtend::copy(const struct addrinfo *addr)
     struct addrinfo *node;
 
     clear();
-    while(addr) {
-        node = (struct addrinfo *)malloc(sizeof(struct addrinfo));
+    while (addr)
+    {
+        node = (struct addrinfo *) malloc(sizeof(struct addrinfo));
         memcpy(node, addr, sizeof(struct addrinfo));
         node->ai_next = nullptr;
         node->ai_addr = dup(addr->ai_addr);
-        if(last)
+        if (last)
             last->ai_next = node;
         else
             list = node;
@@ -2942,34 +3005,36 @@ void CxIpAddressExtend::copy(const struct addrinfo *addr)
 
 struct sockaddr_in *CxIpAddressExtend::ipv4(struct sockaddr *addr)
 {
-    if(addr == nullptr || addr->sa_family != AF_INET)
+    if (addr == nullptr || addr->sa_family != AF_INET)
         return nullptr;
 
-    return (struct sockaddr_in*)addr;
+    return (struct sockaddr_in *) addr;
 }
 
 #ifdef  AF_INET6
+
 struct sockaddr_in6 *CxIpAddressExtend::ipv6(struct sockaddr *addr)
 {
-    if(addr == nullptr || addr->sa_family != AF_INET6)
+    if (addr == nullptr || addr->sa_family != AF_INET6)
         return nullptr;
 
-    return (struct sockaddr_in6*)addr;
+    return (struct sockaddr_in6 *) addr;
 }
+
 #endif
 
 struct sockaddr *CxIpAddressExtend::dup(struct sockaddr *addr)
 {
     struct sockaddr *node;
 
-    if(!addr)
+    if (!addr)
         return nullptr;
 
     size_t slen = CxSocket::len(addr);
-    if(!slen)
+    if (!slen)
         return nullptr;
 
-    node = (struct sockaddr *)malloc(slen);
+    node = (struct sockaddr *) malloc(slen);
     memcpy(node, addr, slen);
     return node;
 }
@@ -3000,15 +3065,16 @@ void CxIpAddressExtend::add(const char *host, const char *svc, int socktype)
     struct addrinfo *join = nullptr, *last = nullptr;
 
     join = CxSocketExtend::query(host, svc, socktype);
-    if(!join)
+    if (!join)
         return;
 
-    if(!list) {
+    if (!list)
+    {
         list = join;
         return;
     }
     last = list;
-    while(last->ai_next)
+    while (last->ai_next)
         last = last->ai_next;
     last->ai_next = join;
 }
@@ -3019,8 +3085,9 @@ struct sockaddr *CxIpAddressExtend::find(const struct sockaddr *addr) const
 
     struct addrinfo *node = list;
 
-    while(node) {
-        if(CxSocket::equal(addr, node->ai_addr))
+    while (node)
+    {
+        if (CxSocket::equal(addr, node->ai_addr))
             return node->ai_addr;
         node = node->ai_next;
     }
@@ -3028,19 +3095,8 @@ struct sockaddr *CxIpAddressExtend::find(const struct sockaddr *addr) const
 }
 
 
-
-
-
-
-
-
-
-
-
-
-
 CxSocketExtend::CxSocketExtend() :
-    CxSocket()
+        CxSocket()
 {
 
 }
@@ -3063,20 +3119,20 @@ cx::socket_t CxSocketExtend::create(const CxIpAddressExtend &address)
 {
     cx::socket_t so;
     struct addrinfo *res = *address;
-    if(!res)
+    if (!res)
         return INVALID_SOCKET;
 
     so = CxSocket::create(res->ai_family, res->ai_socktype, res->ai_protocol);
-    if(so == INVALID_SOCKET)
+    if (so == INVALID_SOCKET)
         return INVALID_SOCKET;
 
-    if(connectto(so, res)) {
+    if (connectto(so, res))
+    {
         CxSocket::close(so);
         return INVALID_SOCKET;
     }
     return so;
 }
-
 
 
 char *CxSocketExtend::hostname(const struct sockaddr *sa, char *buf, size_t max)
@@ -3091,30 +3147,31 @@ char *CxSocketExtend::hostname(const struct sockaddr *sa, char *buf, size_t max)
     const struct sockaddr_un *un = (const struct sockaddr_un *)sa;
 #endif
 
-    switch(sa->sa_family) {
+    switch (sa->sa_family)
+    {
 #ifdef  AF_UNIX
-    case AF_UNIX:
-        if(max > sizeof(un->sun_path))
-            max = sizeof(un->sun_path);
-        else
-            --max;
-        strncpy(buf, un->sun_path, max);
-        buf[max] = 0;
-        return buf;
+        case AF_UNIX:
+            if(max > sizeof(un->sun_path))
+                max = sizeof(un->sun_path);
+            else
+                --max;
+            strncpy(buf, un->sun_path, max);
+            buf[max] = 0;
+            return buf;
 #endif
-    case AF_INET:
-        sl = sizeof(struct sockaddr_in);
-        break;
+        case AF_INET:
+            sl = sizeof(struct sockaddr_in);
+            break;
 #ifdef  AF_INET6
-    case AF_INET6:
-        sl = sizeof(struct sockaddr_in6);
-        break;
+        case AF_INET6:
+            sl = sizeof(struct sockaddr_in6);
+            break;
 #endif
-    default:
-        return nullptr;
+        default:
+            return nullptr;
     }
 
-    if(getnameinfo(sa, sl, buf, max, nullptr, 0, NI_NOFQDN))
+    if (getnameinfo(sa, sl, buf, max, nullptr, 0, NI_NOFQDN))
         return nullptr;
 
     return buf;
@@ -3134,17 +3191,17 @@ socklen_t CxSocketExtend::query(cx::socket_t so, struct sockaddr_storage *sa, co
         return unixaddr((struct sockaddr_un *)sa, host);
 #endif
 
-    if(!hinting(so, &hint) || !svc)
+    if (!hinting(so, &hint) || !svc)
         return 0;
 
-    if(getaddrinfo(host, svc, &hint, &res) || !res)
+    if (getaddrinfo(host, svc, &hint, &res) || !res)
         goto exit;
 
     memcpy(sa, res->ai_addr, res->ai_addrlen);
     len = res->ai_addrlen;
 
-exit:
-    if(res)
+    exit:
+    if (res)
         freeaddrinfo(res);
     return len;
 }
@@ -3165,7 +3222,7 @@ int CxSocketExtend::bindto(cx::socket_t so, const char *host, const char *svc, i
 
     struct addrinfo hint, *res = nullptr;
 
-    setsockopt(so, SOL_SOCKET, SO_REUSEADDR, (cx::caddr_t)&reuse, sizeof(reuse));
+    setsockopt(so, SOL_SOCKET, SO_REUSEADDR, (cx::caddr_t) &reuse, sizeof(reuse));
 
 #ifdef AF_UNIX
     if(strchr(host, '/')) {
@@ -3176,11 +3233,11 @@ int CxSocketExtend::bindto(cx::socket_t so, const char *host, const char *svc, i
     };
 #endif
 
-    if(!hinting(so, &hint) || !svc)
+    if (!hinting(so, &hint) || !svc)
         return ENOSYS;
 
     hint.ai_protocol = protocol;
-    if(host && !strcmp(host, "*"))
+    if (host && !strcmp(host, "*"))
         host = nullptr;
 
 #if defined(SO_BINDTODEVICE) && !defined(__QNX__)
@@ -3196,19 +3253,19 @@ int CxSocketExtend::bindto(cx::socket_t so, const char *host, const char *svc, i
     hint.ai_flags = AI_PASSIVE | AI_NUMERICHOST;
 
 #if defined(AF_INET6) && defined(AI_V4MAPPED)
-    if(hint.ai_family == AF_INET6 && !v6only)
+    if (hint.ai_family == AF_INET6 && !v6only)
         hint.ai_flags |= AI_V4MAPPED;
 #endif
 
     rtn = getaddrinfo(host, svc, &hint, &res);
-    if(rtn)
+    if (rtn)
         goto exit;
 
     rtn = _bind_(so, res->ai_addr, res->ai_addrlen);
-exit:
-    if(res)
+    exit:
+    if (res)
         freeaddrinfo(res);
-    if(rtn)
+    if (rtn)
         rtn = CxSocket::error();
     return rtn;
 }
@@ -3233,7 +3290,7 @@ cx::socket_t CxSocketExtend::create(const char *iface, const char *port, int fam
     hint.ai_protocol = protocol;
 
 #if defined(AF_INET6) && defined(AI_V4MAPPED)
-    if(hint.ai_family == AF_INET6 && !v6only)
+    if (hint.ai_family == AF_INET6 && !v6only)
         hint.ai_flags |= AI_V4MAPPED;
 #endif
 
@@ -3254,21 +3311,24 @@ cx::socket_t CxSocketExtend::create(const char *iface, const char *port, int fam
     };
 #endif
 
-    if(iface && !strcmp(iface, "*"))
+    if (iface && !strcmp(iface, "*"))
         iface = nullptr;
 
     getaddrinfo(iface, port, &hint, &res);
-    if(res == nullptr)
+    if (res == nullptr)
         return INVALID_SOCKET;
 
     so = CxSocket::create(res->ai_family, res->ai_socktype, res->ai_protocol);
-    if(so == INVALID_SOCKET) {
+    if (so == INVALID_SOCKET)
+    {
         freeaddrinfo(res);
         return INVALID_SOCKET;
     }
-    setsockopt(so, SOL_SOCKET, SO_REUSEADDR, (cx::caddr_t)&reuse, sizeof(reuse));
-    if(res->ai_addr) {
-        if(_bind_(so, res->ai_addr, res->ai_addrlen)) {
+    setsockopt(so, SOL_SOCKET, SO_REUSEADDR, (cx::caddr_t) &reuse, sizeof(reuse));
+    if (res->ai_addr)
+    {
+        if (_bind_(so, res->ai_addr, res->ai_addrlen))
+        {
             CxSocket::close(so);
             so = INVALID_SOCKET;
         }
@@ -3298,14 +3358,16 @@ struct ::addrinfo *CxSocketExtend::query(const char *hp, const char *svc, int ty
 //    hint.ai_flags = AI_PASSIVE;
 #endif
 
-    if(cp)
+    if (cp)
         *cp = 0;
 
-    if(*host == '[') {
+    if (*host == '[')
+    {
         cp = strchr(++host, ']');
-        if(cp) {
+        if (cp)
+        {
             *(cp++) = 0;
-            if(*cp == ':')
+            if (*cp == ':')
                 svc = ++cp;
         }
 #ifdef  AF_INET6
@@ -3314,15 +3376,18 @@ struct ::addrinfo *CxSocketExtend::query(const char *hp, const char *svc, int ty
         return nullptr;
 #endif
     }
-    else if(((cp = strrchr(host, ':')) != nullptr) && (strchr(host, ':') == cp)) {
+    else if (((cp = strrchr(host, ':')) != nullptr) && (strchr(host, ':') == cp))
+    {
         *(cp++) = 0;
         svc = cp;
     }
 
-    if(is_numeric(host)) {
+    if (is_numeric(host))
+    {
         hint.ai_flags |= AI_NUMERICHOST;
 
-        if(strchr(host, ':')) {
+        if (strchr(host, ':'))
+        {
 #ifdef  AF_INET6
             family = AF_INET6;
 #else
@@ -3333,15 +3398,15 @@ struct ::addrinfo *CxSocketExtend::query(const char *hp, const char *svc, int ty
             family = AF_INET;
     }
 
-    if(family && family != AF_UNSPEC)
+    if (family && family != AF_UNSPEC)
         hint.ai_family = family;
 
 #if defined(AF_INET6) && defined(AI_V4MAPPED)
-    if(hint.ai_family == AF_INET6 && !v6only)
+    if (hint.ai_family == AF_INET6 && !v6only)
         hint.ai_flags |= AI_V4MAPPED;
 #endif
 #ifdef  AI_NUMERICSERV
-    if(svc && atoi(svc) > 0)
+    if (svc && atoi(svc) > 0)
         hint.ai_flags |= AI_NUMERICSERV;
 #endif
 
@@ -3352,25 +3417,15 @@ struct ::addrinfo *CxSocketExtend::query(const char *hp, const char *svc, int ty
 
 void CxSocketExtend::release(struct addrinfo *list)
 {
-    if(list)
+    if (list)
         freeaddrinfo(list);
 }
 
 
-
-
-
-
-
-
-
-
-
-
 CxListenSocket::CxListenSocket(const char *iface, const char *svc, unsigned backlog, int family, int type, int protocol) :
-    CxSocketExtend()
+        CxSocketExtend()
 {
-    if(!iface)
+    if (!iface)
         iface = "*";
 
     assert(iface != nullptr && *iface != 0);
@@ -3382,15 +3437,16 @@ CxListenSocket::CxListenSocket(const char *iface, const char *svc, unsigned back
 
 cx::socket_t CxListenSocket::create(const char *iface, const char *svc, unsigned backlog, int family, int type, int protocol)
 {
-    if(!type)
+    if (!type)
         type = SOCK_STREAM;
 
     cx::socket_t so = CxSocketExtend::create(iface, svc, family, type, protocol);
 
-    if(so == INVALID_SOCKET)
+    if (so == INVALID_SOCKET)
         return so;
 
-    if(_listen_(so, backlog)) {
+    if (_listen_(so, backlog))
+    {
         CxSocket::close(so);
         return INVALID_SOCKET;
     }
@@ -3400,17 +3456,11 @@ cx::socket_t CxListenSocket::create(const char *iface, const char *svc, unsigned
 cx::socket_t CxListenSocket::accept(struct sockaddr_storage *addr) const
 {
     socklen_t len = sizeof(struct sockaddr_storage);
-    if(addr)
-        return _accept_(so, (struct sockaddr *)addr, &len);
+    if (addr)
+        return _accept_(so, (struct sockaddr *) addr, &len);
     else
         return _accept_(so, nullptr, nullptr);
 }
-
-
-
-
-
-
 
 
 struct sockaddr *_getaddrinfo(struct addrinfo *list)
@@ -3420,7 +3470,7 @@ struct sockaddr *_getaddrinfo(struct addrinfo *list)
 
 struct addrinfo *_nextaddrinfo(struct addrinfo *list)
 {
-    if(!list)
+    if (!list)
         return nullptr;
 
     return list->ai_next;
@@ -3428,7 +3478,7 @@ struct addrinfo *_nextaddrinfo(struct addrinfo *list)
 
 cx::socket_t _getaddrsock(struct addrinfo *list)
 {
-    if(!list)
+    if (!list)
         return INVALID_SOCKET;
 
     return ::socket(list->ai_family, list->ai_socktype, list->ai_protocol);
@@ -3462,7 +3512,7 @@ std::vector<std::string> CxNetwork::getLocalIps()
     std::string sHostName = getHostName();
     CxIpAddressExtend localIpAddress(sHostName.c_str());
     std::vector<std::string> rIps;
-    for(struct addrinfo *ptr=localIpAddress.getList(); ptr != nullptr ;ptr=_nextaddrinfo(ptr))
+    for (struct addrinfo *ptr = localIpAddress.getList(); ptr != nullptr; ptr = _nextaddrinfo(ptr))
     {
         rIps.push_back(CxIpAddress::getIp(_getaddrinfo(ptr)));
     }
@@ -3483,35 +3533,35 @@ typedef struct _ICMP_HEADER
     USHORT nId;        // pid
     USHORT nSequence;  // order
     UINT nTimeStamp;   //
-}ICMP_HEADER, *PICMP_HEADER;
+} ICMP_HEADER, *PICMP_HEADER;
 
 USHORT GetCheckSum(LPBYTE lpBuff, DWORD dwSize)
 {
     DWORD dwCheckSum = 0;
-    USHORT* lpWord = (USHORT*)lpBuff;
+    USHORT *lpWord = (USHORT *) lpBuff;
     while (dwSize > 1)
     {
         dwCheckSum += *lpWord++;
         dwSize -= 2;
     }
     if (dwSize == 1)
-        dwCheckSum += *((LPBYTE)lpBuff);
+        dwCheckSum += *((LPBYTE) lpBuff);
     dwCheckSum = (dwCheckSum >> 16) + (dwCheckSum & 0XFFFF);
-    return (USHORT)(~dwCheckSum);
+    return (USHORT) (~dwCheckSum);
 }
 
 int CxNetwork::ping(const std::string &sIpAddress)
 {
-    const char* lpDestIP = sIpAddress.c_str();
+    const char *lpDestIP = sIpAddress.c_str();
     SOCKADDR_IN DestSockAddr;
     DestSockAddr.sin_family = AF_INET;
     DestSockAddr.sin_addr.S_un.S_addr = inet_addr(lpDestIP);
     DestSockAddr.sin_port = htons(0);
-    char ICMPPack[ICMP_HEADER_SIZE] = { 0 };
-    PICMP_HEADER pICMPHeader = (PICMP_HEADER)ICMPPack;
+    char ICMPPack[ICMP_HEADER_SIZE] = {0};
+    PICMP_HEADER pICMPHeader = (PICMP_HEADER) ICMPPack;
     pICMPHeader->bType = 8;
     pICMPHeader->bCode = 0;
-    pICMPHeader->nId = (USHORT)::GetCurrentProcessId();
+    pICMPHeader->nId = (USHORT) ::GetCurrentProcessId();
     pICMPHeader->nCheckSum = 0;
     pICMPHeader->nTimeStamp = 0;
 
@@ -3524,16 +3574,16 @@ int CxNetwork::ping(const std::string &sIpAddress)
     }
     SOCKET s = socket(AF_INET, SOCK_RAW, IPPROTO_ICMP);
     int nTime = 1000;
-    int ret = ::setsockopt(s, SOL_SOCKET, SO_RCVTIMEO, (char*)&nTime, sizeof(nTime));
+    int ret = ::setsockopt(s, SOL_SOCKET, SO_RCVTIMEO, (char *) &nTime, sizeof(nTime));
     char szRcvBuff[DEF_BUF_SIZE];
     SOCKADDR_IN SourceSockAddr;
-    for (int i = 0; i<4; i++)
+    for (int i = 0; i < 4; i++)
     {
         pICMPHeader->nCheckSum = 0;
         pICMPHeader->nSequence = i;
         pICMPHeader->nTimeStamp = ::GetTickCount();
-        pICMPHeader->nCheckSum = GetCheckSum((LPBYTE)(ICMPPack), ICMP_HEADER_SIZE);
-        int nRet = ::sendto(s, ICMPPack, ICMP_HEADER_SIZE, 0, (SOCKADDR*)&DestSockAddr, sizeof(DestSockAddr));
+        pICMPHeader->nCheckSum = GetCheckSum((LPBYTE) (ICMPPack), ICMP_HEADER_SIZE);
+        int nRet = ::sendto(s, ICMPPack, ICMP_HEADER_SIZE, 0, (SOCKADDR *) &DestSockAddr, sizeof(DestSockAddr));
         if (nRet == SOCKET_ERROR)
         {
             printf("send error.\n");
@@ -3546,13 +3596,13 @@ int CxNetwork::ping(const std::string &sIpAddress)
             printf("Recv Error:%d.\n", nError);
             return FALSE;
         }
-        nRet = ::recvfrom(s, szRcvBuff, DEF_BUF_SIZE, 0, (SOCKADDR*)&SourceSockAddr, &nLen);
+        nRet = ::recvfrom(s, szRcvBuff, DEF_BUF_SIZE, 0, (SOCKADDR *) &SourceSockAddr, &nLen);
         if (nRet == SOCKET_ERROR)
         {
             return FALSE;
         }
 
-        PICMP_HEADER pRcvHeader = (PICMP_HEADER)(szRcvBuff + IP_HEADER_SIZE);
+        PICMP_HEADER pRcvHeader = (PICMP_HEADER) (szRcvBuff + IP_HEADER_SIZE);
         int nTime = ::GetTickCount() - pRcvHeader->nTimeStamp;
 //        printf("from target: %s bytes=%d time=%dms\n", inet_ntoa(SourceSockAddr.sin_addr), nRet, nTime);
         printf("from target ip=%s receive-bytes=%d time=%dms\n", inet_ntoa(SourceSockAddr.sin_addr), nRet, nTime);

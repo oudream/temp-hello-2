@@ -6,15 +6,18 @@
 class CCXX_EXPORT CxWinReg
 {
 public:
-    enum REG_CLASS{
-        ROOT=0,
+    enum REG_CLASS
+    {
+        ROOT = 0,
         CURRENT_USER,
         LOCAL_MACHINE,
         USERS,
         CURRENT_CONFIG
     };
-    CxWinReg(CxWinReg::REG_CLASS e=CxWinReg::LOCAL_MACHINE);
-    ~CxWinReg();    
+
+    CxWinReg(CxWinReg::REG_CLASS e = CxWinReg::LOCAL_MACHINE);
+
+    ~CxWinReg();
 
     bool setType(CxWinReg::REG_CLASS e);
 
@@ -28,9 +31,9 @@ public:
 
     bool restoreKey(const std::string &lpName);
 
-    bool read(const std::string &lpValueName, std::string* lpVal);
+    bool read(const std::string &lpValueName, std::string *lpVal);
 
-    bool read(const std::string &lpValueName, int* pnVal);
+    bool read(const std::string &lpValueName, int *pnVal);
 
     bool write(const std::string &lpSubKey, std::string lpVal);
 
@@ -50,8 +53,11 @@ private:
 class CCXX_EXPORT CxWinRegEx
 {
 public:
-    static bool read(const std::string &lpSubKey,const std::string &lpValueName, std::string* lpVal,CxWinReg::REG_CLASS e=CxWinReg::LOCAL_MACHINE);
-    static bool write(const std::string &lpSubKey,const std::string &lpValueName, std::string lpVal,CxWinReg::REG_CLASS e=CxWinReg::LOCAL_MACHINE);
+    static bool
+    read(const std::string &lpSubKey, const std::string &lpValueName, std::string *lpVal, CxWinReg::REG_CLASS e = CxWinReg::LOCAL_MACHINE);
+
+    static bool
+    write(const std::string &lpSubKey, const std::string &lpValueName, std::string lpVal, CxWinReg::REG_CLASS e = CxWinReg::LOCAL_MACHINE);
 };
 
 

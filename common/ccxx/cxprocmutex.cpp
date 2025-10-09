@@ -10,7 +10,8 @@ using namespace std;
 
 
 CxProcMutex::CxProcMutex(const std::string &name) :
-        _name(name) {
+        _name(name)
+{
     _mutex = OpenMutexA(MUTEX_ALL_ACCESS, FALSE, _name.c_str());
     if (_mutex == nullptr)
         _mutex = CreateMutexA(nullptr, FALSE, _name.c_str());
@@ -18,13 +19,16 @@ CxProcMutex::CxProcMutex(const std::string &name) :
 }
 
 
-CxProcMutex::~CxProcMutex() {
+CxProcMutex::~CxProcMutex()
+{
     CloseHandle(_mutex);
 }
 
 
-void CxProcMutex::lock() {
-    switch (WaitForSingleObject(_mutex, INFINITE)) {
+void CxProcMutex::lock()
+{
+    switch (WaitForSingleObject(_mutex, INFINITE))
+    {
         case WAIT_OBJECT_0:
             return;
         case WAIT_ABANDONED:
@@ -37,8 +41,10 @@ void CxProcMutex::lock() {
 }
 
 
-bool CxProcMutex::tryLock() {
-    switch (WaitForSingleObject(_mutex, 0)) {
+bool CxProcMutex::tryLock()
+{
+    switch (WaitForSingleObject(_mutex, 0))
+    {
         case WAIT_OBJECT_0:
             return true;
         case WAIT_TIMEOUT:
@@ -54,7 +60,8 @@ bool CxProcMutex::tryLock() {
 }
 
 
-void CxProcMutex::unlock() {
+void CxProcMutex::unlock()
+{
     ReleaseMutex(_mutex);
 }
 
@@ -206,46 +213,59 @@ return fn;
 #endif
 
 
-CxProcMutexScope::CxProcMutexScope(CxProcMutex &mutex) : _mutex(&mutex) {
+CxProcMutexScope::CxProcMutexScope(CxProcMutex &mutex) : _mutex(&mutex)
+{
     _mutex->lock();
 }
 
-CxProcMutexScope::CxProcMutexScope(CxProcMutex *mutex) : _mutex(mutex) {
+CxProcMutexScope::CxProcMutexScope(CxProcMutex *mutex) : _mutex(mutex)
+{
     _mutex->lock();
 }
 
 CxProcMutexScope::CxProcMutexScope(CxProcMutex &mutex, long milliseconds)
-        : _mutex(&mutex) {
+        : _mutex(&mutex)
+{
     cx::msepoch_t dtNow = cx::DateTime::currentMsepoch();
-    do {
-        try {
+    do
+    {
+        try
+        {
             if (_mutex->tryLock())
                 return;
         }
-        catch (...) {
+        catch (...)
+        {
             assert("cannot lock mutex");
 //                throw std::exception();
         }
         CxThread::sleep(5);
-    } while (cx::DateTime::milliSecondDifferToNow(dtNow) > milliseconds);
+    }
+    while (cx::DateTime::milliSecondDifferToNow(dtNow) > milliseconds);
 }
 
-CxProcMutexScope::CxProcMutexScope(CxProcMutex *mutex, long milliseconds) : _mutex(mutex) {
+CxProcMutexScope::CxProcMutexScope(CxProcMutex *mutex, long milliseconds) : _mutex(mutex)
+{
     cx::msepoch_t dtNow = cx::DateTime::currentMsepoch();
-    do {
-        try {
+    do
+    {
+        try
+        {
             if (_mutex->tryLock())
                 return;
         }
-        catch (...) {
+        catch (...)
+        {
             assert("cannot lock mutex");
             //                throw std::exception();
         }
         CxThread::sleep(5);
-    } while (cx::DateTime::milliSecondDifferToNow(dtNow) > milliseconds);
+    }
+    while (cx::DateTime::milliSecondDifferToNow(dtNow) > milliseconds);
 }
 
-CxProcMutexScope::~CxProcMutexScope() {
+CxProcMutexScope::~CxProcMutexScope()
+{
     try
     {
         _mutex->unlock();

@@ -4,33 +4,40 @@
 #include <functional>
 #include <cstdint>
 
-namespace cx {
+namespace cx
+{
 
-    enum class AssertAction {
+    enum class AssertAction
+    {
         Ignore = 0,  // continue execution
         Exit,        // exit(EXIT_FAILURE)
         Throw,       // throw std::runtime_error
         Abort        // std::abort()
     };
 
-    struct AssertInfo {
-        const char* expr;     // expression text
-        const char* file;     // source file
-        int         line;     // line number
-        const char* func;     // function name (__func__)
-        const char* message;  // optional message (nullable)
+    struct AssertInfo
+    {
+        const char *expr;     // expression text
+        const char *file;     // source file
+        int line;     // line number
+        const char *func;     // function name (__func__)
+        const char *message;  // optional message (nullable)
         std::uint64_t tid;    // current thread id (hashed if not numeric)
     };
 
-    using AssertCallback = std::function<AssertAction(const AssertInfo&)>;
+    using AssertCallback = std::function<AssertAction(const AssertInfo &)>;
 
 // API
     void SetAssertCallback(AssertCallback cb);
+
     void ClearAssertCallback();
+
     void SetBuiltinDialogEnabled(bool enabled);
+
     std::uint64_t CurrentThreadId();
-    void AssertFail(const char* expr, const char* file, int line,
-                    const char* func, const char* message = nullptr);
+
+    void AssertFail(const char *expr, const char *file, int line,
+                    const char *func, const char *message = nullptr);
 
 }
 

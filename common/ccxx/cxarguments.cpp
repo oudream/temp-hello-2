@@ -20,63 +20,71 @@ static map<string, string> f_argMapString;
 /**
  * ArgvSplit
  */
-class ArgvSplit {
+class ArgvSplit
+{
 private:
     bool prependName;
     std::string name;
     std::vector<std::string> arguments;
-    std::vector<const char*> argv_arr;
+    std::vector<const char *> argv_arr;
 
     char quotes[3];
     char space[2];
 
-    static bool isEscaped(const std::string& str, std::string::size_type idx) {
+    static bool isEscaped(const std::string &str, std::string::size_type idx)
+    {
         // is first character, can not be escaped
-        if ( idx == 0 ) return false;
+        if (idx == 0) return false;
         // is out of bounds (-1)
-        if ( idx == std::string::npos ) return false;
+        if (idx == std::string::npos) return false;
 
         // preceeding character is backslash?
-        if ( str.at(idx - 1) == ESCAPE_HEX_CODE )
+        if (str.at(idx - 1) == ESCAPE_HEX_CODE)
             return true;
         else
             return false;
     }
 
-    std::string::size_type findFirstQuote(const std::string& str) {
+    std::string::size_type findFirstQuote(const std::string &str)
+    {
         std::string::size_type idx = 0;
 
-        do {
+        do
+        {
             idx = str.find_first_of(quotes, idx == 0 ? 0 : idx + 1);
-        } while ( isEscaped( str, idx ) && idx != std::string::npos);
+        }
+        while (isEscaped(str, idx) && idx != std::string::npos);
 
         return idx;
     }
 
-    std::string::size_type findMatching(const std::string& str, std::string::size_type match_idx) {
+    std::string::size_type findMatching(const std::string &str, std::string::size_type match_idx)
+    {
         if (match_idx == std::string::npos) return std::string::npos;
 
         char match[1];
-        match[0] = str.at( match_idx );
+        match[0] = str.at(match_idx);
 
         std::string::size_type idx = match_idx;
 
-        do {
-            idx = str.find_first_of( match, idx + 1 );
-        } while ( isEscaped( str, idx ) && idx != std::string::npos);
+        do
+        {
+            idx = str.find_first_of(match, idx + 1);
+        }
+        while (isEscaped(str, idx) && idx != std::string::npos);
 
         return idx;
     }
 
-    void splitStrToVectorBy(const std::string& str, char delim, std::vector<std::string>& vec)
+    void splitStrToVectorBy(const std::string &str, char delim, std::vector<std::string> &vec)
     {
-        std::stringstream strStream( str );
+        std::stringstream strStream(str);
         std::string element;
 
-        while ( std::getline( strStream, element, delim ) )
+        while (std::getline(strStream, element, delim))
         {
-            if ( !element.empty() )
-                vec.push_back( element );
+            if (!element.empty())
+                vec.push_back(element);
         }
     }
 
@@ -84,7 +92,8 @@ private:
     // inefficient: (but ok for the intended use)
     //	- using substrings (copying) for recursion; C++17 string_view could fix this
     //	- no memory preallocation for arguments vector
-    void _parse(const std::string& cmdLineStr) {
+    void _parse(const std::string &cmdLineStr)
+    {
         if (cmdLineStr.empty())
             return;
 
@@ -97,18 +106,18 @@ private:
         std::string::size_type q_front = findFirstQuote(cmdLineStr);
         std::string::size_type q_back = findMatching(cmdLineStr, q_front);
         // found an unescaped qoute, are same when npos an so no quote found. are different when two quotes or only a first one are found
-        if ( q_front != q_back )
+        if (q_front != q_back)
         {
             // get quoted string
             // and get attached string after quoted string. open quotes will be treated as quotes til the end!
 
             // found matching quote to first
-            if ( q_back != std::string::npos )
+            if (q_back != std::string::npos)
             {
-                quoted_str = cmdLineStr.substr(q_front + 1, q_back - q_front - 1 );
+                quoted_str = cmdLineStr.substr(q_front + 1, q_back - q_front - 1);
 
                 // find first whitespace after quote
-                w_back = cmdLineStr.find_first_of(space, q_back + 1 );
+                w_back = cmdLineStr.find_first_of(space, q_back + 1);
                 // none found? handle as quoted til the end
                 if (w_back == std::string::npos)
                     w_back = cmdLineStr.size() - 1;
@@ -127,15 +136,15 @@ private:
             // find last whitespace before quote
             w_front = cmdLineStr.find_last_of(space, q_front);
             // none found?
-            if ( w_front == std::string::npos )
-                w_front = - 1;
+            if (w_front == std::string::npos)
+                w_front = -1;
 
-            pre_quoted_str = cmdLineStr.substr(w_front + 1, q_front - w_front - 1 );
+            pre_quoted_str = cmdLineStr.substr(w_front + 1, q_front - w_front - 1);
 
         }
 
         // split by whitespace in [0, w_front[
-        if(w_front != std::string::npos)
+        if (w_front != std::string::npos)
         {
             splitStrToVectorBy(cmdLineStr.substr(0, w_front), SPACE_HEX_CODE, arguments);
         }
@@ -149,9 +158,10 @@ private:
     }
 
 public:
-    ArgvSplit() : quotes{ SGLQUOTE_HEX_CODE, DBLQUOTE_HEX_CODE, 0}, space{ SPACE_HEX_CODE, 0}, prependName(false) {}
+    ArgvSplit() : quotes{SGLQUOTE_HEX_CODE, DBLQUOTE_HEX_CODE, 0}, space{SPACE_HEX_CODE, 0}, prependName(false)
+    {}
 
-    explicit ArgvSplit(const std::string& sName) : ArgvSplit()
+    explicit ArgvSplit(const std::string &sName) : ArgvSplit()
     {
         prependName = true;
         this->name = sName;
@@ -164,17 +174,20 @@ public:
         return arguments;
     }
 
-    const char** argv() {
+    const char **argv()
+    {
         //return argv_arr.data;
         return argv_arr.data();
     }
 
-    std::string::size_type argc() {
+    std::string::size_type argc()
+    {
         //return argv_arr.size;
         return argv_arr.size();
     }
 
-    const char** parse(const std::string& cmdline) {
+    const char **parse(const std::string &cmdline)
+    {
         // setup/cleanup argv pointer
         argv_arr.clear();
 
@@ -192,7 +205,7 @@ public:
             return argv();
 
         // populate argv array
-        for (auto& it : arguments)
+        for (auto &it: arguments)
             argv_arr.push_back(it.c_str());
         // terminate with null as standard argv array
         argv_arr.push_back(nullptr);
@@ -201,7 +214,7 @@ public:
     }
 };
 
-static void _printArgs(const char** args)
+static void _printArgs(const char **args)
 {
     int i = 0;
     while (args[i] != nullptr)
@@ -212,14 +225,14 @@ static void _printArgs(const char** args)
     std::cout << std::endl;
 }
 
-int helloArg(int argc, const char* argv[])
+int helloArg(int argc, const char *argv[])
 {
     ArgvSplit parser;
     parser.parse("-p \"xx yy d\" xxx 'xxxxxxxx yasdf sdfa'");
 //    parser.parse(""); // raise error
 
-    const char** argv_parsed = parser.argv();
-    const char** argv_cmdl = const_cast<const char**>( argv );
+    const char **argv_parsed = parser.argv();
+    const char **argv_cmdl = const_cast<const char **>( argv );
 
     if (parser.argc() == 0)
     {
@@ -246,12 +259,12 @@ const map<string, string> &CxArguments::getArgMapString()
     return f_argMapString;
 }
 
-const std::map<std::string, std::vector<std::string> >& CxArguments::getArgMapVector()
+const std::map<std::string, std::vector<std::string> > &CxArguments::getArgMapVector()
 {
     return f_argMapVector;
 }
 
-const std::string & CxArguments::getArgs()
+const std::string &CxArguments::getArgs()
 {
     return f_args;
 }
@@ -259,15 +272,15 @@ const std::string & CxArguments::getArgs()
 std::string CxArguments::getCommandLine()
 {
     string r;
-    if (! f_arg0.empty())
+    if (!f_arg0.empty())
     {
         r += f_arg0 + string(" ");
     }
-    if (! f_arg1.empty())
+    if (!f_arg1.empty())
     {
         r += f_arg1 + string(" ");
     }
-    if (! f_args.empty())
+    if (!f_args.empty())
     {
         r += f_args;
     }
@@ -316,7 +329,7 @@ std::string CxArguments::argsToCommandLine(int argc, const char **argv)
     {
         if (CxString::beginWith(argv[i], "-"))
         {
-            if (! key.empty() && !values.empty())
+            if (!key.empty() && !values.empty())
             {
                 string value = CxString::join(values, ' ');
                 args += string(" ") + value;
@@ -344,7 +357,7 @@ std::string CxArguments::argsToCommandLine(int argc, const char **argv)
             values.emplace_back(argv[i]);
         }
     }
-    if (! key.empty())
+    if (!key.empty())
     {
         if (!values.empty())
         {
@@ -377,7 +390,7 @@ map<string, string> CxArguments::argsToMapString(int argc, const char *argv[])
     {
         if (CxString::beginWith(argv[i], "-"))
         {
-            if (! key.empty())
+            if (!key.empty())
             {
                 if (!values.empty())
                 {
@@ -410,7 +423,7 @@ map<string, string> CxArguments::argsToMapString(int argc, const char *argv[])
             values.emplace_back(argv[i]);
         }
     }
-    if (! key.empty())
+    if (!key.empty())
     {
         if (!values.empty())
         {
@@ -461,7 +474,7 @@ void CxArguments::init(int argc, const char **argv)
     {
         if (CxString::beginWith(argv[i], "-"))
         {
-            if (! key.empty())
+            if (!key.empty())
             {
                 if (!values.empty())
                 {
@@ -501,7 +514,7 @@ void CxArguments::init(int argc, const char **argv)
             values.emplace_back(argv[i]);
         }
     }
-    if (! key.empty())
+    if (!key.empty())
     {
         if (!values.empty())
         {
@@ -537,7 +550,7 @@ std::map<std::string, std::vector<std::string> > CxArguments::argsToMapVector(in
     {
         if (CxString::beginWith(argv[i], "-"))
         {
-            if (! key.empty() && !values.empty())
+            if (!key.empty() && !values.empty())
             {
                 argMapVector[key] = values;
             }
@@ -562,7 +575,7 @@ std::map<std::string, std::vector<std::string> > CxArguments::argsToMapVector(in
             values.emplace_back(argv[i]);
         }
     }
-    if (! key.empty() && !values.empty())
+    if (!key.empty() && !values.empty())
     {
         argMapVector[key] = values;
     }

@@ -1,30 +1,30 @@
 #include"cxmath.h"
 
 
-int CxMath::gcd(int a,int b)
+int CxMath::gcd(int a, int b)
 {
     int temp;
-    if(a<b)
+    if (a < b)
     {
-        temp=a;
-        a=b;
-        b=temp;
+        temp = a;
+        a = b;
+        b = temp;
     }
-    while(b!=0)
+    while (b != 0)
     {
-        temp=a%b;
-        a=b;
-        b=temp;
+        temp = a % b;
+        a = b;
+        b = temp;
     }
     return a;
 
-    if(b) while((a %= b) && (b %= a));
+    if (b) while ((a %= b) && (b %= a));
     return a + b;
 }
 
 int CxMath::lcm(int a, int b)
 {
-    return a/gcd(a,b)*b;
+    return a / gcd(a, b) * b;
 
     return a * b / gcd(a, b);
 }

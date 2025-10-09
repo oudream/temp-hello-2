@@ -124,7 +124,7 @@ const cx::uchar f_modbusTableLo[256] = {
         0x86, 0x82, 0x42, 0x43, 0x83, 0x41, 0x81, 0x80, 0x40
 };
 
-cx::uchar CxCrc::calcsum8(const cx::uchar *pData, int iLength)
+cx::uchar CxCrc::calcSum8(const cx::uchar *pData, int iLength)
 {
     cx::uchar aSum = 0;
     int i = 0;
@@ -136,7 +136,7 @@ cx::uchar CxCrc::calcsum8(const cx::uchar *pData, int iLength)
 }
 
 
-cx::ushort CxCrc::calcsum16(const cx::uchar *pData, int iLength)
+cx::ushort CxCrc::calcSum16(const cx::uchar *pData, int iLength)
 {
     cx::ushort aSum = 0;
     int i = 0;
@@ -1192,7 +1192,7 @@ std::string CxCrc::md5HexCode(const std::string &sData)
     }
 }
 
-string CxCrc::md5HexCode(const std::vector<std::pair<const char*, int>> &sLines)
+string CxCrc::md5HexCode(const std::vector<std::pair<const char *, int>> &sLines)
 {
     if (!sLines.empty())
     {
@@ -1205,7 +1205,7 @@ string CxCrc::md5HexCode(const std::vector<std::pair<const char*, int>> &sLines)
     }
 }
 
-std::vector<char> CxCrc::md5(const std::vector<std::pair<const char*, int>> &sLines)
+std::vector<char> CxCrc::md5(const std::vector<std::pair<const char *, int>> &sLines)
 {
     vector<char> rData;
     if (!sLines.empty())
@@ -1213,7 +1213,7 @@ std::vector<char> CxCrc::md5(const std::vector<std::pair<const char*, int>> &sLi
         CryptographicHash md(CryptographicHash::Md5);
         for (size_t i = 0; i < sLines.size(); ++i)
         {
-            const std::pair<const char*, int> &sLine = sLines.at(i);
+            const std::pair<const char *, int> &sLine = sLines.at(i);
             if (sLine.second > 0)
             {
                 md.addData(sLine.first, sLine.second);
@@ -1242,7 +1242,7 @@ string CxCrc::file2md5(const string &sFilePath, int iCodeType)
         return r;
     }
 
-    std::vector<std::pair<const char*, int>> sFileContent = CxString::splitToPair(fileData.data(), fileData.size(), 4096);
+    std::vector<std::pair<const char *, int>> sFileContent = CxString::splitToPair(fileData.data(), fileData.size(), 4096);
 
     if (iCodeType == 0)
     {

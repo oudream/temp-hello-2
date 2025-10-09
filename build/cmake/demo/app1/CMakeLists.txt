@@ -1,6 +1,7 @@
 
 add_executable(demo_app1
         ${gs_project_demo_path}/app1/main.cpp
+        ${gs_project_demo_path}/app1/app_config.cpp
         # helpers
         ${src_helpers_simple_header_filepaths}
         ${src_helpers_simple_cpp_filepaths}

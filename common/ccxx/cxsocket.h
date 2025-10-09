@@ -4,7 +4,7 @@
 #include "cxglobal.h"
 
 extern "C" {
-    struct addrinfo;
+struct addrinfo;
 }
 
 
@@ -107,7 +107,8 @@ typedef intptr_t ssize_t;
  */
 struct sockaddr_internet
 {
-    union {
+    union
+    {
 #ifdef  AF_INET6
         struct sockaddr_in6 ipv6;
 #endif
@@ -171,7 +172,8 @@ struct sockaddr_storage
 class CCXX_EXPORT CxSocket
 {
 public:
-    inline static bool isValidSocket(cx::socket_t iSocket) {
+    inline static bool isValidSocket(cx::socket_t iSocket)
+    {
         return iSocket > 0 && iSocket != INVALID_SOCKET;
     }
 
@@ -446,16 +448,16 @@ public:
      * @param address to examine.
      * @return address family.
      */
-    inline static int family(const struct sockaddr_storage& address)
-        {return ((const struct sockaddr *)&address)->sa_family;}
+    inline static int family(const struct sockaddr_storage &address)
+    { return ((const struct sockaddr *) &address)->sa_family; }
 
     /**
      * Get the address family of an internet socket address object.
      * @param address to examine.
      * @return address family.
      */
-    inline static int family(const struct sockaddr_internet& address)
-        {return address.address.sa_family;}
+    inline static int family(const struct sockaddr_internet &address)
+    { return address.address.sa_family; }
 
     /**
      * Get data waiting in receive queue.
@@ -509,7 +511,7 @@ public:
      * @return number of bytes sent, -1 if error.
      */
     inline static ssize_t replyto(cx::socket_t socket, const void *buffer, size_t size, int flags, const struct sockaddr_storage *address)
-        {return sendto(socket, buffer, size, flags, (const struct sockaddr *)address);}
+    { return sendto(socket, buffer, size, flags, (const struct sockaddr *) address); }
 
     /**
      * Send to internet socket.
@@ -521,7 +523,7 @@ public:
      * @return number of bytes sent, -1 if error.
      */
     inline static ssize_t sendinet(cx::socket_t socket, const void *buffer, size_t size, int flags, const struct sockaddr_internet *address)
-        {return sendto(socket, buffer, size, flags, (const struct sockaddr *)address);}
+    { return sendto(socket, buffer, size, flags, (const struct sockaddr *) address); }
 
     /**
      * Get internet data waiting in receive queue.
@@ -625,7 +627,7 @@ public:
      * @return number of bytes stored.
      */
     inline static unsigned store(struct sockaddr_storage *storage, const struct sockaddr *address)
-        {return copy((struct sockaddr*)storage, address);}
+    { return copy((struct sockaddr *) storage, address); }
 
     /**
      * Store an address into an internet address object.
@@ -652,7 +654,7 @@ public:
      * @return true if same family and equal.
      */
     inline static bool eq_from(const struct sockaddr_storage *address1, const struct sockaddr_storage *address2)
-        {return equal((const struct sockaddr *)address1, (const struct sockaddr *)address2);}
+    { return equal((const struct sockaddr *) address1, (const struct sockaddr *) address2); }
 
     /**
      * Compare socket addresses.  Test if the internet addresses received match.
@@ -662,7 +664,7 @@ public:
      * @return true if same family and equal.
      */
     inline static bool eq_inet(const struct sockaddr_internet *address1, const struct sockaddr_internet *address2)
-        {return equal((const struct sockaddr *)address1, (const struct sockaddr *)address2);}
+    { return equal((const struct sockaddr *) address1, (const struct sockaddr *) address2); }
 
     /**
      * See if both addresses are in the same subnet.  This is only relevant
@@ -704,7 +706,7 @@ public:
      * @return service port number.
      */
     inline static short service(const struct sockaddr_internet *address)
-        {return service((const struct sockaddr *)address);}
+    { return service((const struct sockaddr *) address); }
 
     /**
      * Convert a socket address and service into a hash map index.
@@ -750,7 +752,7 @@ public:
      * @param format string.
      * @return number of bytes sent, -1 if error.
      */
-    static ssize_t printf(cx::socket_t socket, const char *format, ...) __PRINTF(2,3);
+    static ssize_t printf(cx::socket_t socket, const char *format, ...) __PRINTF(2, 3);
 
     /**
      * Close socket.
@@ -795,7 +797,7 @@ public:
      * Create socket as duped handle of existing socket.
      * @param existing socket to dup.
      */
-    CxSocket(const CxSocket& existing);
+    CxSocket(const CxSocket &existing);
 
     /**
      * Shutdown, close, and destroy socket.
@@ -816,7 +818,7 @@ public:
      * Get error code.
      */
     inline int err() const
-        {return ioerr;}
+    { return ioerr; }
 
     /**
      * See the number of bytes in the receive queue.
@@ -844,7 +846,7 @@ public:
      * @return 0 if successful, -1 on error.
      */
     inline int nodelay() const
-        {return nodelay(so);}
+    { return nodelay(so); }
 
     /**
      * Test for output data sent.  This function can wait up to a specified
@@ -859,7 +861,7 @@ public:
      * @return bytes pending.
      */
     inline unsigned pending() const
-        {return pending(so);}
+    { return pending(so); }
 
     /**
      * Set socket for unicast mode broadcasts.
@@ -867,7 +869,7 @@ public:
      * @return 0 on success, -1 if error.
      */
     inline int broadcast(bool enable)
-        {return broadcast(so, enable);}
+    { return broadcast(so, enable); }
 
     /**
      * Set socket for keepalive packets.
@@ -875,7 +877,7 @@ public:
      * @return 0 on success, -1 if error.
      */
     inline int keepalive(bool enable)
-        {return keepalive(so, enable);}
+    { return keepalive(so, enable); }
 
     /**
      * Set socket blocking I/O mode.
@@ -883,7 +885,7 @@ public:
      * @return 0 on success, -1 if error.
      */
     inline int blocking(bool enable)
-        {return blocking(so, enable);}
+    { return blocking(so, enable); }
 
     /**
      * Set multicast mode and multicast broadcast range.
@@ -891,7 +893,7 @@ public:
      * @return 0 on success, -1 if error.
      */
     inline int multicast(unsigned ttl = 1)
-        {return multicast(so, ttl);}
+    { return multicast(so, ttl); }
 
     /**
      * Set loopback to read multicast packets we broadcast.
@@ -899,14 +901,14 @@ public:
      * @return 0 on success, -1 if error.
      */
     inline int loopback(bool enable)
-        {return loopback(so, enable);}
+    { return loopback(so, enable); }
 
     /**
      * Get socket error code.
      * @return socket error code.
      */
     inline int getError()
-        {return error(so);}
+    { return error(so); }
 
     /**
      * Set the time to live before packets expire.
@@ -914,7 +916,7 @@ public:
      * @return 0 on success, -1 on error.
      */
     inline int ttl(unsigned char time)
-        {return ttl(so, time);}
+    { return ttl(so, time); }
 
     /**
      * Set the size of the socket send buffer.
@@ -922,7 +924,7 @@ public:
      * @return 0 on success, -1 on error.
      */
     inline int sendsize(unsigned size)
-        {return sendsize(so, size);}
+    { return sendsize(so, size); }
 
     /**
      * Set the size to wait before sending.
@@ -930,7 +932,7 @@ public:
      * @return 0 on success, -1 on error.
      */
     inline int sendwait(unsigned size)
-        {return sendwait(so, size);}
+    { return sendwait(so, size); }
 
 
     /**
@@ -939,14 +941,14 @@ public:
      * @return 0 on success, -1 on error.
      */
     inline int recvsize(unsigned size)
-        {return recvsize(so, size);}
+    { return recvsize(so, size); }
 
     /**
      * Get the type of a socket.
      * @return socket type.
      */
     inline int type()
-        {return type(so);}
+    { return type(so); }
 
     /**
      * Set segment size and get mtu of a socket.
@@ -954,7 +956,7 @@ public:
      * @return mtu size.
      */
     inline unsigned segsize(unsigned size)
-        {return segsize(so, size);}
+    { return segsize(so, size); }
 
     /**
      * Set ccid of dccp socket.
@@ -962,7 +964,7 @@ public:
      * @return true if success, false if not dccp or not supported ccid used.
      */
     inline bool ccid(cx::uint8 id)
-        {return ccid(so, id);}
+    { return ccid(so, id); }
 
     /**
      * Set the type of service field of outgoing packets.  Some useful
@@ -973,7 +975,7 @@ public:
      * @return 0 on success or -1 on error.
      */
     inline int tos(int type)
-        {return tos(so, type);}
+    { return tos(so, type); }
 
     /**
      * Set packet priority, 0 to 6 unless privileged.  Should be set before
@@ -982,13 +984,13 @@ public:
      * @return 0 on success, -1 on error.
      */
     inline int priority(int scheduling)
-        {return priority(so, scheduling);}
+    { return priority(so, scheduling); }
 
     /**
      * Shutdown the socket communication channel.
      */
     inline void shutdown()
-        {::shutdown(so, SHUT_RDWR);}
+    { ::shutdown(so, SHUT_RDWR); }
 
     /**
      * Connect our socket to a remote host from an address list.
@@ -1081,7 +1083,7 @@ public:
      * @param format string.
      * @return number of bytes sent.
      */
-    size_t printf(const char *format, ...) __PRINTF(2,3);
+    size_t printf(const char *format, ...) __PRINTF(2, 3);
 
     /**
      * Write a null terminated string to the socket.  This exists because
@@ -1109,71 +1111,72 @@ public:
      * one present.
      * @param socket descriptor to assign to object.
      */
-    CxSocket& operator=(cx::socket_t socket);
+    CxSocket &operator=(cx::socket_t socket);
 
     /**
      * Get the socket descriptor by casting.
      * @return socket descriptor of object.
      */
     inline operator cx::socket_t() const
-        {return so;}
+    { return so; }
 
     /**
      * Get the socket descriptor by pointer reference.
      * @return socket descriptor of object.
      */
     inline cx::socket_t operator*() const
-        {return so;}
+    { return so; }
 
 };
 
 #define CxSockAddrMaxSize 64
+
 class CCXX_EXPORT CxIpAddress
 {
 public:
-    static std::string getIp(const struct sockaddr * oSockAddr);
+    static std::string getIp(const struct sockaddr *oSockAddr);
 
-    static short getPort(const struct sockaddr * oSockAddr);
+    static short getPort(const struct sockaddr *oSockAddr);
 
-    static void extractIpPort(const struct sockaddr * oSockAddr, std::string & sIp, cx::ushort & iPort);
+    static void extractIpPort(const struct sockaddr *oSockAddr, std::string &sIp, cx::ushort &iPort);
 
     //return : invalid = INADDR_NONE
-    static cx::uint32 ipV4ToInt32(const std::string & sIp);
+    static cx::uint32 ipV4ToInt32(const std::string &sIp);
 
     static std::string ipV4ToString(cx::uint32 iIp);
 
-    static bool isValidIpV4(const std::string & sIp);
+    static bool isValidIpV4(const std::string &sIp);
 
-    static bool isIpV6(const std::string & sIp);
+    static bool isIpV6(const std::string &sIp);
 
-    static bool isIpV6(const struct sockaddr * oSockAddr);
+    static bool isIpV6(const struct sockaddr *oSockAddr);
 
-    static bool isLocalIp(const std::string & sIp);
+    static bool isLocalIp(const std::string &sIp);
 
 public:
     CxIpAddress() :
-        _sockAddr(CxSockAddrMaxSize, 0), _ip(), _port(0),
-        _family(0), _isBind(false), _isValid(false)
+            _sockAddr(CxSockAddrMaxSize, 0), _ip(), _port(0),
+            _family(0), _isBind(false), _isValid(false)
     {
     }
 
-    CxIpAddress(const std::string & sIp, cx::ushort iPort, bool isBind = false) :
-        _sockAddr(CxSockAddrMaxSize, 0), _ip(sIp.c_str(), sIp.size()), _port(iPort),
-        _family(0), _isBind(isBind), _isValid(false)
+    CxIpAddress(const std::string &sIp, cx::ushort iPort, bool isBind = false) :
+            _sockAddr(CxSockAddrMaxSize, 0), _ip(sIp.c_str(), sIp.size()), _port(iPort),
+            _family(0), _isBind(isBind), _isValid(false)
     {
         init(sIp, iPort, isBind);
     }
 
-    CxIpAddress(const struct sockaddr * oSockAddr) :
-        _sockAddr(CxSockAddrMaxSize, 0), _ip(), _port(0),
-        _family(0), _isBind(false), _isValid(false)
+    CxIpAddress(const struct sockaddr *oSockAddr) :
+            _sockAddr(CxSockAddrMaxSize, 0), _ip(), _port(0),
+            _family(0), _isBind(false), _isValid(false)
     {
         init(oSockAddr);
     }
 
     inline CxIpAddress(const CxIpAddress &o) :
-        _sockAddr(o._sockAddr), _ip(o._ip.c_str(), o._ip.size()), _port(o._port),
-        _family(o._family), _isBind(o._isBind), _isValid(o._isValid)
+            _sockAddr(o._sockAddr), _ip(o._ip.c_str(), o._ip.size()), _port(o._port),
+            _family(o._family), _isBind(o._isBind), _isValid(o._isValid)
     {
     }
 
@@ -1181,46 +1184,58 @@ public:
     {
         if (this != &other)
         {
-            _sockAddr=other._sockAddr; _ip=std::string(other._ip.c_str(), other._ip.size()); _port=other._port;
-            _family=other._family; _isBind=other._isBind; _isValid=other._isValid;
+            _sockAddr = other._sockAddr;
+            _ip = std::string(other._ip.c_str(), other._ip.size());
+            _port = other._port;
+            _family = other._family;
+            _isBind = other._isBind;
+            _isValid = other._isValid;
         }
         return *this;
     }
 
-    void setIp(const std::string & value);
+    void setIp(const std::string &value);
 
     void setPort(cx::ushort iPort);
 
     void setIsBind(bool value);
 
-    void init(const std::string & sIp, cx::ushort iPort, bool isBind = false);
+    void init(const std::string &sIp, cx::ushort iPort, bool isBind = false);
 
-    void init(const struct sockaddr * oSockAddr);
+    void init(const struct sockaddr *oSockAddr);
 
-    inline const std::string & ip() const { return _ip; }
+    inline const std::string &ip() const
+    { return _ip; }
 
-    inline cx::ushort port() const { return _port; }
+    inline cx::ushort port() const
+    { return _port; }
 
     std::string getIpPort() const;
 
-    inline cx::ushort family() const { return _family; }
+    inline cx::ushort family() const
+    { return _family; }
 
-    inline bool isBind() const { return _isBind; }
+    inline bool isBind() const
+    { return _isBind; }
 
-    inline bool isV6() const {
+    inline bool isV6() const
+    {
 #ifdef  AF_INET6
         return _family == AF_INET6;
 #endif
         return false;
     }
 
-    inline bool isValid() const { return _isValid;}
+    inline bool isValid() const
+    { return _isValid; }
 
-    inline const struct sockaddr * getSockAddr() const {
-        return (struct sockaddr *)(&_sockAddr.front())/*_sockAddr.data()*/;
+    inline const struct sockaddr *getSockAddr() const
+    {
+        return (struct sockaddr *) (&_sockAddr.front())/*_sockAddr.data()*/;
     }
 
-    inline int getSockAddrSize() const {
+    inline int getSockAddrSize() const
+    {
         if (isV6())
         {
 #ifdef  AF_INET6
@@ -1234,11 +1249,12 @@ public:
         }
     }
 
-    bool isSameIpAddress(const struct sockaddr * oSockAddr) const;
+    bool isSameIpAddress(const struct sockaddr *oSockAddr) const;
 
-    bool isSameIpAddress(const std::string & sIp, cx::ushort iPort) const;
+    bool isSameIpAddress(const std::string &sIp, cx::ushort iPort) const;
 
-    inline bool isLocalIpAddress() const { return isLocalIp(_ip); }
+    inline bool isLocalIpAddress() const
+    { return isLocalIp(_ip); }
 
 private:
     void updateSockAddr();
@@ -1332,7 +1348,7 @@ public:
      * Copy constructor.
      * @param reference to object to copy from.
      */
-    CxIpAddressExtend(const CxIpAddressExtend& reference);
+    CxIpAddressExtend(const CxIpAddressExtend &reference);
 
     /**
      * Destroy address.  Deallocate addrinfo structure.
@@ -1346,17 +1362,17 @@ public:
     struct sockaddr *get() const;
 
     inline struct sockaddr *getAddr() const
-        {return get();}
+    { return get(); }
 
     inline struct sockaddr *operator()() const
-        {return get();}
+    { return get(); }
 
     /**
      * Get the first socket address by casted reference.
      * @return first socket address we resolved or nullptr if none.
      */
     inline operator struct sockaddr *() const
-        {return get();}
+    { return get(); }
 
     /**
      * Get the first socket address of specified family from our list.
@@ -1366,14 +1382,16 @@ public:
     struct sockaddr *get(int family) const;
 
     inline struct sockaddr *operator()(int family) const
-        {return get(family);}
+    { return get(family); }
 
     inline operator struct sockaddr_in *() const
-        {return (struct sockaddr_in *)get(AF_INET);}
+    { return (struct sockaddr_in *) get(AF_INET); }
 
 #ifdef  AF_INET6
+
     inline operator struct sockaddr_in6 *() const
-        {return (struct sockaddr_in6 *)get(AF_INET6);}
+    { return (struct sockaddr_in6 *) get(AF_INET6); }
+
 #endif
 
     /**
@@ -1393,35 +1411,35 @@ public:
      * @return addrinfo list we resolved or nullptr if none.
      */
     inline struct addrinfo *getList() const
-        {return list;}
+    { return list; }
 
     /**
      * Get the full socket address list by casted reference.
      * @return addrinfo list we resolved or nullptr if none.
      */
     inline operator struct addrinfo *() const
-        {return list;}
+    { return list; }
 
     /**
      * Return the full socket address list by pointer reference.
      * @return addrinfo list we resolved or nullptr if none.
      */
     inline struct addrinfo *operator*() const
-        {return list;}
+    { return list; }
 
     /**
      * Test if the address list is valid.
      * @return true if we have an address list.
      */
     inline operator bool() const
-        {return list != nullptr;}
+    { return list != nullptr; }
 
     /**
      * Test if we have no address list.
      * @return true if we have no address list.
      */
     inline bool operator!() const
-        {return list == nullptr;}
+    { return list == nullptr; }
 
 
     /**
@@ -1524,20 +1542,16 @@ public:
     static struct sockaddr_in *ipv4(struct sockaddr *addr);
 
 #ifdef  AF_INET6
+
     /**
      * Convert address object into ipv6 address.
      * @param address to convert.
      * @return new ipv6 address or nullptr if not ipv6.
      */
     static struct sockaddr_in6 *ipv6(struct sockaddr *addr);
+
 #endif
 };
-
-
-
-
-
-
 
 
 class CCXX_EXPORT CxSocketExtend : public CxSocket
@@ -1632,14 +1646,6 @@ public:
 };
 
 
-
-
-
-
-
-
-
-
 /**
  * A bound socket used to listen for inbound socket connections.  This class
  * is commonly used for TCP and DCCP listener sockets.
@@ -1684,65 +1690,57 @@ public:
      * @return true when acceptable connection is pending.
      */
     inline bool wait(cx::timems_t timeout = cx::LONG_MINUS_ONE) const
-        {return CxSocket::wait(timeout);}
+    { return CxSocket::wait(timeout); }
 
     /**
      * Get the socket descriptor of the listener.
      * @return socket descriptor.
      */
     inline operator cx::socket_t() const
-        {return so;}
+    { return so; }
 
     /**
      * Get the socket descriptor of the listener by pointer reference.
      * @return socket descriptor.
      */
     inline cx::socket_t operator*() const
-        {return so;}
+    { return so; }
 
     /**
      * Get the socket descriptor of the listener.
      * @return socket descriptor.
      */
     inline cx::socket_t getsocket() const
-        {return so;}
+    { return so; }
 
     inline cx::socket_t handle() const
-        {return so;}
+    { return so; }
 
 };
 
 
-
-
-
-
-
-
-
+/**
+ * Helper function for linked_pointer<struct sockaddr>.
+ */
+struct addrinfo *_nextaddrinfo(struct addrinfo *addrinfo);
 
 /**
  * Helper function for linked_pointer<struct sockaddr>.
  */
-struct addrinfo * _nextaddrinfo(struct addrinfo * addrinfo);
+struct sockaddr *_getaddrinfo(struct addrinfo *addrinfo);
 
 /**
  * Helper function for linked_pointer<struct sockaddr>.
  */
-struct sockaddr * _getaddrinfo(struct addrinfo * addrinfo);
-
-/**
- * Helper function for linked_pointer<struct sockaddr>.
- */
-cx::socket_t _getaddrsock(struct addrinfo * addrinfo);
+cx::socket_t _getaddrsock(struct addrinfo *addrinfo);
 
 /**
  * A convenience function to convert a socket address list into an addrinfo.
  * @param address list object.
  * @return addrinfo list or nullptr if empty.
  */
-inline struct addrinfo * addrinfo(CxIpAddressExtend & address)
-    {return address.getList();}
+inline struct addrinfo *addrinfo(CxIpAddressExtend &address)
+{ return address.getList(); }
 
 /**
  * A convenience function to convert a socket address list into a socket
@@ -1750,12 +1748,8 @@ inline struct addrinfo * addrinfo(CxIpAddressExtend & address)
  * @param address list object.
  * @return first socket address in list or nullptr if empty.
  */
-inline struct sockaddr * addr(CxIpAddressExtend & address)
-    {return address.get();}
-
-
-
-
+inline struct sockaddr *addr(CxIpAddressExtend &address)
+{ return address.get(); }
 
 
 class CCXX_EXPORT CxNetwork
@@ -1765,16 +1759,9 @@ public:
 
     static std::vector<std::string> getLocalIps();
 
-    static int ping(const std::string & sIpAddress);
+    static int ping(const std::string &sIpAddress);
 
 };
-
-
-
-
-
-
-
 
 
 /**
@@ -1784,8 +1771,8 @@ public:
  * @param s2 socket address to compare.
  * @return true if addresses same.
  */
-inline bool eq(const struct sockaddr * s1, const struct sockaddr * s2)
-    {return CxSocket::equal(s1, s2);}
+inline bool eq(const struct sockaddr *s1, const struct sockaddr *s2)
+{ return CxSocket::equal(s1, s2); }
 
 /**
  * Compare two stored socket addresses to see if equal.  If the port is zero
@@ -1794,8 +1781,8 @@ inline bool eq(const struct sockaddr * s1, const struct sockaddr * s2)
  * @param s2 stored socket address to compare.
  * @return true if addresses same.
  */
-inline bool eq(const struct sockaddr_storage * s1, const struct sockaddr_storage * s2)
-    {return CxSocket::equal((const struct sockaddr *)s1, (const struct sockaddr *)s2);}
+inline bool eq(const struct sockaddr_storage *s1, const struct sockaddr_storage *s2)
+{ return CxSocket::equal((const struct sockaddr *) s1, (const struct sockaddr *) s2); }
 
 /**
  * Compare two host addresses to see if equal.  The port numbers are
@@ -1804,11 +1791,11 @@ inline bool eq(const struct sockaddr_storage * s1, const struct sockaddr_storage
  * @param s2 socket address to compare.
  * @return true if addresses same.
  */
-inline bool eq_host(const struct sockaddr * s1, const struct sockaddr * s2)
-    {return CxSocket::eq_host(s1, s2);}
+inline bool eq_host(const struct sockaddr *s1, const struct sockaddr *s2)
+{ return CxSocket::eq_host(s1, s2); }
 
-inline bool eq_subnet(const struct sockaddr * s1, const struct sockaddr * s2)
-    {return CxSocket::eq_subnet(s1, s2);}
+inline bool eq_subnet(const struct sockaddr *s1, const struct sockaddr *s2)
+{ return CxSocket::eq_subnet(s1, s2); }
 
 
 

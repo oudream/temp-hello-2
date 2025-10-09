@@ -13,32 +13,33 @@
 HKEY f_getRoot(int nType)
 {
     HKEY _hKey = nullptr;
-    switch(nType)
+    switch (nType)
     {
-    case 0:
-        _hKey = HKEY_CLASSES_ROOT;
-        break;
-    case 1:
-        _hKey = HKEY_CURRENT_USER;
-        break;
-    case 2:
-        _hKey = HKEY_LOCAL_MACHINE;
-        break;
-    case 3:
-        _hKey = HKEY_USERS;
-        break;
-    case 4:
-        _hKey = HKEY_CURRENT_CONFIG;
-        break;
-    default:
-        break;
+        case 0:
+            _hKey = HKEY_CLASSES_ROOT;
+            break;
+        case 1:
+            _hKey = HKEY_CURRENT_USER;
+            break;
+        case 2:
+            _hKey = HKEY_LOCAL_MACHINE;
+            break;
+        case 3:
+            _hKey = HKEY_USERS;
+            break;
+        case 4:
+            _hKey = HKEY_CURRENT_CONFIG;
+            break;
+        default:
+            break;
     }
     return _hKey;
 }
+
 ////////////////////////////////////////////////////////////////
 CxWinReg::CxWinReg(REG_CLASS e)
 {
-    _hKey = f_getRoot((int)e);
+    _hKey = f_getRoot((int) e);
 }
 
 CxWinReg::~CxWinReg()
@@ -49,24 +50,23 @@ CxWinReg::~CxWinReg()
 bool CxWinReg::setType(CxWinReg::REG_CLASS e)
 {
     close();
-    _hKey = f_getRoot((int)e);
-	return true;
+    _hKey = f_getRoot((int) e);
+    return true;
 }
-
 
 
 bool CxWinReg::open(const std::string &lpSubKey)
 {
     assert(_hKey);
 
-    if(_hKey!=nullptr)
+    if (_hKey != nullptr)
     {
         HKEY hKey;
-        long lReturn=RegOpenKeyEx(_hKey,lpSubKey.c_str(),0L,KEY_ALL_ACCESS,&hKey);
+        long lReturn = RegOpenKeyEx(_hKey, lpSubKey.c_str(), 0L, KEY_ALL_ACCESS, &hKey);
 
-        if(lReturn==ERROR_SUCCESS)
+        if (lReturn == ERROR_SUCCESS)
         {
-            _hKey=hKey;
+            _hKey = hKey;
             return TRUE;
         }
     }
@@ -75,10 +75,10 @@ bool CxWinReg::open(const std::string &lpSubKey)
 
 void CxWinReg::close()
 {
-    if(_hKey)
+    if (_hKey)
     {
         RegCloseKey(_hKey);
-        _hKey=nullptr;
+        _hKey = nullptr;
     }
 }
 
@@ -88,11 +88,11 @@ bool CxWinReg::createKey(const std::string &lpSubKey)
 
     HKEY hKey;
     DWORD dw;
-    long lReturn=RegCreateKeyEx(_hKey,lpSubKey.c_str(),0L,nullptr,REG_OPTION_VOLATILE,KEY_ALL_ACCESS,nullptr,&hKey,&dw);
+    long lReturn = RegCreateKeyEx(_hKey, lpSubKey.c_str(), 0L, nullptr, REG_OPTION_VOLATILE, KEY_ALL_ACCESS, nullptr, &hKey, &dw);
 
-    if(lReturn==ERROR_SUCCESS)
+    if (lReturn == ERROR_SUCCESS)
     {
-        _hKey=hKey;
+        _hKey = hKey;
         return TRUE;
     }
 
@@ -103,9 +103,9 @@ bool CxWinReg::saveKey(const std::string &lpName)
 {
     assert(_hKey);
 
-    long lReturn=RegSaveKey(_hKey,lpName.c_str(),nullptr);
+    long lReturn = RegSaveKey(_hKey, lpName.c_str(), nullptr);
 
-    if(lReturn==ERROR_SUCCESS)
+    if (lReturn == ERROR_SUCCESS)
         return TRUE;
 
     return FALSE;
@@ -115,9 +115,9 @@ bool CxWinReg::restoreKey(const std::string &lpName)
 {
     assert(_hKey);
 
-    long lReturn=RegRestoreKey(_hKey,lpName.c_str(),REG_WHOLE_HIVE_VOLATILE);
+    long lReturn = RegRestoreKey(_hKey, lpName.c_str(), REG_WHOLE_HIVE_VOLATILE);
 
-    if(lReturn==ERROR_SUCCESS)
+    if (lReturn == ERROR_SUCCESS)
         return TRUE;
 
     return FALSE;
@@ -128,14 +128,14 @@ bool CxWinReg::read(const std::string &lpValueName, std::string *lpVal)
     assert(_hKey);
 
     DWORD dwType;
-    DWORD dwSize=200;
+    DWORD dwSize = 200;
     char szString[2550];
 
-    long lReturn=RegQueryValueEx(_hKey,lpValueName.c_str(),nullptr,&dwType,(BYTE *)szString,&dwSize);
+    long lReturn = RegQueryValueEx(_hKey, lpValueName.c_str(), nullptr, &dwType, (BYTE *) szString, &dwSize);
 
-    if(lReturn==ERROR_SUCCESS)
+    if (lReturn == ERROR_SUCCESS)
     {
-        *lpVal=szString;
+        *lpVal = szString;
         return TRUE;
     }
     return FALSE;
@@ -146,13 +146,13 @@ bool CxWinReg::read(const std::string &lpValueName, int *pnVal)
     assert(_hKey);
 
     DWORD dwType;
-    DWORD dwSize=sizeof(DWORD);
+    DWORD dwSize = sizeof(DWORD);
     DWORD dwDest;
-    long lReturn=RegQueryValueEx(_hKey,lpValueName.c_str(),nullptr,&dwType,(BYTE *)&dwDest,&dwSize);
+    long lReturn = RegQueryValueEx(_hKey, lpValueName.c_str(), nullptr, &dwType, (BYTE *) &dwDest, &dwSize);
 
-    if(lReturn==ERROR_SUCCESS)
+    if (lReturn == ERROR_SUCCESS)
     {
-        *pnVal=(int)dwDest;
+        *pnVal = (int) dwDest;
         return TRUE;
     }
     return FALSE;
@@ -162,9 +162,9 @@ bool CxWinReg::write(const std::string &lpSubKey, std::string lpVal)
 {
     assert(_hKey);
 
-    long lReturn=RegSetValueEx(_hKey,lpSubKey.c_str(),0L,REG_SZ,(const BYTE *) lpVal.c_str(),lpVal.length()+1);
+    long lReturn = RegSetValueEx(_hKey, lpSubKey.c_str(), 0L, REG_SZ, (const BYTE *) lpVal.c_str(), lpVal.length() + 1);
 
-    if(lReturn==ERROR_SUCCESS)
+    if (lReturn == ERROR_SUCCESS)
         return TRUE;
 
     return FALSE;
@@ -176,9 +176,9 @@ bool CxWinReg::write(const std::string &lpSubKey, int nVal)
 
     DWORD dwVal = nVal;
 
-    long lReturn=RegSetValueEx(_hKey,lpSubKey.c_str(),0L,REG_DWORD,(const BYTE *) &dwVal,sizeof(DWORD));
+    long lReturn = RegSetValueEx(_hKey, lpSubKey.c_str(), 0L, REG_DWORD, (const BYTE *) &dwVal, sizeof(DWORD));
 
-    if(lReturn==ERROR_SUCCESS)
+    if (lReturn == ERROR_SUCCESS)
         return TRUE;
 
     return FALSE;
@@ -188,52 +188,51 @@ bool CxWinReg::deleteValue(const std::string &lpValueName)
 {
     assert(_hKey);
 
-    long lReturn=RegDeleteValue(_hKey,lpValueName.c_str());
+    long lReturn = RegDeleteValue(_hKey, lpValueName.c_str());
 
-    if(lReturn==ERROR_SUCCESS)
+    if (lReturn == ERROR_SUCCESS)
         return TRUE;
     return FALSE;
 }
 
 
-
-
 bool CxWinReg::deleteKey(REG_CLASS e, const std::string &lpSubKey)
 {
-    HKEY hKey = f_getRoot((int)e);
+    HKEY hKey = f_getRoot((int) e);
 
     assert(hKey);
 
-    long lReturn=RegDeleteValue(hKey,lpSubKey.c_str());
+    long lReturn = RegDeleteValue(hKey, lpSubKey.c_str());
 
-    if(lReturn==ERROR_SUCCESS)
+    if (lReturn == ERROR_SUCCESS)
         return TRUE;
     return FALSE;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
-bool CxWinRegEx::read(const std::string &lpSubKey,const std::string &lpValueName, std::string *lpVal, CxWinReg::REG_CLASS e)
+bool CxWinRegEx::read(const std::string &lpSubKey, const std::string &lpValueName, std::string *lpVal, CxWinReg::REG_CLASS e)
 {
     bool ret = false;
     CxWinReg a(e);
-    if(a.open(lpSubKey))
+    if (a.open(lpSubKey))
     {
-       ret = a.read(lpValueName,lpVal);
+        ret = a.read(lpValueName, lpVal);
     }
     a.close();
     return ret;
 }
 
-bool CxWinRegEx::write(const std::string &lpSubKey,const std::string &lpValueName, std::string lpVal, CxWinReg::REG_CLASS e)
+bool CxWinRegEx::write(const std::string &lpSubKey, const std::string &lpValueName, std::string lpVal, CxWinReg::REG_CLASS e)
 {
     bool ret = false;
     CxWinReg a(e);
-    if(a.createKey(lpSubKey))
+    if (a.createKey(lpSubKey))
     {
-       ret = a.write(lpValueName,lpVal);
+        ret = a.write(lpValueName, lpVal);
     }
     a.close();
     return ret;
 
 }
+
 #endif

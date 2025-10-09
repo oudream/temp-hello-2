@@ -36,8 +36,7 @@ public:
     static std::vector<cx::uchar> toBuffer(const std::map<int, double> &addressValues, int iMinAddress);
 
     template<typename T>
-    static bool
-    isContinueAddress(const std::map<int, T> &addressValues, int *pMinAddress = nullptr, int *pMaxAddress = nullptr)
+    static bool isContinueAddress(const std::map<int, T> &addressValues, int *pMinAddress = nullptr, int *pMaxAddress = nullptr)
     {
         int iMaxAddress = (std::numeric_limits<int>::max)();
         int iMinAddress = (std::numeric_limits<int>::min)();

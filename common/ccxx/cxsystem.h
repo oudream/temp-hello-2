@@ -6,15 +6,17 @@
 class CCXX_EXPORT CxSystem
 {
 public:
-    struct SysInfo {
+    struct SysInfo
+    {
         unsigned char syscpu;  // 0 - 100
         unsigned char sysmem;  // 0 - 100
     };
 
-    struct DiskInfo {
+    struct DiskInfo
+    {
         std::string name;      // win32[c:\ d:\] unix[/dev/disk1s1]
-        cx::int64       totalSize; // 143588847616
-        cx::int64       freeSize;  // 49181224960
+        cx::int64 totalSize; // 143588847616
+        cx::int64 freeSize;  // 49181224960
     };
 
 public:
@@ -46,10 +48,10 @@ public:
      * @param sWorkingDirectory
      * @param environments
      */
-    static void registAutoStart(const std::string & sProgram,
-                                const std::map<std::string, std::string> & arguments = std::map<std::string, std::string>(),
-                                const std::string & sWorkingDirectory = std::string{},
-                                const std::map<std::string, std::string> & environments = std::map<std::string, std::string>());
+    static void registAutoStart(const std::string &sProgram,
+                                const std::map<std::string, std::string> &arguments = std::map<std::string, std::string>(),
+                                const std::string &sWorkingDirectory = std::string{},
+                                const std::map<std::string, std::string> &environments = std::map<std::string, std::string>());
 
     /**
      *
@@ -57,15 +59,15 @@ public:
      * @param sWorkingDirectory
      * @param environments
      */
-    static void registAutoStart(const std::string & sCommand,
-                                const std::string & sWorkingDirectory = std::string{},
-                                const std::map<std::string, std::string> & environments = std::map<std::string, std::string>());
+    static void registAutoStart(const std::string &sCommand,
+                                const std::string &sWorkingDirectory = std::string{},
+                                const std::map<std::string, std::string> &environments = std::map<std::string, std::string>());
 
     /**
      *
      * @param sCommand
      */
-    static void unRegistAutoStart(const std::string & sCommand);
+    static void unRegistAutoStart(const std::string &sCommand);
 
     /**
      * getSysInfo
@@ -84,16 +86,17 @@ public:
      * @param sDisk : eg : "c:"
      * @return Disk Free Space. -1 : invalid
      */
-    static cx::int64 getDiskFreeSpace(const std::string& sDisk);
+    static cx::int64 getDiskFreeSpace(const std::string &sDisk);
 
     /**
     * function getDiskFreeSpace
     * @param sDisk : eg : "c:"
     * @return Disk total Space. -1 : invalid
     */
-   static cx::int64 getDiskSpace(const std::string& sDisk);
+    static cx::int64 getDiskSpace(const std::string &sDisk);
 
 #ifdef _WIN32
+
     /**
      *
      * @param sServiceName
@@ -114,7 +117,7 @@ public:
      * @param sServiceName
      * @return
      */
-    static bool winIsExistService(const std::string & sServiceName);
+    static bool winIsExistService(const std::string &sServiceName);
 
 #endif
 

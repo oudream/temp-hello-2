@@ -5,7 +5,9 @@
 #include <iomanip>
 
 #ifdef _WIN32
+
 #include <windows.h>
+
 #else
 #include <sys/time.h>
 #endif
@@ -37,7 +39,8 @@ static const char CCHexChar16[16] =
         };
 
 
-inline cx::uint32 julianDayFromGregorianDate1(int year, int month, int day) {
+inline cx::uint32 julianDayFromGregorianDate1(int year, int month, int day)
+{
     // Gregorian calendar starting from October 15, 1582
     // Algorithm from Henry F. Fliegel and Thomas C. Van Flandern
     return (1461 * (year + 4800 + (month - 14) / 12)) / 4
@@ -46,43 +49,56 @@ inline cx::uint32 julianDayFromGregorianDate1(int year, int month, int day) {
            + day - 32075;
 }
 
-inline cx::uint32 julianDayFromDate1(int year, int month, int day) {
+inline cx::uint32 julianDayFromDate1(int year, int month, int day)
+{
     if (year < 0)
         ++year;
 
-    if (year > 1582 || (year == 1582 && (month > 10 || (month == 10 && day >= 15)))) {
+    if (year > 1582 || (year == 1582 && (month > 10 || (month == 10 && day >= 15))))
+    {
         return julianDayFromGregorianDate1(year, month, day);
-    } else if (year < 1582 || (year == 1582 && (month < 10 || (month == 10 && day <= 4)))) {
+    }
+    else if (year < 1582 || (year == 1582 && (month < 10 || (month == 10 && day <= 4))))
+    {
         // Julian calendar until October 4, 1582
         // Algorithm from Frequently Asked Questions about Calendars by Claus Toendering
         int a = (14 - month) / 12;
         return (153 * (month + (12 * a) - 3) + 2) / 5
                + (1461 * (year + 4800 - a)) / 4
                + day - 32083;
-    } else {
+    }
+    else
+    {
         // the day following October 4, 1582 is October 15, 1582
         return 0;
     }
 }
 
-inline cx::uint msecsFromDecomposed1(int hour, int minute, int sec, int msec = 0) {
+inline cx::uint msecsFromDecomposed1(int hour, int minute, int sec, int msec = 0)
+{
     return 3600000 * hour + 60000 * minute + 1000 * sec + msec;
 }
 
-namespace cx {
+namespace cx
+{
 
 
 // ----------------- 常量 -----------------
-    DateTime::ms_epoch_t DateTime::minMs() { return 0; }
+    DateTime::ms_epoch_t DateTime::minMs()
+    { return 0; }
 
-    DateTime::ms_epoch_t DateTime::maxMs() { return INT64_C(253402300799999); } // 9999-12-31T23:59:59.999
+    DateTime::ms_epoch_t DateTime::maxMs()
+    { return INT64_C(253402300799999); } // 9999-12-31T23:59:59.999
 
 // ----------------- 构造 / 工厂 -----------------
-    DateTime::DateTime() : _ms(0), _kind(Kind::Unspecified), _valid(true) {}
+    DateTime::DateTime() : _ms(0), _kind(Kind::Unspecified), _valid(true)
+    {}
 
     DateTime::DateTime(ms_epoch_t ms, Kind k)
-            : _ms(ms), _kind(k), _valid(true) {
-        if (ms < minMs() || ms > maxMs()) {
+            : _ms(ms), _kind(k), _valid(true)
+    {
+        if (ms < minMs() || ms > maxMs())
+        {
             _ms = 0;
             _kind = Kind::Unspecified;
             _valid = false;
@@ -92,29 +108,37 @@ namespace cx {
     DateTime::DateTime(int year, int month, int day,
                        int hour, int minute, int second, int millisecond,
                        Kind kind)
-            : _ms(0), _kind(kind), _valid(false) {
-        if (!validateYMDHMSms(year, month, day, hour, minute, second, millisecond)) {
+            : _ms(0), _kind(kind), _valid(false)
+    {
+        if (!validateYMDHMSms(year, month, day, hour, minute, second, millisecond))
+        {
             _kind = Kind::Unspecified;
             return;
         }
 
-        if (kind == Kind::Utc) {
+        if (kind == Kind::Utc)
+        {
             bool ok = false;
             ms_epoch_t z = encodeUtcMs(year, month, day, hour, minute, second, millisecond, ok);
-            if (!ok) {
+            if (!ok)
+            {
                 _kind = Kind::Unspecified;
                 return;
             }
-            if (z < minMs() || z > maxMs()) {
+            if (z < minMs() || z > maxMs())
+            {
                 _kind = Kind::Unspecified;
                 return;
             }
             _ms = z;
             _valid = true;
-        } else {
+        }
+        else
+        {
             // 本地编码（复用 CxTime）
             ms_epoch_t z = encodeDateTime(year, month, day, hour, minute, second, millisecond);
-            if (z < minMs() || z > maxMs()) {
+            if (z < minMs() || z > maxMs())
+            {
                 _kind = Kind::Unspecified;
                 return;
             }
@@ -124,7 +148,8 @@ namespace cx {
         }
     }
 
-    DateTime DateTime::invalid() {
+    DateTime DateTime::invalid()
+    {
         DateTime dt;
         dt._ms = 0;
         dt._kind = Kind::Unspecified;
@@ -132,73 +157,87 @@ namespace cx {
         return dt;
     }
 
-    bool DateTime::isValid() const { return _valid; }
+    bool DateTime::isValid() const
+    { return _valid; }
 
 // ----------------- 现在/今天 -----------------
-    DateTime DateTime::now() {
+    DateTime DateTime::now()
+    {
         ms_epoch_t ms = currentMsepoch();
         return DateTime(ms, Kind::Local);
     }
 
-    DateTime DateTime::utcNow() {
+    DateTime DateTime::utcNow()
+    {
         ms_epoch_t ms = currentMsepoch();
         return DateTime(ms, Kind::Utc);
     }
 
-    DateTime DateTime::today() {
+    DateTime DateTime::today()
+    {
         int y, m, d, h, mi, se, ms;
         decodeLocalTm(currentMsepoch(), y, m, d, h, mi, se, ms);
         return DateTime(y, m, d, 0, 0, 0, 0, Kind::Local);
     }
 
 // ----------------- 属性 -----------------
-    DateTime::Kind DateTime::kind() const { return _kind; }
+    DateTime::Kind DateTime::kind() const
+    { return _kind; }
 
-    DateTime::ms_epoch_t DateTime::ticksMs() const { return _ms; }
+    DateTime::ms_epoch_t DateTime::ticksMs() const
+    { return _ms; }
 
-    int DateTime::year() const {
+    int DateTime::year() const
+    {
         int y, m, d, h, mi, se, ms;
         split(y, m, d, h, mi, se, ms);
         return _valid ? y : -1;
     }
 
-    int DateTime::month() const {
+    int DateTime::month() const
+    {
         int y, m, d, h, mi, se, ms;
         split(y, m, d, h, mi, se, ms);
         return _valid ? m : -1;
     }
 
-    int DateTime::day() const {
+    int DateTime::day() const
+    {
         int y, m, d, h, mi, se, ms;
         split(y, m, d, h, mi, se, ms);
         return _valid ? d : -1;
     }
 
-    int DateTime::hour() const {
+    int DateTime::hour() const
+    {
         int y, m, d, h, mi, se, ms;
         split(y, m, d, h, mi, se, ms);
         return _valid ? h : -1;
     }
 
-    int DateTime::minute() const {
+    int DateTime::minute() const
+    {
         int y, m, d, h, mi, se, ms;
         split(y, m, d, h, mi, se, ms);
         return _valid ? mi : -1;
     }
 
-    int DateTime::second() const {
+    int DateTime::second() const
+    {
         int y, m, d, h, mi, se, ms;
         split(y, m, d, h, mi, se, ms);
         return _valid ? se : -1;
     }
 
-    int DateTime::millisecond() const {
+    int DateTime::millisecond() const
+    {
         int y, m, d, h, mi, se, ms;
         split(y, m, d, h, mi, se, ms);
         return _valid ? ms : -1;
     }
 
-    int DateTime::dayOfWeek() const {
+    int DateTime::dayOfWeek() const
+    {
         if (!_valid) return -1;
         // 借助 C 库（以本地为准）来得出 wday
         int y, m, d, h, mi, se, ms;
@@ -216,7 +255,8 @@ namespace cx {
         return lt ? lt->tm_wday : -1;
     }
 
-    int DateTime::dayOfYear() const {
+    int DateTime::dayOfYear() const
+    {
         if (!_valid) return -1;
         int y, m, d, h, mi, se, ms;
         split(y, m, d, h, mi, se, ms);
@@ -227,11 +267,13 @@ namespace cx {
     }
 
 // ----------------- 静态实用 -----------------
-    bool DateTime::isLeapYear(int year) {
+    bool DateTime::isLeapYear(int year)
+    {
         return ((year % 4 == 0 && year % 100 != 0) || (year % 400 == 0));
     }
 
-    int DateTime::daysInMonth(int year, int month) {
+    int DateTime::daysInMonth(int year, int month)
+    {
         static const int mdays[] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
         if (month < 1 || month > 12) return 0;
         if (month == 2) return isLeapYear(year) ? 29 : 28;
@@ -239,7 +281,8 @@ namespace cx {
     }
 
 // ----------------- 加/减 -----------------
-    DateTime DateTime::addMilliseconds(int64_t value) const {
+    DateTime DateTime::addMilliseconds(int64_t value) const
+    {
         if (!_valid) return invalid();
         bool ok = false;
         ms_epoch_t nm = checkedAdd(_ms, value, ok);
@@ -247,23 +290,28 @@ namespace cx {
         return DateTime(nm, _kind);
     }
 
-    DateTime DateTime::addSeconds(double value) const {
+    DateTime DateTime::addSeconds(double value) const
+    {
         return addMilliseconds((int64_t) std::llround(value * 1000.0));
     }
 
-    DateTime DateTime::addMinutes(double value) const {
+    DateTime DateTime::addMinutes(double value) const
+    {
         return addMilliseconds((int64_t) std::llround(value * 60.0 * 1000.0));
     }
 
-    DateTime DateTime::addHours(double value) const {
+    DateTime DateTime::addHours(double value) const
+    {
         return addMilliseconds((int64_t) std::llround(value * 3600.0 * 1000.0));
     }
 
-    DateTime DateTime::addDays(double value) const {
+    DateTime DateTime::addDays(double value) const
+    {
         return addMilliseconds((int64_t) std::llround(value * 86400.0 * 1000.0));
     }
 
-    DateTime DateTime::addMonths(int months) const {
+    DateTime DateTime::addMonths(int months) const
+    {
         if (!_valid) return invalid();
         int y, m, d, h, mi, se, ms;
         split(y, m, d, h, mi, se, ms);
@@ -278,32 +326,39 @@ namespace cx {
         return r.isValid() ? r : invalid();
     }
 
-    DateTime DateTime::addYears(int years) const {
+    DateTime DateTime::addYears(int years) const
+    {
         return addMonths(years * 12);
     }
 
 // ----------------- 运算符 -----------------
-    DateTime DateTime::operator+(int64_t ms) const { return addMilliseconds(ms); }
+    DateTime DateTime::operator+(int64_t ms) const
+    { return addMilliseconds(ms); }
 
-    DateTime DateTime::operator-(int64_t ms) const { return addMilliseconds(-ms); }
+    DateTime DateTime::operator-(int64_t ms) const
+    { return addMilliseconds(-ms); }
 
-    DateTime &DateTime::operator+=(int64_t ms) {
+    DateTime &DateTime::operator+=(int64_t ms)
+    {
         *this = addMilliseconds(ms);
         return *this;
     }
 
-    DateTime &DateTime::operator-=(int64_t ms) {
+    DateTime &DateTime::operator-=(int64_t ms)
+    {
         *this = addMilliseconds(-ms);
         return *this;
     }
 
-    int64_t DateTime::operator-(const DateTime &rhs) const {
+    int64_t DateTime::operator-(const DateTime &rhs) const
+    {
         if (!isValid() || !rhs.isValid()) return 0;
         return _ms - rhs._ms;
     }
 
 // ----------------- 比较 -----------------
-    int DateTime::compare(const DateTime &a, const DateTime &b) {
+    int DateTime::compare(const DateTime &a, const DateTime &b)
+    {
         if (!a._valid && !b._valid) return 0;
         if (!a._valid) return -1;
         if (!b._valid) return +1;
@@ -312,20 +367,27 @@ namespace cx {
         return 0;
     }
 
-    bool DateTime::operator==(const DateTime &o) const { return compare(*this, o) == 0; }
+    bool DateTime::operator==(const DateTime &o) const
+    { return compare(*this, o) == 0; }
 
-    bool DateTime::operator!=(const DateTime &o) const { return !(*this == o); }
+    bool DateTime::operator!=(const DateTime &o) const
+    { return !(*this == o); }
 
-    bool DateTime::operator<(const DateTime &o) const { return compare(*this, o) < 0; }
+    bool DateTime::operator<(const DateTime &o) const
+    { return compare(*this, o) < 0; }
 
-    bool DateTime::operator>(const DateTime &o) const { return compare(*this, o) > 0; }
+    bool DateTime::operator>(const DateTime &o) const
+    { return compare(*this, o) > 0; }
 
-    bool DateTime::operator<=(const DateTime &o) const { return compare(*this, o) <= 0; }
+    bool DateTime::operator<=(const DateTime &o) const
+    { return compare(*this, o) <= 0; }
 
-    bool DateTime::operator>=(const DateTime &o) const { return compare(*this, o) >= 0; }
+    bool DateTime::operator>=(const DateTime &o) const
+    { return compare(*this, o) >= 0; }
 
 // ----------------- Local/UTC 转换 -----------------
-    DateTime DateTime::toLocalTime() const {
+    DateTime DateTime::toLocalTime() const
+    {
         if (!_valid) return invalid();
         if (_kind == Kind::Local) return *this;
         int y, m, d, h, mi, se, ms;
@@ -334,7 +396,8 @@ namespace cx {
         return r.isValid() ? r : invalid();
     }
 
-    DateTime DateTime::toUniversalTime() const {
+    DateTime DateTime::toUniversalTime() const
+    {
         if (!_valid) return invalid();
         if (_kind == Kind::Utc) return *this;
         int y, m, d, h, mi, se, ms;
@@ -346,32 +409,38 @@ namespace cx {
     }
 
 // ----------------- 字符串 -----------------
-    std::string DateTime::toString(char s1, char s2, char s3) const {
+    std::string DateTime::toString(char s1, char s2, char s3) const
+    {
         if (!_valid) return std::string();
         int y, m, d, h, mi, se, ms;
         split(y, m, d, h, mi, se, ms);
         return toString(y, m, d, h, mi, se, ms, s1, s2, s3);
     }
 
-    DateTime DateTime::parse(const std::string &s, Kind kind) {
+    DateTime DateTime::parse(const std::string &s, Kind kind)
+    {
         DateTime out;
         if (!tryParse(s, out, kind)) return invalid();
         return out;
     }
 
-    static inline int fast_atoi(const std::string &s) {
+    static inline int fast_atoi(const std::string &s)
+    {
         // 宽松：std::atoi 即可（C++11）
         return std::atoi(s.c_str());
     }
 
-    bool DateTime::tryParse(const std::string &s, DateTime &out, Kind kind) {
+    bool DateTime::tryParse(const std::string &s, DateTime &out, Kind kind)
+    {
         int y = 0, m = 0, d = 0, h = 0, mi = 0, se = 0, ms = 0;
-        if (!decodeDateTimeLoose(s, y, m, d, h, mi, se, ms)) {
+        if (!decodeDateTimeLoose(s, y, m, d, h, mi, se, ms))
+        {
             out = invalid();
             return false;
         }
         DateTime r(y, m, d, h, mi, se, ms, kind);
-        if (!r.isValid()) {
+        if (!r.isValid())
+        {
             out = invalid();
             return false;
         }
@@ -379,7 +448,8 @@ namespace cx {
         return true;
     }
 
-    std::string DateTime::toIso8601() const {
+    std::string DateTime::toIso8601() const
+    {
         if (!_valid) return std::string();
         int y, m, d, h, mi, se, ms;
         split(y, m, d, h, mi, se, ms);
@@ -393,23 +463,27 @@ namespace cx {
     }
 
 // ----------------- 与 CxTime 交互 -----------------
-    DateTime DateTime::fromCxLocalString(const std::string &s) {
+    DateTime DateTime::fromCxLocalString(const std::string &s)
+    {
         msepoch_t ms = 0;
         if (!fromString(s, ms)) return invalid();
         DateTime r(ms, Kind::Local);
         return r.isValid() ? r : invalid();
     }
 
-    DateTime DateTime::fromCxLocalMs(ms_epoch_t ms) { return DateTime(ms, Kind::Local); }
+    DateTime DateTime::fromCxLocalMs(ms_epoch_t ms)
+    { return DateTime(ms, Kind::Local); }
 
-    msepoch_t DateTime::currentMsepoch() {
+    msepoch_t DateTime::currentMsepoch()
+    {
 #ifdef _WIN32
         FILETIME ft;
         GetSystemTimeAsFileTime(&ft);
 
         const uint64 iShift = 116444736000000000ULL; // (27111902 << 32) + 3577643008
 
-        union {
+        union
+        {
             FILETIME as_file_time;
             msepoch_t as_integer;   // 100-nanos since 1601-Jan-01
         } caster;
@@ -428,11 +502,13 @@ namespace cx {
 #endif
     }
 
-    void DateTime::decodeUtcTm(const msepoch_t &dt, int &y, int &m, int &d, int &h, int &mi, int &se, int &ms) {
+    void DateTime::decodeUtcTm(const msepoch_t &dt, int &y, int &m, int &d, int &h, int &mi, int &se, int &ms)
+    {
         msepoch_t msecs = dt;
         int ddays = msecs / 86400000;
         msecs %= 86400000;
-        if (msecs < 0) {
+        if (msecs < 0)
+        {
             // negative
             --ddays;
             msecs += 86400000;
@@ -444,7 +520,8 @@ namespace cx {
         else
             ddays = (jd + ddays < jd) ? jd + ddays : 0;
 
-        if (ddays >= 2299161) {
+        if (ddays >= 2299161)
+        {
             // Gregorian calendar starting from October 15, 1582
             // This algorithm is from Henry F. Fliegel and Thomas C. Van Flandern
             msepoch_t ell, n, i, j;
@@ -458,7 +535,9 @@ namespace cx {
             ell = j / 11;
             m = j + 2 - (12 * ell);
             y = 100 * (n - 49) + i + ell;
-        } else {
+        }
+        else
+        {
             // Julian calendar until October 4, 1582
             // Algorithm from Frequently Asked Questions about Calendars by Claus Toendering
             ddays += 32082;
@@ -473,7 +552,8 @@ namespace cx {
         }
 
         int mds = msecs % 86400000;
-        if (msecs < 0) {
+        if (msecs < 0)
+        {
             // % not well-defined for -ve, but / is.
             int negdays = (86400000 - msecs) / 86400000;
             mds = (msecs + negdays * 86400000) % 86400000;
@@ -485,12 +565,14 @@ namespace cx {
         ms = (mds % 1000);
     }
 
-    void DateTime::decodeLocalTm(const msepoch_t &dt, int &y, int &m, int &d, int &h, int &mi, int &se, int &ms) {
+    void DateTime::decodeLocalTm(const msepoch_t &dt, int &y, int &m, int &d, int &h, int &mi, int &se, int &ms)
+    {
         msepoch_t msecs = dt + GM_TIME_UTC_DIFF_MS;
         decodeUtcTm(dt + GM_TIME_UTC_DIFF_MS, y, m, d, h, mi, se, ms);
     }
 
-    msepoch_t DateTime::encodeDateTime(int y, int m, int d, int h, int mi, int se, int ms) {
+    msepoch_t DateTime::encodeDateTime(int y, int m, int d, int h, int mi, int se, int ms)
+    {
         tm dt;
         dt.tm_year = y - 1900;
         dt.tm_mon = m - 1;
@@ -506,11 +588,13 @@ namespace cx {
         return dtResult * 1000 + ms;
     }
 
-    bool DateTime::decodeDateTime(const std::string &sDateTime, int &y, int &m, int &d, int &h, int &mi, int &se, int &ms) {
+    bool DateTime::decodeDateTime(const std::string &sDateTime, int &y, int &m, int &d, int &h, int &mi, int &se, int &ms)
+    {
         //48 49 50 51 .. 57
         // 0  1  2  3     9
         std::string sDateTime2 = CxString::trim(sDateTime);
-        if (sDateTime2.size() < 18) {
+        if (sDateTime2.size() < 18)
+        {
             return false;
         }
         const unsigned char *dts = (const unsigned char *) sDateTime2.data();;
@@ -528,7 +612,8 @@ namespace cx {
         mi = 0;
         se = 0;
         ms = 0;
-        if (sDateTime2.size() > 18) {
+        if (sDateTime2.size() > 18)
+        {
             h = CCNumberCharZero127[dts[11]] * 10 + CCNumberCharZero127[dts[12]];
             mi = CCNumberCharZero127[dts[14]] * 10 + CCNumberCharZero127[dts[15]];
             se = CCNumberCharZero127[dts[17]] * 10 + CCNumberCharZero127[dts[18]];
@@ -536,16 +621,19 @@ namespace cx {
             if (mi > 59) return false;
             if (se > 59) return false;
         }
-        if (sDateTime2.size() > 22) {
+        if (sDateTime2.size() > 22)
+        {
             ms = CCNumberCharZero127[dts[20]] * 100 + CCNumberCharZero127[dts[21]] * 10 + CCNumberCharZero127[dts[22]];
             if (ms > 999) return false;
         }
         return true;
     }
 
-    bool DateTime::fromString(const std::string &sDateTime, cx::msepoch_t &lMsepoch) {
+    bool DateTime::fromString(const std::string &sDateTime, cx::msepoch_t &lMsepoch)
+    {
         int y, m, d, h, mi, se, ms = 0;
-        if (decodeDateTime(sDateTime, y, m, d, h, mi, se, ms)) {
+        if (decodeDateTime(sDateTime, y, m, d, h, mi, se, ms))
+        {
             cx::msepoch_t dt;
             dt = msecsFromDecomposed1(h, mi, se, ms);
             dt += cx::msepoch_t(julianDayFromGregorianDate1(y, m, d) - julianDayFromGregorianDate1(1970, 1, 1))
@@ -556,12 +644,15 @@ namespace cx {
         return false;
     }
 
-    std::string DateTime::toString(int y, int m, int d, int h, int mi, int se, int ms, char sSplit1, char sSplit2, char sSplit3) {
-        if (sSplit1 < ' ' || sSplit3 < ' ' || sSplit3 < ' ') {
+    std::string DateTime::toString(int y, int m, int d, int h, int mi, int se, int ms, char sSplit1, char sSplit2, char sSplit3)
+    {
+        if (sSplit1 < ' ' || sSplit3 < ' ' || sSplit3 < ' ')
+        {
             char dts[18] = {'2', '0', '1', '2', '1', '2', '1', '2', '1', '2', '1', '2', '1', '2', '1', '2', '2', '\0'};
 
             if (y > -1 && y < 10000 && m > 0 && m < 13 && d > 0 && d < 32 && h > -1 && h < 24 && mi > -1 && mi < 60
-                && se > -1 && se < 100) {
+                && se > -1 && se < 100)
+            {
                 int hc, lc;
 
                 div_t y1 = div(y, 1000);
@@ -603,17 +694,22 @@ namespace cx {
                 dts[15] = CCHexChar16[lc];
                 lc = ms % 10;
                 dts[16] = CCHexChar16[lc];
-            } else {
+            }
+            else
+            {
             }
 
             return std::string(dts);
-        } else {
+        }
+        else
+        {
             char dts[24] = {'2', '0', '1', '2', sSplit1, '1', '2', sSplit1, '1', '2', sSplit2, '1', '2', sSplit3, '1',
                             '2',
                             sSplit3, '1', '2', sSplit3, '1', '2', '2', '\0'};
 
             if (y > -1 && y < 10000 && m > 0 && m < 13 && d > 0 && d < 32 && h > -1 && h < 24 && mi > -1 && mi < 60
-                && se > -1 && se < 100) {
+                && se > -1 && se < 100)
+            {
                 int hc, lc;
 
                 div_t y1 = div(y, 1000);
@@ -661,17 +757,21 @@ namespace cx {
                 dts[21] = CCHexChar16[lc];
                 lc = ms % 10;
                 dts[22] = CCHexChar16[lc];
-            } else {
+            }
+            else
+            {
             }
 
             return std::string(dts);
         }
     }
 
-    DateTime::ms_epoch_t DateTime::toCxMs() const { return _ms; }
+    DateTime::ms_epoch_t DateTime::toCxMs() const
+    { return _ms; }
 
 // ----------------- 工具 -----------------
-    bool DateTime::validateYMDHMSms(int y, int m, int d, int h, int mi, int se, int ms) {
+    bool DateTime::validateYMDHMSms(int y, int m, int d, int h, int mi, int se, int ms)
+    {
         if (y < 1 || y > 9999) return false;
         if (m < 1 || m > 12) return false;
         int md = daysInMonth(y, m);
@@ -684,17 +784,23 @@ namespace cx {
     }
 
     bool DateTime::decodeDateTimeLoose(const std::string &s,
-                                       int &y, int &m, int &d, int &h, int &mi, int &se, int &ms) {
+                                       int &y, int &m, int &d, int &h, int &mi, int &se, int &ms)
+    {
         y = m = d = h = mi = se = ms = 0;
         int parts[7] = {0};
         int cnt = 0;
         std::string num;
-        for (size_t i = 0; i < s.size(); ++i) {
+        for (size_t i = 0; i < s.size(); ++i)
+        {
             char c = s[i];
-            if (c >= '0' && c <= '9') {
+            if (c >= '0' && c <= '9')
+            {
                 num.push_back(c);
-            } else {
-                if (!num.empty()) {
+            }
+            else
+            {
+                if (!num.empty())
+                {
                     if (cnt < 7) parts[cnt++] = std::atoi(num.c_str());
                     num.clear();
                 }
@@ -714,18 +820,22 @@ namespace cx {
         return validateYMDHMSms(y, m, d, h, mi, se, ms);
     }
 
-    DateTime::ms_epoch_t DateTime::checkedAdd(ms_epoch_t a, ms_epoch_t b, bool &ok) {
+    DateTime::ms_epoch_t DateTime::checkedAdd(ms_epoch_t a, ms_epoch_t b, bool &ok)
+    {
         ok = true;
-        if (b > 0 && a > maxMs() - b) {
+        if (b > 0 && a > maxMs() - b)
+        {
             ok = false;
             return 0;
         }
-        if (b < 0 && a < minMs() - b) {
+        if (b < 0 && a < minMs() - b)
+        {
             ok = false;
             return 0;
         }
         ms_epoch_t r = a + b;
-        if (r < minMs() || r > maxMs()) {
+        if (r < minMs() || r > maxMs())
+        {
             ok = false;
             return 0;
         }
@@ -733,7 +843,8 @@ namespace cx {
     }
 
 // 把 (y,m,d,h,mi,se,ms) 视为 UTC 直接编码到 epoch ms
-    DateTime::ms_epoch_t DateTime::encodeUtcMs(int y, int m, int d, int h, int mi, int se, int ms, bool &ok) {
+    DateTime::ms_epoch_t DateTime::encodeUtcMs(int y, int m, int d, int h, int mi, int se, int ms, bool &ok)
+    {
         ok = false;
         std::tm utm = {};
         utm.tm_year = y - 1900;
@@ -745,7 +856,8 @@ namespace cx {
         ms_epoch_t base = timegmPortable(utm, ok);
         if (!ok) return 0;
         ms_epoch_t r = base + ms;
-        if (r < minMs() || r > maxMs()) {
+        if (r < minMs() || r > maxMs())
+        {
             ok = false;
             return 0;
         }
@@ -754,7 +866,8 @@ namespace cx {
     }
 
 // 将 tm 当作 UTC 处理，转为 epoch ms（不经本地时区）；可移植实现
-    DateTime::ms_epoch_t DateTime::timegmPortable(const std::tm &t, bool &ok) {
+    DateTime::ms_epoch_t DateTime::timegmPortable(const std::tm &t, bool &ok)
+    {
         ok = false;
         int y = t.tm_year + 1900;
         int m = t.tm_mon + 1;
@@ -773,7 +886,8 @@ namespace cx {
         int yday = (leap ? doy_leap : doy_norm)[m - 1] + (d - 1);
 
         // days_before_year：从 0001-01-01 到 year-01-01 的天数
-        const auto days_before_year = [](int Y) -> int64_t {
+        const auto days_before_year = [](int Y) -> int64_t
+        {
             int64_t y = Y - 1;
             return y * 365 + y / 4 - y / 100 + y / 400;
         };
@@ -784,31 +898,39 @@ namespace cx {
         return (ms_epoch_t) seconds * 1000LL;
     }
 
-    void DateTime::split(int &y, int &m, int &d, int &h, int &mi, int &se, int &ms) const {
-        if (!_valid) {
+    void DateTime::split(int &y, int &m, int &d, int &h, int &mi, int &se, int &ms) const
+    {
+        if (!_valid)
+        {
             y = m = d = h = mi = se = ms = 0;
             return;
         }
-        if (_kind == Kind::Utc) {
+        if (_kind == Kind::Utc)
+        {
             decodeUtcTm(_ms, y, m, d, h, mi, se, ms);
-        } else {
+        }
+        else
+        {
             decodeLocalTm(_ms, y, m, d, h, mi, se, ms);
         }
     }
 
-    std::string DateTime::currentDateTimeString() {
+    std::string DateTime::currentDateTimeString()
+    {
         DateTime now = DateTime::now();
         return now.toString('/', ' ', ':');
     }
 
-    std::string DateTime::currentDateString() {
+    std::string DateTime::currentDateString()
+    {
         DateTime now = DateTime::now();
         int y, m, d, h, mi, se, ms;
         now.split(y, m, d, h, mi, se, ms);
         return toString(y, m, d, 0, 0, 0, 0, '/', 0, 0).substr(0, 10); // "yyyy/MM/dd"
     }
 
-    std::string DateTime::currentTimeString() {
+    std::string DateTime::currentTimeString()
+    {
         DateTime now = DateTime::now();
         int y, m, d, h, mi, se, ms;
         now.split(y, m, d, h, mi, se, ms);

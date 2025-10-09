@@ -29,6 +29,7 @@ public:
 
     mutex_index();
 };
+
 static mutex_index single_table;
 static mutex_index *mutex_table = &single_table;
 static unsigned mutex_indexing = 1;
@@ -37,7 +38,9 @@ static unsigned mutex_indexing = 1;
 static pth_key_t threadmap;
 #else
 #ifdef  _WIN32
+
 #include <sys/timeb.h>
+
 static DWORD threadmap;
 #else
 static pthread_key_t threadmap;
@@ -81,18 +84,19 @@ static unsigned hash_address(const void *ptr, unsigned indexing)
 
     unsigned key = 0;
     unsigned count = 0;
-    const unsigned char *addr = (unsigned char *)(&ptr);
+    const unsigned char *addr = (unsigned char *) (&ptr);
 
-    if(indexing < 2)
+    if (indexing < 2)
         return 0;
 
     // skip lead zeros if little endian...
-    while(count < sizeof(const void *) && *addr == 0) {
+    while (count < sizeof(const void *) && *addr == 0)
+    {
         ++count;
         ++addr;
     }
 
-    while(count++ < sizeof(const void *) && *addr)
+    while (count++ < sizeof(const void *) && *addr)
         key = (key << 1) ^ *(addr++);
 
     return key % indexing;
@@ -110,7 +114,7 @@ void CxConditional::set(struct timespec *ts, cx::timems_t msec)
     // Windows 下使用 _ftime_s 获取当前时间
     struct _timeb timebuffer;
     _ftime_s(&timebuffer);
-    tv.tv_sec = (long)timebuffer.time;
+    tv.tv_sec = (long) timebuffer.time;
     tv.tv_usec = timebuffer.millitm * 1000;
 #else
     gettimeofday(&tv, nullptr);
@@ -120,7 +124,8 @@ void CxConditional::set(struct timespec *ts, cx::timems_t msec)
 #endif
     ts->tv_sec += msec / 1000;
     ts->tv_nsec += (msec % 1000) * 1000000l;
-    while(ts->tv_nsec >= 1000000000l) {
+    while (ts->tv_nsec >= 1000000000l)
+    {
         ++ts->tv_sec;
         ts->tv_nsec -= 1000000000l;
     }
@@ -166,6 +171,7 @@ void CxConditional::broadcast()
 }
 
 #else
+
 void CxConditional::wait()
 {
     int result;
@@ -179,7 +185,7 @@ void CxConditional::wait()
     --waiting;
     result = ((result == WAIT_OBJECT_0 + ENENT_BROADCAST) && (waiting == 0));
     LeaveCriticalSection(&mlock);
-    if(result)
+    if (result)
         ResetEvent(events[ENENT_BROADCAST]);
     EnterCriticalSection(&mutex);
 }
@@ -187,7 +193,7 @@ void CxConditional::wait()
 void CxConditional::signal()
 {
     EnterCriticalSection(&mlock);
-    if(waiting)
+    if (waiting)
     {
         SetEvent(events[EVENT_SIGNAL]);
     }
@@ -197,7 +203,7 @@ void CxConditional::signal()
 void CxConditional::broadcast()
 {
     EnterCriticalSection(&mlock);
-    if(waiting)
+    if (waiting)
         SetEvent(events[ENENT_BROADCAST]);
     LeaveCriticalSection(&mlock);
 
@@ -226,7 +232,7 @@ bool CxConditional::wait(cx::timems_t timeout)
     int result;
     bool rtn = true;
 
-    if(!timeout)
+    if (!timeout)
         return false;
 
     EnterCriticalSection(&mlock);
@@ -236,22 +242,23 @@ bool CxConditional::wait(cx::timems_t timeout)
     result = WaitForMultipleObjects(2, events, FALSE, timeout);
     EnterCriticalSection(&mlock);
     --waiting;
-    if(result == WAIT_OBJECT_0 || result == WAIT_OBJECT_0 + ENENT_BROADCAST)
+    if (result == WAIT_OBJECT_0 || result == WAIT_OBJECT_0 + ENENT_BROADCAST)
         rtn = true;
     result = ((result == WAIT_OBJECT_0 + ENENT_BROADCAST) && (waiting == 0));
     LeaveCriticalSection(&mlock);
-    if(result)
+    if (result)
         ResetEvent(events[ENENT_BROADCAST]);
     EnterCriticalSection(&mutex);
     return rtn;
 }
+
 #endif
 
 bool CxConditional::wait(struct timespec *ts)
 {
     assert(ts != nullptr);
 
-    return wait((cx::timems_t)(ts->tv_sec * 1000 + (ts->tv_nsec / 1000000l)));
+    return wait((cx::timems_t) (ts->tv_sec * 1000 + (ts->tv_nsec / 1000000l)));
 }
 
 #else
@@ -314,9 +321,6 @@ bool CxConditional::wait(struct timespec *ts)
 #endif
 
 
-
-
-
 #ifdef  _WIN32
 
 void CxSingleWait::wait()
@@ -348,11 +352,11 @@ bool CxSingleWait::wait(cx::timems_t timeout)
     int result;
     bool rtn = true;
 
-    if(!timeout)
+    if (!timeout)
         return false;
 
     result = WaitForSingleObject(m_event, timeout);
-    if(result == WAIT_OBJECT_0)
+    if (result == WAIT_OBJECT_0)
         rtn = true;
     return rtn;
 }
@@ -361,7 +365,7 @@ bool CxSingleWait::wait(struct timespec *ts)
 {
     assert(ts != nullptr);
 
-    return wait((cx::timems_t)(ts->tv_sec * 1000 + (ts->tv_nsec / 1000000l)));
+    return wait((cx::timems_t) (ts->tv_sec * 1000 + (ts->tv_nsec / 1000000l)));
 }
 
 #else
@@ -405,12 +409,6 @@ bool CxSingleWait::wait(struct timespec *ts)
 }
 
 #endif
-
-
-
-
-
-
 
 
 #if defined(_MSCONDITIONAL_)
@@ -481,7 +479,7 @@ void CxConditionalAccess::waitBroadcast()
     --waiting;
     result = ((result == WAIT_OBJECT_0) && (waiting == 0));
     LeaveCriticalSection(&mlock);
-    if(result)
+    if (result)
         ResetEvent(events[ENENT_BROADCAST]);
     EnterCriticalSection(&mutex);
 }
@@ -500,12 +498,12 @@ bool CxConditionalAccess::waitSignal(cx::timems_t timeout)
     int result;
     bool rtn = true;
 
-    if(!timeout)
+    if (!timeout)
         return false;
 
     LeaveCriticalSection(&mutex);
     result = WaitForSingleObject(events[EVENT_SIGNAL], timeout);
-    if(result == WAIT_OBJECT_0)
+    if (result == WAIT_OBJECT_0)
         rtn = true;
     EnterCriticalSection(&mutex);
     return rtn;
@@ -515,7 +513,7 @@ bool CxConditionalAccess::waitSignal(struct timespec *ts)
 {
     assert(ts != nullptr);
 
-    return waitSignal((cx::timems_t)(ts->tv_sec * 1000 + (ts->tv_nsec / 1000000l)));
+    return waitSignal((cx::timems_t) (ts->tv_sec * 1000 + (ts->tv_nsec / 1000000l)));
 }
 
 
@@ -524,7 +522,7 @@ bool CxConditionalAccess::waitBroadcast(cx::timems_t timeout)
     int result;
     bool rtn = true;
 
-    if(!timeout)
+    if (!timeout)
         return false;
 
     EnterCriticalSection(&mlock);
@@ -534,11 +532,11 @@ bool CxConditionalAccess::waitBroadcast(cx::timems_t timeout)
     result = WaitForSingleObject(events[ENENT_BROADCAST], timeout);
     EnterCriticalSection(&mlock);
     --waiting;
-    if(result == WAIT_OBJECT_0)
+    if (result == WAIT_OBJECT_0)
         rtn = true;
     result = ((result == WAIT_OBJECT_0) && (waiting == 0));
     LeaveCriticalSection(&mlock);
-    if(result)
+    if (result)
         ResetEvent(events[ENENT_BROADCAST]);
     EnterCriticalSection(&mutex);
     return rtn;
@@ -548,7 +546,7 @@ bool CxConditionalAccess::waitBroadcast(struct timespec *ts)
 {
     assert(ts != nullptr);
 
-    return waitBroadcast((cx::timems_t)(ts->tv_sec * 1000 + (ts->tv_nsec / 1000000l)));
+    return waitBroadcast((cx::timems_t) (ts->tv_sec * 1000 + (ts->tv_nsec / 1000000l)));
 }
 
 #else
@@ -609,7 +607,8 @@ bool CxConditionalAccess::waitSignal(struct timespec *ts)
 void CxConditionalAccess::modify()
 {
     lock();
-    while(sharing) {
+    while (sharing)
+    {
         ++pending;
         waitSignal();
         --pending;
@@ -618,9 +617,9 @@ void CxConditionalAccess::modify()
 
 void CxConditionalAccess::commit()
 {
-    if(pending)
+    if (pending)
         signal();
-    else if(waiting)
+    else if (waiting)
         broadcast();
     unlock();
 }
@@ -629,7 +628,8 @@ void CxConditionalAccess::access()
 {
     lock();
     assert(!max_sharing || sharing < max_sharing);
-    while(pending) {
+    while (pending)
+    {
         ++waiting;
         waitBroadcast();
         --waiting;
@@ -640,13 +640,13 @@ void CxConditionalAccess::access()
 
 void CxConditionalAccess::release()
 {
-   lock();
+    lock();
     assert(sharing);
 
     --sharing;
-    if(pending && !sharing)
+    if (pending && !sharing)
         signal();
-    else if(waiting && !pending)
+    else if (waiting && !pending)
         broadcast();
     unlock();
 }
@@ -657,12 +657,8 @@ void CxConditionalAccess::limit_sharing(unsigned max)
 }
 
 
-
-
-
-
 CxSemaphore::CxSemaphore(unsigned limit) :
-CxConditional()
+        CxConditional()
 {
     assert(limit > 0);
 
@@ -683,12 +679,13 @@ bool CxSemaphore::wait(cx::timems_t timeout)
     CxConditional::set(&ts, timeout);
 
     lock();
-    while(used >= count && result) {
+    while (used >= count && result)
+    {
         ++waits;
         result = CxConditional::wait(&ts);
         --waits;
     }
-    if(result)
+    if (result)
         ++used;
     unlock();
     return result;
@@ -697,7 +694,8 @@ bool CxSemaphore::wait(cx::timems_t timeout)
 void CxSemaphore::wait()
 {
     lock();
-    if(used >= count) {
+    if (used >= count)
+    {
         ++waits;
         CxConditional::wait();
         --waits;
@@ -709,9 +707,9 @@ void CxSemaphore::wait()
 void CxSemaphore::release()
 {
     lock();
-    if(used)
+    if (used)
         --used;
-    if(waits)
+    if (waits)
         signal();
     unlock();
 }
@@ -724,15 +722,17 @@ void CxSemaphore::set(unsigned value)
 
     lock();
     count = value;
-    if(used >= count || !waits) {
+    if (used >= count || !waits)
+    {
         unlock();
         return;
     }
     diff = count - used;
-    if(diff > waits)
+    if (diff > waits)
         diff = waits;
     unlock();
-    while(diff--) {
+    while (diff--)
+    {
         lock();
         signal();
         unlock();
@@ -740,12 +740,8 @@ void CxSemaphore::set(unsigned value)
 }
 
 
-
-
-
-
 CxBarrier::CxBarrier(unsigned limit) :
-CxConditional()
+        CxConditional()
 {
     count = limit;
     waits = 0;
@@ -754,7 +750,7 @@ CxConditional()
 CxBarrier::~CxBarrier()
 {
     lock();
-    if(waits)
+    if (waits)
         broadcast();
     unlock();
 }
@@ -765,7 +761,8 @@ void CxBarrier::set(unsigned limit)
 
     lock();
     count = limit;
-    if(count <= waits) {
+    if (count <= waits)
+    {
         waits = 0;
         broadcast();
     }
@@ -775,7 +772,7 @@ void CxBarrier::set(unsigned limit)
 void CxBarrier::dec()
 {
     lock();
-    if(count)
+    if (count)
         --count;
     unlock();
 }
@@ -784,7 +781,7 @@ unsigned CxBarrier::operator--()
 {
     unsigned result;
     lock();
-    if(count)
+    if (count)
         --count;
     result = count;
     unlock();
@@ -795,7 +792,8 @@ void CxBarrier::inc()
 {
     lock();
     count++;
-    if(count <= waits) {
+    if (count <= waits)
+    {
         waits = 0;
         broadcast();
     }
@@ -807,7 +805,8 @@ unsigned CxBarrier::operator++()
     unsigned result;
     lock();
     count++;
-    if(count <= waits) {
+    if (count <= waits)
+    {
         waits = 0;
         broadcast();
     }
@@ -821,11 +820,13 @@ bool CxBarrier::wait(cx::timems_t timeout)
     bool result;
 
     CxConditional::lock();
-    if(!count) {
+    if (!count)
+    {
         CxConditional::unlock();
         return true;
     }
-    if(++waits >= count) {
+    if (++waits >= count)
+    {
         waits = 0;
         CxConditional::broadcast();
         CxConditional::unlock();
@@ -839,11 +840,13 @@ bool CxBarrier::wait(cx::timems_t timeout)
 void CxBarrier::wait()
 {
     CxConditional::lock();
-    if(!count) {
+    if (!count)
+    {
         CxConditional::unlock();
         return;
     }
-    if(++waits >= count) {
+    if (++waits >= count)
+    {
         waits = 0;
         CxConditional::broadcast();
         CxConditional::unlock();
@@ -854,10 +857,6 @@ void CxBarrier::wait()
 }
 
 
-
-
-
-
 CxMutex::guard::guard()
 {
     object = nullptr;
@@ -866,7 +865,7 @@ CxMutex::guard::guard()
 CxMutex::guard::guard(const void *obj)
 {
     object = obj;
-    if(obj)
+    if (obj)
         CxMutex::protect(object);
 }
 
@@ -879,13 +878,14 @@ void CxMutex::guard::set(const void *obj)
 {
     release();
     object = obj;
-    if(obj)
+    if (obj)
         CxMutex::protect(object);
 }
 
 void CxMutex::guard::release()
 {
-    if(object) {
+    if (object)
+    {
         CxMutex::release(object);
         object = nullptr;
     }
@@ -907,7 +907,8 @@ CxMutex::~CxMutex()
 
 void CxMutex::indexing(unsigned index)
 {
-    if(index > 1) {
+    if (index > 1)
+    {
         mutex_table = new mutex_index[index];
         mutex_indexing = index;
     }
@@ -918,22 +919,25 @@ void CxMutex::protect(const void *ptr)
     mutex_index *index = &mutex_table[hash_address(ptr, mutex_indexing)];
     mutex_entry *entry, *empty = nullptr;
 
-    if(!ptr)
+    if (!ptr)
         return;
 
     index->acquire();
     entry = index->list;
-    while(entry) {
-        if(entry->count && entry->pointer == ptr)
+    while (entry)
+    {
+        if (entry->count && entry->pointer == ptr)
             break;
-        if(!entry->count)
+        if (!entry->count)
             empty = entry;
         entry = entry->next;
     }
-    if(!entry) {
-        if(empty)
+    if (!entry)
+    {
+        if (empty)
             entry = empty;
-        else {
+        else
+        {
             entry = new struct mutex_entry;
             entry->count = 0;
             cx_pthread_mutex_init(&entry->mutex, nullptr);
@@ -953,19 +957,21 @@ void CxMutex::release(const void *ptr)
     mutex_index *index = &mutex_table[hash_address(ptr, mutex_indexing)];
     mutex_entry *entry;
 
-    if(!ptr)
+    if (!ptr)
         return;
 
     index->acquire();
     entry = index->list;
-    while(entry) {
-        if(entry->count && entry->pointer == ptr)
+    while (entry)
+    {
+        if (entry->count && entry->pointer == ptr)
             break;
         entry = entry->next;
     }
 
     assert(entry);
-    if(entry) {
+    if (entry)
+    {
 //      printf("RELEASE %p, THREAD %d, POINTER %p COUNT %d\n", entry, Thread::self(), entry->pointer, entry->count);
         cx_pthread_mutex_unlock(&entry->mutex);
         --entry->count;
@@ -982,8 +988,6 @@ void CxMutex::_unlock()
 {
     cx_pthread_mutex_unlock(&mlock);
 }
-
-
 
 
 /*
@@ -1015,7 +1019,7 @@ extern "C" {
 
 static bool volatile f_bThreadRunInTry = false;
 
-void CxThread::initDump(const std::string & dumpFilePath)
+void CxThread::initDump(const std::string &dumpFilePath)
 {
     f_bThreadRunInTry = true;
 #ifdef _MSC_VER
@@ -1041,73 +1045,76 @@ cx::pid_os_t CxThread::getCurrentPid()
 
 // CreateMiniDump
 #ifdef _MSC_VER
+
 #include <dbghelp.h>
 #include <crtdbg.h>
+
 #pragma comment ( lib, "dbghelp.lib" )
 
 static bool volatile f_bMiniDumping = false;
 static std::string f_sMiniDumpFilePath;
 
 BOOL CALLBACK MyMiniDumpCallback(
-	PVOID                            pParam,
-	const PMINIDUMP_CALLBACK_INPUT   pInput,
-	PMINIDUMP_CALLBACK_OUTPUT        pOutput
-	);
+        PVOID pParam,
+        const PMINIDUMP_CALLBACK_INPUT pInput,
+        PMINIDUMP_CALLBACK_OUTPUT pOutput
+);
 
-bool IsDataSectionNeeded(const WCHAR* pModuleName);
+bool IsDataSectionNeeded(const WCHAR *pModuleName);
 
-void CxThread::setMiniDumpFilePath(const std::string & sFilePath)
+void CxThread::setMiniDumpFilePath(const std::string &sFilePath)
 {
     f_sMiniDumpFilePath = sFilePath;
     f_bThreadRunInTry = sFilePath.size() > 0;
 }
 
-void CxThread::createMiniDump(EXCEPTION_POINTERS* pep)
+void CxThread::createMiniDump(EXCEPTION_POINTERS *pep)
 {
     if (f_bMiniDumping) return;
     f_bMiniDumping = true;
 
-	// Open the file
-	HANDLE hFile = CreateFileA((f_sMiniDumpFilePath.c_str()), GENERIC_READ | GENERIC_WRITE,
-		0, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
-	if ((hFile != nullptr) && (hFile != INVALID_HANDLE_VALUE))
-	{
-		// Create the minidump
+    // Open the file
+    HANDLE hFile = CreateFileA((f_sMiniDumpFilePath.c_str()), GENERIC_READ | GENERIC_WRITE,
+                               0, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
+    if ((hFile != nullptr) && (hFile != INVALID_HANDLE_VALUE))
+    {
+        // Create the minidump
 
-		MINIDUMP_EXCEPTION_INFORMATION mdei;
+        MINIDUMP_EXCEPTION_INFORMATION mdei;
 
-		mdei.ThreadId = GetCurrentThreadId();
-		mdei.ExceptionPointers = pep;
-		mdei.ClientPointers = FALSE;
+        mdei.ThreadId = GetCurrentThreadId();
+        mdei.ExceptionPointers = pep;
+        mdei.ClientPointers = FALSE;
 
-		MINIDUMP_CALLBACK_INFORMATION mci;
+        MINIDUMP_CALLBACK_INFORMATION mci;
 
-		mci.CallbackRoutine = (MINIDUMP_CALLBACK_ROUTINE)MyMiniDumpCallback;
-		mci.CallbackParam = 0;
+        mci.CallbackRoutine = (MINIDUMP_CALLBACK_ROUTINE) MyMiniDumpCallback;
+        mci.CallbackParam = 0;
 
-		MINIDUMP_TYPE mdt = (MINIDUMP_TYPE)(MiniDumpWithPrivateReadWriteMemory |
-			MiniDumpWithDataSegs |
-			MiniDumpWithHandleData |
-			MiniDumpWithFullMemoryInfo |
-			MiniDumpWithThreadInfo |
-			MiniDumpWithUnloadedModules);
+        MINIDUMP_TYPE mdt = (MINIDUMP_TYPE) (
+                MiniDumpWithPrivateReadWriteMemory |
+                MiniDumpWithDataSegs |
+                MiniDumpWithHandleData |
+                MiniDumpWithFullMemoryInfo |
+                MiniDumpWithThreadInfo |
+                MiniDumpWithUnloadedModules);
 
-		BOOL rv = MiniDumpWriteDump(GetCurrentProcess(), GetCurrentProcessId(),
-			hFile, mdt, (pep != 0) ? &mdei : 0, 0, &mci);
+        BOOL rv = MiniDumpWriteDump(GetCurrentProcess(), GetCurrentProcessId(),
+                                    hFile, mdt, (pep != 0) ? &mdei : 0, 0, &mci);
 
-		if (!rv)
-			printf(("MiniDumpWriteDump failed. Error: %u \n"), GetLastError());
-		else
-			printf(("Minidump created.\n"));
+        if (!rv)
+            printf(("MiniDumpWriteDump failed. Error: %u \n"), GetLastError());
+        else
+            printf(("Minidump created.\n"));
 
-		// Close the file
+        // Close the file
 
-		CloseHandle(hFile);
-	}
-	else
-	{
-		printf(("CreateFile failed. Error: %u \n"), GetLastError());
-	}
+        CloseHandle(hFile);
+    }
+    else
+    {
+        printf(("CreateFile failed. Error: %u \n"), GetLastError());
+    }
 
     f_bMiniDumping = false;
 }
@@ -1118,87 +1125,87 @@ void CxThread::createMiniDump(EXCEPTION_POINTERS* pep)
 //
 
 BOOL CALLBACK MyMiniDumpCallback(
-	PVOID                            pParam,
-	const PMINIDUMP_CALLBACK_INPUT   pInput,
-	PMINIDUMP_CALLBACK_OUTPUT        pOutput
-	)
+        PVOID pParam,
+        const PMINIDUMP_CALLBACK_INPUT pInput,
+        PMINIDUMP_CALLBACK_OUTPUT pOutput
+)
 {
-	BOOL bRet = FALSE;
+    BOOL bRet = FALSE;
 
 
-	// Check parameters
+    // Check parameters
 
-	if (pInput == 0)
-		return FALSE;
+    if (pInput == 0)
+        return FALSE;
 
-	if (pOutput == 0)
-		return FALSE;
+    if (pOutput == 0)
+        return FALSE;
 
 
-	// Process the callbacks
+    // Process the callbacks
 
-	switch (pInput->CallbackType)
-	{
-	case IncludeModuleCallback:
-	{
-								  // Include the module into the dump
-								  bRet = TRUE;
-	}
-		break;
+    switch (pInput->CallbackType)
+    {
+        case IncludeModuleCallback:
+        {
+            // Include the module into the dump
+            bRet = TRUE;
+        }
+            break;
 
-	case IncludeThreadCallback:
-	{
-								  // Include the thread into the dump
-								  bRet = TRUE;
-	}
-		break;
+        case IncludeThreadCallback:
+        {
+            // Include the thread into the dump
+            bRet = TRUE;
+        }
+            break;
 
-	case ModuleCallback:
-	{
-						   // Are data sections available for this module ?
+        case ModuleCallback:
+        {
+            // Are data sections available for this module ?
 
-						   if (pOutput->ModuleWriteFlags & ModuleWriteDataSeg)
-						   {
-							   // Yes, they are, but do we need them?
+            if (pOutput->ModuleWriteFlags & ModuleWriteDataSeg)
+            {
+                // Yes, they are, but do we need them?
 
-							   if (!IsDataSectionNeeded(pInput->Module.FullPath))
-							   {
-								   wprintf(L"Excluding module data sections: %s \n", pInput->Module.FullPath);
+                if (!IsDataSectionNeeded(pInput->Module.FullPath))
+                {
+                    wprintf(L"Excluding module data sections: %s \n", pInput->Module.FullPath);
 
-								   pOutput->ModuleWriteFlags &= (~ModuleWriteDataSeg);
-							   }
-						   }
+                    pOutput->ModuleWriteFlags &= (~ModuleWriteDataSeg);
+                }
+            }
 
-						   bRet = TRUE;
-	}
-		break;
+            bRet = TRUE;
+        }
+            break;
 
-	case ThreadCallback:
-	{
-						   // Include all thread information into the minidump
-						   bRet = TRUE;
-	}
-		break;
+        case ThreadCallback:
+        {
+            // Include all thread information into the minidump
+            bRet = TRUE;
+        }
+            break;
 
-	case ThreadExCallback:
-	{
-							 // Include this information
-							 bRet = TRUE;
-	}
-		break;
+        case ThreadExCallback:
+        {
+            // Include this information
+            bRet = TRUE;
+        }
+            break;
 
-	case MemoryCallback:
-	{
-						   // We do not include any information here -> return FALSE
-						   bRet = FALSE;
-	}
-		break;
+        case MemoryCallback:
+        {
+            // We do not include any information here -> return FALSE
+            bRet = FALSE;
+        }
+            break;
 
-	case CancelCallback:
-		break;
-	}
+        case CancelCallback:
+            break;
+    }
 
-	return bRet;
+    return bRet;
 
 }
 
@@ -1207,40 +1214,40 @@ BOOL CALLBACK MyMiniDumpCallback(
 // This function determines whether we need data sections of the given module
 //
 
-bool IsDataSectionNeeded(const WCHAR* pModuleName)
+bool IsDataSectionNeeded(const WCHAR *pModuleName)
 {
-	// Check parameters
+    // Check parameters
 
-	if (pModuleName == 0)
-	{
-		_ASSERTE(("Parameter is null."));
-		return false;
-	}
-
-
-	// Extract the module name
-
-	WCHAR szFileName[_MAX_FNAME] = L"";
-
-	_wsplitpath(pModuleName, nullptr, nullptr, szFileName, nullptr);
+    if (pModuleName == 0)
+    {
+        _ASSERTE(("Parameter is null."));
+        return false;
+    }
 
 
-	// Compare the name with the list of known names and decide
+    // Extract the module name
 
-	// Note: For this to work, the executable name must be "mididump.exe"
-	if (wcsicmp(szFileName, L"mididump") == 0)
-	{
-		return true;
-	}
-	else if (wcsicmp(szFileName, L"ntdll") == 0)
-	{
-		return true;
-	}
+    WCHAR szFileName[_MAX_FNAME] = L"";
+
+    _wsplitpath(pModuleName, nullptr, nullptr, szFileName, nullptr);
 
 
-	// Complete
+    // Compare the name with the list of known names and decide
 
-	return false;
+    // Note: For this to work, the executable name must be "mididump.exe"
+    if (wcsicmp(szFileName, L"mididump") == 0)
+    {
+        return true;
+    }
+    else if (wcsicmp(szFileName, L"ntdll") == 0)
+    {
+        return true;
+    }
+
+
+    // Complete
+
+    return false;
 
 }
 
@@ -1248,6 +1255,7 @@ bool IsDataSectionNeeded(const WCHAR* pModuleName)
 
 
 #ifdef  _WIN32
+
 unsigned __stdcall CxThread::execThread(void *obj)
 {
     assert(obj != nullptr);
@@ -1262,7 +1270,7 @@ unsigned __stdcall CxThread::execThread(void *obj)
             th->run();
             th->exit();
         }
-        __except (CxThread::createMiniDump(GetExceptionInformation()), EXCEPTION_EXECUTE_HANDLER)
+        __except(CxThread::createMiniDump(GetExceptionInformation()), EXCEPTION_EXECUTE_HANDLER)
         {
             std::cout << "CxThread EXCEPTION!!! --> raise(SIGINT)!!!" << std::endl;
             raise(SIGINT);
@@ -1292,6 +1300,7 @@ unsigned __stdcall CxThread::execThread(void *obj)
 
     return 0;
 }
+
 #else
 void * CxThread::execThread(void *obj)
 {
@@ -1361,13 +1370,14 @@ void CxThread::setPriority()
 {
     HANDLE hThread = GetCurrentThread();
     priority += THREAD_PRIORITY_NORMAL;
-    if(priority < THREAD_PRIORITY_LOWEST)
+    if (priority < THREAD_PRIORITY_LOWEST)
         priority = THREAD_PRIORITY_LOWEST;
-    else if(priority > THREAD_PRIORITY_HIGHEST)
+    else if (priority > THREAD_PRIORITY_HIGHEST)
         priority = THREAD_PRIORITY_HIGHEST;
 
     SetThreadPriority(hThread, priority);
 }
+
 #elif _POSIX_PRIORITY_SCHEDULING > 0
 
 void CxThread::setPriority()
@@ -1489,7 +1499,7 @@ CxThread *CxThread::get()
     return (CxThread *)pth_key_setdata(threadmap);
 #else
 #ifdef  _WIN32
-    return (CxThread *)TlsGetValue(threadmap);
+    return (CxThread *) TlsGetValue(threadmap);
 #else
     return (CxThread *)pthread_getspecific(threadmap);
 #endif
@@ -1500,7 +1510,8 @@ void CxThread::init()
 {
     static volatile bool initialized = false;
 
-    if(!initialized) {
+    if (!initialized)
+    {
 #ifdef  __PTH__
         pth_init();
         pth_key_create(&threadmap, nullptr);
@@ -1517,7 +1528,7 @@ void CxThread::init()
 }
 
 CxJoinableThread::CxJoinableThread(size_t size)
-    : CxThread(size)
+        : CxThread(size)
 {
 #ifdef  _WIN32
     running = INVALID_HANDLE_VALUE;
@@ -1543,19 +1554,20 @@ bool CxJoinableThread::is_active()
 }
 
 #ifdef  _WIN32
+
 void CxJoinableThread::start(int adj)
 {
-    if(running != INVALID_HANDLE_VALUE)
+    if (running != INVALID_HANDLE_VALUE)
         return;
 
     priority = adj;
 
-    if(stack == 1)
+    if (stack == 1)
         stack = 1024;
 
     joining = false;
-    running = (HANDLE)_beginthreadex(nullptr, stack, &CxThread::execThread, this, 0, (unsigned int *)&tid);
-    if(!running)
+    running = (HANDLE) _beginthreadex(nullptr, stack, &CxThread::execThread, this, 0, (unsigned int *) &tid);
+    if (!running)
         running = INVALID_HANDLE_VALUE;
 }
 
@@ -1565,11 +1577,12 @@ void CxJoinableThread::join()
     int rc;
 
     // already joined, so we ignore...
-    if(running == INVALID_HANDLE_VALUE)
+    if (running == INVALID_HANDLE_VALUE)
         return;
 
     // self join does cleanup...
-    if(equal(tid, self)) {
+    if (equal(tid, self))
+    {
         CloseHandle(running);
         running = INVALID_HANDLE_VALUE;
         CxThread::exit();
@@ -1577,7 +1590,8 @@ void CxJoinableThread::join()
 
     joining = true;
     rc = WaitForSingleObject(running, INFINITE);
-    if(rc == WAIT_OBJECT_0 || rc == WAIT_ABANDONED) {
+    if (rc == WAIT_OBJECT_0 || rc == WAIT_ABANDONED)
+    {
         CloseHandle(running);
         running = INVALID_HANDLE_VALUE;
     }
@@ -1650,9 +1664,6 @@ void CxJoinableThread::join()
 #endif
 
 
-
-
-
 bool CxDetachedThread::is_active()
 {
     return active;
@@ -1687,11 +1698,11 @@ void CxDetachedThread::start(int adj)
 
     priority = adj;
 
-    if(stack == 1)
+    if (stack == 1)
         stack = 1024;
 
-    hThread = (HANDLE)_beginthreadex(nullptr, stack, &CxThread::execThread, this, 0, (unsigned int *)&tid);
-    if(hThread != INVALID_HANDLE_VALUE)
+    hThread = (HANDLE) _beginthreadex(nullptr, stack, &CxThread::execThread, this, 0, (unsigned int *) &tid);
+    if (hThread != INVALID_HANDLE_VALUE)
         active = true;
     CloseHandle(hThread);
 #else

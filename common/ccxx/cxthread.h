@@ -22,15 +22,23 @@ struct itimerspec {
 #endif
 
 
-
 #ifdef _WIN32
 extern "C" {
-inline void cx_pthread_exit(void *p) { _endthreadex((DWORD) 0); }
-inline cx::pthread_t cx_pthread_self() { return (cx::pthread_t) GetCurrentThreadId(); }
-inline int cx_pthread_mutex_init(cx::pthread_mutex_t *mutex, void *x) { InitializeCriticalSection(mutex); return 0; }
-inline void cx_pthread_mutex_destroy(cx::pthread_mutex_t *mutex) { DeleteCriticalSection(mutex); }
-inline void cx_pthread_mutex_lock(cx::pthread_mutex_t *mutex) { EnterCriticalSection(mutex); }
-inline void cx_pthread_mutex_unlock(cx::pthread_mutex_t *mutex) { LeaveCriticalSection(mutex); }
+inline void cx_pthread_exit(void *p)
+{ _endthreadex((DWORD) 0); }
+inline cx::pthread_t cx_pthread_self()
+{ return (cx::pthread_t) GetCurrentThreadId(); }
+inline int cx_pthread_mutex_init(cx::pthread_mutex_t *mutex, void *x)
+{
+    InitializeCriticalSection(mutex);
+    return 0;
+}
+inline void cx_pthread_mutex_destroy(cx::pthread_mutex_t *mutex)
+{ DeleteCriticalSection(mutex); }
+inline void cx_pthread_mutex_lock(cx::pthread_mutex_t *mutex)
+{ EnterCriticalSection(mutex); }
+inline void cx_pthread_mutex_unlock(cx::pthread_mutex_t *mutex)
+{ LeaveCriticalSection(mutex); }
 }
 #elif defined(__PTH__)
 inline int cx_pthread_sigmask(int how, const sigset_t *set, sigset_t *oset) {return pth_sigmask(how, set, oset);};
@@ -59,7 +67,6 @@ inline void cx_pthread_cond_broadcast(pthread_cond_t *cond) {pth_cond_notify(con
 #endif
 
 
-
 /**
  * The conditional is a common base for other thread synchronizing classes.
  * Many of the complex sychronization objects, including barriers, semaphores,
@@ -74,13 +81,17 @@ class CCXX_EXPORT CxConditional
 {
 private:
     friend class CxSingleWait;
+
     friend class CxConditionalAccess;
 
 #ifdef _MSCONDITIONAL_
     CRITICAL_SECTION mutex;
     CONDITION_VARIABLE cond;
 #elif defined(_WIN32)
-    enum {EVENT_SIGNAL = 0, ENENT_BROADCAST = 1};
+    enum
+    {
+        EVENT_SIGNAL = 0, ENENT_BROADCAST = 1
+    };
     HANDLE events[2];
     unsigned waiting;
     CRITICAL_SECTION mlock;
@@ -117,11 +128,12 @@ protected:
     bool wait(struct timespec *timeout);
 
 #ifdef  _WIN32
+
     inline void lock()
-        {EnterCriticalSection(&mutex);}
+    { EnterCriticalSection(&mutex); }
 
     inline void unlock()
-        {LeaveCriticalSection(&mutex);}
+    { LeaveCriticalSection(&mutex); }
 
     void wait();
 
@@ -204,9 +216,11 @@ public:
     bool wait(struct timespec *timeout);
 
 #ifdef  _WIN32
+
     void wait();
 
     void signal();
+
 #else
     inline void wait()
     {
@@ -292,24 +306,26 @@ protected:
      * @param timeout to convert.
      */
     inline static void set(struct timespec *hires, cx::timems_t timeout)
-        {CxConditional::set(hires, timeout);};
+    { CxConditional::set(hires, timeout); };
 
 
 #ifdef  _WIN32
+
     inline void lock()
-        {EnterCriticalSection(&mutex);};
+    { EnterCriticalSection(&mutex); };
 
     inline void unlock()
-        {LeaveCriticalSection(&mutex);};
+    { LeaveCriticalSection(&mutex); };
 
     void waitSignal();
+
     void waitBroadcast();
 
     inline void signal()
-        {CxConditional::signal();};
+    { CxConditional::signal(); };
 
     inline void broadcast()
-        {CxConditional::broadcast();};
+    { CxConditional::broadcast(); };
 
 #else
     /**
@@ -511,13 +527,13 @@ public:
      * Convenience operator to wait on a counting semaphore.
      */
     inline void operator++()
-        {wait();};
+    { wait(); };
 
     /**
      * Convenience operator to release a counting semaphore.
      */
     inline void operator--()
-        {release();};
+    { release(); };
 
 };
 
@@ -594,7 +610,7 @@ public:
          * @param pointer to object to guard.
          */
         inline void operator=(void *pointer)
-            {set(pointer);};
+        { set(pointer); };
 
     };
 
@@ -613,39 +629,39 @@ public:
      * Acquire mutex lock.  This is a blocking operation.
      */
     inline void acquire()
-        {cx_pthread_mutex_lock(&mlock);};
+    { cx_pthread_mutex_lock(&mlock); };
 
     /**
      * Acquire mutex lock.  This is a blocking operation.
      */
     inline void lock()
-        {cx_pthread_mutex_lock(&mlock);};
+    { cx_pthread_mutex_lock(&mlock); };
 
     /**
      * Release acquired lock.
      */
     inline void unlock()
-        {cx_pthread_mutex_unlock(&mlock);};
+    { cx_pthread_mutex_unlock(&mlock); };
 
     /**
      * Release acquired lock.
      */
     inline void release()
-        {cx_pthread_mutex_unlock(&mlock);};
+    { cx_pthread_mutex_unlock(&mlock); };
 
     /**
      * Convenience function to acquire os native mutex lock directly.
      * @param lock to acquire.
      */
     inline static void acquire(cx::pthread_mutex_t *lock)
-        {cx_pthread_mutex_lock(lock);};
+    { cx_pthread_mutex_lock(lock); };
 
     /**
      * Convenience function to release os native mutex lock directly.
      * @param lock to release.
      */
     inline static void release(cx::pthread_mutex_t *lock)
-        {cx_pthread_mutex_unlock(lock);};
+    { cx_pthread_mutex_unlock(lock); };
 
     /**
      * Specify hash table size for guard protection.  The default is 1.
@@ -673,22 +689,27 @@ public:
 class CCXX_EXPORT CxMutexScope
 {
 private:
-    CxMutex * m_mutex;
+    CxMutex *m_mutex;
 
     CxMutexScope();
-    CxMutexScope(const CxMutexScope&);
-    CxMutexScope& operator = (const CxMutexScope&);
+
+    CxMutexScope(const CxMutexScope &);
+
+    CxMutexScope &operator=(const CxMutexScope &);
 
 public:
-    inline CxMutexScope(CxMutex * mutex) : m_mutex(mutex) {
+    inline CxMutexScope(CxMutex *mutex) : m_mutex(mutex)
+    {
         m_mutex->lock();
     }
 
-    inline CxMutexScope(CxMutex & mutex) : m_mutex(& mutex) {
+    inline CxMutexScope(CxMutex &mutex) : m_mutex(&mutex)
+    {
         m_mutex->lock();
     }
 
-    inline ~CxMutexScope() { m_mutex->unlock(); }
+    inline ~CxMutexScope()
+    { m_mutex->unlock(); }
 
 };
 
@@ -706,19 +727,23 @@ public:
 class CCXX_EXPORT CxThread
 {
 public:
-    static void initDump(const std::string& dumpFilePath);
+    static void initDump(const std::string &dumpFilePath);
 
     static cx::pid_os_t getCurrentPid();
 
 #ifdef _MSC_VER
-    static void setMiniDumpFilePath(const std::string & sFilePath);
 
-    static void createMiniDump(EXCEPTION_POINTERS* pep);
+    static void setMiniDumpFilePath(const std::string &sFilePath);
+
+    static void createMiniDump(EXCEPTION_POINTERS *pep);
+
 #endif
 
 protected:
 #ifdef  _WIN32
+
     static unsigned __stdcall execThread(void *obj);
+
 #else
     static void * execThread(void *obj);
 #endif
@@ -731,7 +756,9 @@ protected:
     void *cancellor;
 #endif
 
-    enum {} reserved;   // cancel mode?
+    enum
+    {
+    } reserved;   // cancel mode?
     cx::pthread_t tid;
     size_t stack;
     int priority;
@@ -784,24 +811,26 @@ public:
     void setPriority();
 
     inline operator bool()
-        {return is_active();}
+    { return is_active(); }
 
     inline bool operator!()
-        {return !is_active();}
+    { return !is_active(); }
 
     inline bool isRunning()
-        {return is_active();}
+    { return is_active(); }
 
     /**
      * @brief start : subclass to implement stop thread interface;
      * @param priority
      */
-    virtual void start(int priority = 0) { /* assert("do not implement!!!"); */ }
+    virtual void start(int priority = 0)
+    { /* assert("do not implement!!!"); */ }
 
     /**
      * @brief stop : subclass to implement stop thread interface;
      */
-    virtual void stop() { /* assert("do not implement!!!"); */ }
+    virtual void stop()
+    { /* assert("do not implement!!!"); */ }
 
     /**
      * Yield execution context of the current thread. This is a static
@@ -911,7 +940,7 @@ public:
      * assumed to be off main thread, with a priority lowered by one.
      */
     inline void background()
-        {start(-1);};
+    { start(-1); };
 
 };
 

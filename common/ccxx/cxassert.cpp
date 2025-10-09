@@ -11,45 +11,68 @@
 #include <string>
 
 #ifdef _WIN32
+
 #include <windows.h>
+
 #elif defined(__linux__)
 #include <X11/Xlib.h>
-  #include <X11/Xutil.h>
-  #include <X11/keysym.h>
+#include <X11/Xutil.h>
+#include <X11/keysym.h>
 #elif defined(__APPLE__)
-  #include <CoreFoundation/CoreFoundation.h>
-  #include <CoreFoundation/CFUserNotification.h>
+#include <CoreFoundation/CoreFoundation.h>
+#include <CoreFoundation/CFUserNotification.h>
 #endif
 
 // Optional Qt dialog (define USE_QT_ASSERT and link QtWidgets)
 #ifdef USE_QT_ASSERT
 #include <QMessageBox>
-  #include <QString>
-  #include <QCoreApplication>
+#include <QString>
+#include <QCoreApplication>
 #endif
 
-namespace cx {
+namespace cx
+{
 
     // ---- internal singletons ----
-    static std::mutex& Mtx() { static std::mutex m; return m; }
-    static bool& BuiltinDialogEnabledRef() { static bool e = true; return e; }
-    static AssertCallback& UserCbRef() { static AssertCallback cb; return cb; }
+    static std::mutex &Mtx()
+    {
+        static std::mutex m;
+        return m;
+    }
 
-    void SetAssertCallback(AssertCallback cb) {
+    static bool &BuiltinDialogEnabledRef()
+    {
+        static bool e = true;
+        return e;
+    }
+
+    static AssertCallback &UserCbRef()
+    {
+        static AssertCallback cb;
+        return cb;
+    }
+
+    void SetAssertCallback(AssertCallback cb)
+    {
         std::lock_guard<std::mutex> lk(Mtx());
         UserCbRef() = std::move(cb);
     }
-    void ClearAssertCallback() {
+
+    void ClearAssertCallback()
+    {
         std::lock_guard<std::mutex> lk(Mtx());
         UserCbRef() = nullptr;
     }
-    void SetBuiltinDialogEnabled(bool enabled) {
+
+    void SetBuiltinDialogEnabled(bool enabled)
+    {
         std::lock_guard<std::mutex> lk(Mtx());
         BuiltinDialogEnabledRef() = enabled;
     }
 
     // ---- time / tid / logging ----
-    static std::string NowFileStamp() {
+    static std::string NowFileStamp()
+    {
         using namespace std::chrono;
         auto tp = system_clock::now();
         auto ms = duration_cast<milliseconds>(tp.time_since_epoch()) % 1000;
@@ -67,16 +90,22 @@ namespace cx {
         return buf;
     }
 
-    std::uint64_t CurrentThreadId() {
+    std::uint64_t CurrentThreadId()
+    {
         auto id = std::this_thread::get_id();
-        std::ostringstream oss; oss << id;
-        try { return static_cast<std::uint64_t>(std::stoull(oss.str())); }
-        catch (...) { return static_cast<std::uint64_t>(std::hash<std::string>{}(oss.str())); }
+        std::ostringstream oss;
+        oss << id;
+        try
+        { return static_cast<std::uint64_t>(std::stoull(oss.str())); }
+        catch (...)
+        { return static_cast<std::uint64_t>(std::hash<std::string>{}(oss.str())); }
     }
 
-    static void AppendLog(const AssertInfo& info) {
+    static void AppendLog(const AssertInfo &info)
+    {
         std::string fname = "assert_" + NowFileStamp() + ".log";
-        if (FILE* f = std::fopen(fname.c_str(), "w")) {
+        if (FILE *f = std::fopen(fname.c_str(), "w"))
+        {
             std::fprintf(f,
                          "Assertion failed!\n"
                          "Expr: %s\n"
@@ -94,7 +123,8 @@ namespace cx {
 
     // ---- built-in dialogs ----
     // Priority: Qt > Win32 > X11 > macOS > stderr
-    static AssertAction DefaultDialog(const AssertInfo& info) {
+    static AssertAction DefaultDialog(const AssertInfo &info)
+    {
         if (!BuiltinDialogEnabledRef()) return AssertAction::Abort;
 
 #ifdef USE_QT_ASSERT
@@ -124,7 +154,7 @@ namespace cx {
         int r = MessageBoxA(nullptr, text.c_str(), "Assertion Failed",
                             MB_ICONERROR | MB_ABORTRETRYIGNORE | MB_DEFBUTTON1 | MB_TOPMOST);
         if (r == IDIGNORE) return AssertAction::Ignore;
-        if (r == IDRETRY)  return AssertAction::Exit;
+        if (r == IDRETRY) return AssertAction::Exit;
         return AssertAction::Abort;
 
 #elif defined(__linux__)
@@ -181,7 +211,7 @@ namespace cx {
         std::fprintf(stderr, "Assertion failed: %s (%s:%d)\n", info.expr, info.file, info.line);
         return AssertAction::Abort;
 
-    #elif defined(__APPLE__)
+#elif defined(__APPLE__)
         CFStringRef header   = CFStringCreateWithCString(nullptr, "Assertion Failed", kCFStringEncodingUTF8);
         std::string msg      = std::string("Expr: ") + info.expr +
                                "\nFile: " + info.file + ":" + std::to_string(info.line) +
@@ -209,24 +239,26 @@ namespace cx {
         if (response == kCFUserNotificationAlternateResponse) return AssertAction::Exit;
         return AssertAction::Abort;
 
-    #else
+#else
         std::fprintf(stderr, "Assertion failed: %s\n", info.expr);
         return AssertAction::Abort;
 #endif
     }
 
     // ---- main entry ----
-    void AssertFail(const char* expr, const char* file, int line,
-                    const char* func, const char* message) {
+    void AssertFail(const char *expr, const char *file, int line,
+                    const char *func, const char *message)
+    {
         // Reentrancy guard: if assertion triggers within handling, abort immediately.
         thread_local bool inAssert = false;
-        if (inAssert) {
+        if (inAssert)
+        {
             std::fprintf(stderr, "[assert reentered] %s (%s:%d)\n", expr, file, line);
             std::abort();
         }
         inAssert = true;
 
-        AssertInfo info { expr, file, line, func, message, CurrentThreadId() };
+        AssertInfo info{expr, file, line, func, message, CurrentThreadId()};
 
         // 1) Always append a log file
         AppendLog(info);
@@ -236,11 +268,12 @@ namespace cx {
         {
             std::lock_guard<std::mutex> lk(Mtx());
             if (UserCbRef()) act = UserCbRef()(info);
-            else             act = DefaultDialog(info);
+            else act = DefaultDialog(info);
         }
 
         // 3) Execute action
-        switch (act) {
+        switch (act)
+        {
             case AssertAction::Ignore:
                 inAssert = false;
                 return; // continue execution

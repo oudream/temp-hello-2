@@ -4,14 +4,6 @@
 
 #include "cxglobal.h"
 
-#define ci_sharememory_status_invalid (0)
-#define ci_sharememory_status_good (1)
-#define ci_sharememory_status_initing (2)
-#define ci_sharememory_status_closing (3)
-
-#define ci_sharememory_head1 (0xEB90EB90)
-#define ci_sharememory_head2 (0xA55AA55A)
-
 
 /**
  * Construct or access a named section of memory.  A logical name is used

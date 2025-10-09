@@ -15,20 +15,20 @@ string CxUuid::createGuidString()
 string CxUuid::guidToString(const GUID &guid)
 {
     char buf[64] = {0};
-    #ifdef __GNUC__
-        snprintf(
-    #else // MSVC
-        _snprintf_s(
-    #endif
+#ifdef __GNUC__
+    snprintf(
+#else // MSVC
+    _snprintf_s(
+#endif
             buf,
             sizeof(buf),
-             "%08lX-%04X-%04X-%02X%02X-%02X%02X%02X%02X%02X%02X",
+            "%08lX-%04X-%04X-%02X%02X-%02X%02X%02X%02X%02X%02X",
             guid.Data1, guid.Data2, guid.Data3,
             guid.Data4[0], guid.Data4[1],
             guid.Data4[2], guid.Data4[3],
             guid.Data4[4], guid.Data4[5],
             guid.Data4[6], guid.Data4[7]);
-        return std::string(buf);
+    return std::string(buf);
 }
 
 //AB8A5EDD-BD9A-5547-B2ED-6504035A761A
@@ -36,25 +36,25 @@ string CxUuid::guidToString(const GUID &guid)
 GUID CxUuid::guidFromString(const string &sGuidString)
 {
     GUID rGuid;
-    if (sGuidString.size()<36) return rGuid;
-    const char * str = sGuidString.c_str();
+    if (sGuidString.size() < 36) return rGuid;
+    const char *str = sGuidString.c_str();
     size_t iIndex = sGuidString.find('{');
     if (iIndex != string::npos) str += (iIndex + 1);
     /* parse hex values of "time" parts */
-    rGuid.Data1 = strtoul(str,    nullptr, 16);
-    rGuid.Data2 = strtoul(str+9,  nullptr, 16);
-    rGuid.Data3 = strtoul(str+14, nullptr, 16);
+    rGuid.Data1 = strtoul(str, nullptr, 16);
+    rGuid.Data2 = strtoul(str + 9, nullptr, 16);
+    rGuid.Data3 = strtoul(str + 14, nullptr, 16);
 
     /* parse hex values of "clock" parts */
-    int tmp16 = strtoul(str+19, nullptr, 16);
+    int tmp16 = strtoul(str + 19, nullptr, 16);
 
     long long unsigned int tmp64;
-    sscanf(str+24, "%llx", &tmp64);
+    sscanf(str + 24, "%llx", &tmp64);
 //    long long tmp64 = strtoul(str+24, nullptr, 16);
     rGuid.Data4[1] = tmp16 & 0xff;
     rGuid.Data4[0] = (tmp16 >> 8) & 0xff;
     rGuid.Data4[7] = tmp64 & 0xff;
-    rGuid.Data4[6] = (tmp64 >>  8) & 0xff;
+    rGuid.Data4[6] = (tmp64 >> 8) & 0xff;
     rGuid.Data4[5] = (tmp64 >> 16) & 0xff;
     rGuid.Data4[4] = (tmp64 >> 24) & 0xff;
     rGuid.Data4[3] = (tmp64 >> 32) & 0xff;
@@ -64,6 +64,7 @@ GUID CxUuid::guidFromString(const string &sGuidString)
 }
 
 #ifdef _WIN32
+
 #include <objbase.h>
 
 GUID CxUuid::createGuid()

@@ -40,7 +40,9 @@
 #include <sqlite3.h>
 
 #ifdef _WIN32
+
 #include <windows.h>
+
 #endif
 
 namespace SQL
@@ -102,7 +104,7 @@ namespace SQL
         static void print(Tuple &t, sqlite3_stmt *ppsm)
         {
             TupleGetSingle<Tuple, N - 1>::print(t, ppsm);
-            std::get<N - 1>(t) = get_single<typename std::tuple_element<N - 1, Tuple>::type >(ppsm, (N - 1));
+            std::get<N - 1>(t) = get_single<typename std::tuple_element<N - 1, Tuple>::type>(ppsm, (N - 1));
         }
     };
 
@@ -111,60 +113,61 @@ namespace SQL
     {
         static void print(Tuple &t, sqlite3_stmt *ppsm)
         {
-            std::get<0>(t) = get_single<typename std::tuple_element<0, Tuple>::type >(ppsm, 0);
+            std::get<0>(t) = get_single<typename std::tuple_element<0, Tuple>::type>(ppsm, 0);
         }
     };
 
 
     //*** set
     template<typename T>
-    inline int set_single(sqlite3_stmt *ppsm, int iCol, const T & v);
+    inline int set_single(sqlite3_stmt *ppsm, int iCol, const T &v);
 
     template<>
-    inline int set_single(sqlite3_stmt *ppsm, int iCol, const int & v)
+    inline int set_single(sqlite3_stmt *ppsm, int iCol, const int &v)
     {
         return sqlite3_bind_int(ppsm, iCol, v);
     }
 
     template<>
-    inline int set_single(sqlite3_stmt *ppsm, int iCol, const sqlite3_int64 & v)
+    inline int set_single(sqlite3_stmt *ppsm, int iCol, const sqlite3_int64 &v)
     {
         return sqlite3_bind_int64(ppsm, iCol, v);
     }
 
     template<>
-    inline int set_single(sqlite3_stmt *ppsm, int iCol, const double & v)
+    inline int set_single(sqlite3_stmt *ppsm, int iCol, const double &v)
     {
         return sqlite3_bind_double(ppsm, iCol, v);
     }
 
     template<>
-    inline int set_single(sqlite3_stmt *ppsm, int iCol, const std::string & v)
+    inline int set_single(sqlite3_stmt *ppsm, int iCol, const std::string &v)
     {
         return sqlite3_bind_text(ppsm, iCol, v.c_str(), v.size(), 0);
     }
 
     template<>
-    inline int set_single(sqlite3_stmt *ppsm, int iCol, const std::vector<char> & v)
+    inline int set_single(sqlite3_stmt *ppsm, int iCol, const std::vector<char> &v)
     {
         return sqlite3_bind_blob(ppsm, iCol, v.data(), v.size(), 0);
     }
 
     template<std::size_t I = 0, typename... Tp>
     inline typename std::enable_if<I == sizeof...(Tp), void>::type
-    set_singles(sqlite3_stmt *ppsm, std::tuple<Tp...>& t)
-    { }
+    set_singles(sqlite3_stmt *ppsm, std::tuple<Tp...> &t)
+    {}
 
     template<std::size_t I = 0, typename... Tp>
     inline typename std::enable_if<I < sizeof...(Tp), void>::type
-    set_singles(sqlite3_stmt *ppsm, std::tuple<Tp...>& t)
+    set_singles(sqlite3_stmt *ppsm, std::tuple<Tp...> &t)
     {
-        set_single(ppsm, I+1, std::get<I>(t));
+        set_single(ppsm, I + 1, std::get<I>(t));
         set_singles<I + 1, Tp...>(ppsm, t);
     }
 
 
-    class Con {
+    class Con
+    {
     protected:
         sqlite3 *_db;
 
@@ -202,7 +205,8 @@ namespace SQL
         }
 
     private:
-        struct PPSM {
+        struct PPSM
+        {
             sqlite3_stmt *me;
 
             PPSM(sqlite3 *db, const std::string &query) :
@@ -219,7 +223,7 @@ namespace SQL
             void bindvals(std::vector<std::string> &&vals)
             {
                 int pos = 0;
-                for (auto &v : vals)
+                for (auto &v: vals)
                 {
                     sqlite3_bind_text(me, ++pos, v.c_str(), v.size(), SQLITE_TRANSIENT);
                 }
@@ -287,7 +291,8 @@ namespace SQL
         }
 
         template<typename ...ARGS>
-        int bindnexec(const std::string &sql, const std::vector<std::tuple<ARGS...>> & rows, bool bTran = false, int * errid = nullptr, std::string * err = nullptr)
+        int bindnexec(const std::string &sql, const std::vector<std::tuple<ARGS...>> &rows, bool bTran = false, int *errid = nullptr,
+                      std::string *err = nullptr)
         {
             if (!_db)
             {
@@ -296,18 +301,18 @@ namespace SQL
             int result = sqlite3_total_changes(_db);
             if (bTran)
             {
-                if (! begin_transaction())
+                if (!begin_transaction())
                 {
                     return -2;
                 }
             }
-            sqlite3_stmt* stmt;
-            const char* tail;
+            sqlite3_stmt *stmt;
+            const char *tail;
             int rc = sqlite3_prepare(_db, sql.c_str(), sql.size(), &stmt, &tail);
             if (rc != SQLITE_OK)
             {
                 // set LastError
-                if (errid) * errid = rc;
+                if (errid) *errid = rc;
                 // rollback
                 if (bTran)
                     rollback_transaction();
@@ -321,10 +326,10 @@ namespace SQL
                 if (rc != SQLITE_OK)
                 {
                     // set LastError
-                    if (errid) * errid = rc;
+                    if (errid) *errid = rc;
                     if (err)
                     {
-                        * err = "sql exec error: " + std::string(sqlite3_errmsg(_db));
+                        *err = "sql exec error: " + std::string(sqlite3_errmsg(_db));
                     }
                     // rollback
                     if (bTran)
@@ -342,10 +347,10 @@ namespace SQL
                 if (rc != SQLITE_OK && rc != SQLITE_DONE)
                 {
                     // set LastError
-                    if (errid) * errid = rc;
+                    if (errid) *errid = rc;
                     if (err)
                     {
-                        * err = "sql exec error: " + std::string(sqlite3_errmsg(_db));
+                        *err = "sql exec error: " + std::string(sqlite3_errmsg(_db));
                     }
                     // roll back
                     // rollback
@@ -358,10 +363,10 @@ namespace SQL
             if (rc != SQLITE_OK)
             {
                 // set LastError
-                if (errid) * errid = rc;
+                if (errid) *errid = rc;
                 if (err)
                 {
-                    * err = "sql exec error: " + std::string(sqlite3_errmsg(_db));
+                    *err = "sql exec error: " + std::string(sqlite3_errmsg(_db));
                 }
                 // rollback
                 if (bTran)
@@ -377,7 +382,7 @@ namespace SQL
         }
 
         template<typename ...ARGS>
-        int bind1exec(const std::string &sql, std::tuple<ARGS...> & row, bool bTran = false, int * errid = nullptr, std::string * err = nullptr)
+        int bind1exec(const std::string &sql, std::tuple<ARGS...> &row, bool bTran = false, int *errid = nullptr, std::string *err = nullptr)
         {
             if (!_db)
             {
@@ -386,25 +391,25 @@ namespace SQL
             int result = sqlite3_total_changes(_db);
             if (bTran)
             {
-                if (! begin_transaction())
+                if (!begin_transaction())
                 {
                     if (err)
                     {
-                        * err = "sql exec error: Can Not begin_transaction!";
+                        *err = "sql exec error: Can Not begin_transaction!";
                     }
                     return -2;
                 }
             }
-            sqlite3_stmt* stmt;
-            const char* tail;
+            sqlite3_stmt *stmt;
+            const char *tail;
             int rc = sqlite3_prepare(_db, sql.c_str(), sql.size(), &stmt, &tail);
             if (rc != SQLITE_OK)
             {
                 // set LastError
-                if (errid) * errid = rc;
+                if (errid) *errid = rc;
                 if (err)
                 {
-                    * err = "sql exec error: " + std::string(sqlite3_errmsg(_db));
+                    *err = "sql exec error: " + std::string(sqlite3_errmsg(_db));
                 }
                 // rollback
                 if (bTran)
@@ -417,10 +422,10 @@ namespace SQL
             if (rc != SQLITE_OK)
             {
                 // set LastError
-                if (errid) * errid = rc;
+                if (errid) *errid = rc;
                 if (err)
                 {
-                    * err = "sql exec error: " + std::string(sqlite3_errmsg(_db));
+                    *err = "sql exec error: " + std::string(sqlite3_errmsg(_db));
                 }
                 // rollback
                 if (bTran)
@@ -432,10 +437,10 @@ namespace SQL
             if (rc != SQLITE_OK && rc != SQLITE_DONE)
             {
                 // set LastError
-                if (errid) * errid = rc;
+                if (errid) *errid = rc;
                 if (err)
                 {
-                    * err = "sql exec error: " + std::string(sqlite3_errmsg(_db));
+                    *err = "sql exec error: " + std::string(sqlite3_errmsg(_db));
                 }
                 // rollback
                 if (bTran)
@@ -446,10 +451,10 @@ namespace SQL
             if (rc != SQLITE_OK)
             {
                 // set LastError
-                if (errid) * errid = rc;
+                if (errid) *errid = rc;
                 if (err)
                 {
-                    * err = "sql exec error: " + std::string(sqlite3_errmsg(_db));
+                    *err = "sql exec error: " + std::string(sqlite3_errmsg(_db));
                 }
                 // rollback
                 if (bTran)
@@ -497,22 +502,22 @@ namespace SQL
             return get_single<QType>(ppsm.me, 0);
         }
 
-        bool exec_sql(const std::string& sql, int * errid = nullptr, std::string * err = nullptr)
+        bool exec_sql(const std::string &sql, int *errid = nullptr, std::string *err = nullptr)
         {
             if (!_db)
             {
                 return false;
             }
-            char* zErr;
+            char *zErr;
             int rc = sqlite3_exec(_db, sql.c_str(), nullptr, nullptr, &zErr);
             if (rc != SQLITE_OK)
             {
-                if (errid) * errid = rc;
+                if (errid) *errid = rc;
                 if (zErr != nullptr)
                 {
                     if (err)
                     {
-                        * err = "sql exec error: " + std::string(zErr);
+                        *err = "sql exec error: " + std::string(zErr);
                     }
                     sqlite3_free(zErr);
                 }

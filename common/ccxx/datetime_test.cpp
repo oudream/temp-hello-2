@@ -5,14 +5,18 @@
 using cx::DateTime;
 
 // 为了书写方便
-static inline DateTime Utc(int y,int M,int d,int h=0,int m=0,int s=0,int ms=0) {
-    return DateTime(y,M,d,h,m,s,ms, DateTime::Kind::Utc);
-}
-static inline DateTime Loc(int y,int M,int d,int h=0,int m=0,int s=0,int ms=0) {
-    return DateTime(y,M,d,h,m,s,ms, DateTime::Kind::Local);
+static inline DateTime Utc(int y, int M, int d, int h = 0, int m = 0, int s = 0, int ms = 0)
+{
+    return DateTime(y, M, d, h, m, s, ms, DateTime::Kind::Utc);
 }
 
-TEST(DateTime_Basic, DefaultAndValidity) {
+static inline DateTime Loc(int y, int M, int d, int h = 0, int m = 0, int s = 0, int ms = 0)
+{
+    return DateTime(y, M, d, h, m, s, ms, DateTime::Kind::Local);
+}
+
+TEST(DateTime_Basic, DefaultAndValidity)
+{
     DateTime a; // 默认构造：有效，1970-01-01 00:00:00.000（Unspecified）
     EXPECT_TRUE(a.isValid());
     EXPECT_EQ(a.ticksMs(), DateTime::minMs());
@@ -22,33 +26,36 @@ TEST(DateTime_Basic, DefaultAndValidity) {
     EXPECT_FALSE(inv.isValid());
 }
 
-TEST(DateTime_Range, MinMax) {
+TEST(DateTime_Range, MinMax)
+{
     EXPECT_EQ(DateTime::minMs(), 0);
     // 9999-12-31T23:59:59.999
     EXPECT_EQ(DateTime::maxMs(), INT64_C(253402300799999));
 }
 
-TEST(DateTime_Construct, UtcAndLocalConstruct) {
+TEST(DateTime_Construct, UtcAndLocalConstruct)
+{
     // 1970-01-01 00:00:00.000 UTC -> epoch 0
-    auto z0 = Utc(1970,1,1,0,0,0,0);
+    auto z0 = Utc(1970, 1, 1, 0, 0, 0, 0);
     EXPECT_TRUE(z0.isValid());
     EXPECT_EQ(z0.ticksMs(), 0);
 
     // 一个普通时间点
-    auto z = Utc(2024,1,2,3,4,5,6); // UTC
+    auto z = Utc(2024, 1, 2, 3, 4, 5, 6); // UTC
     EXPECT_TRUE(z.isValid());
     // toIso8601 对 Utc 末尾应带 'Z'
     std::string iso = z.toIso8601();
     EXPECT_NE(iso.find('Z'), std::string::npos);
 
     // Local 构造（你的实现把 Local 解释为固定 +08:00）
-    auto l = Loc(2024,1,2,3,4,5,6);
+    auto l = Loc(2024, 1, 2, 3, 4, 5, 6);
     EXPECT_TRUE(l.isValid());
     // 同一“墙钟数值”在 Local/UTC 上 ticksMs 不同
     EXPECT_NE(l.ticksMs(), z.ticksMs());
 }
 
-TEST(DateTime_NowToday, NowAndTodayAreValid) {
+TEST(DateTime_NowToday, NowAndTodayAreValid)
+{
     auto n = DateTime::now();     // Local
     auto u = DateTime::utcNow();  // Utc
     EXPECT_TRUE(n.isValid());
@@ -66,8 +73,9 @@ TEST(DateTime_NowToday, NowAndTodayAreValid) {
     EXPECT_EQ(ms, 0);
 }
 
-TEST(DateTime_Fields, SplitFields) {
-    auto z = Utc(2000,2,29,23,59,58,999);
+TEST(DateTime_Fields, SplitFields)
+{
+    auto z = Utc(2000, 2, 29, 23, 59, 58, 999);
     EXPECT_EQ(z.year(), 2000);
     EXPECT_EQ(z.month(), 2);
     EXPECT_EQ(z.day(), 29);
@@ -80,18 +88,20 @@ TEST(DateTime_Fields, SplitFields) {
     EXPECT_EQ(z.dayOfYear(), 60); // 闰年，2月29日是当年的第60天
 }
 
-TEST(DateTime_LeapMonthDays, LeapAndDaysInMonth) {
+TEST(DateTime_LeapMonthDays, LeapAndDaysInMonth)
+{
     EXPECT_TRUE(DateTime::isLeapYear(2000));
     EXPECT_FALSE(DateTime::isLeapYear(1900));
     EXPECT_TRUE(DateTime::isLeapYear(2024));
-    EXPECT_EQ(DateTime::daysInMonth(2024,2), 29);
-    EXPECT_EQ(DateTime::daysInMonth(2023,2), 28);
-    EXPECT_EQ(DateTime::daysInMonth(2023,4), 30);
-    EXPECT_EQ(DateTime::daysInMonth(2023,7), 31);
+    EXPECT_EQ(DateTime::daysInMonth(2024, 2), 29);
+    EXPECT_EQ(DateTime::daysInMonth(2023, 2), 28);
+    EXPECT_EQ(DateTime::daysInMonth(2023, 4), 30);
+    EXPECT_EQ(DateTime::daysInMonth(2023, 7), 31);
 }
 
-TEST(DateTime_AddArithmetic, AddMsSecMinHourDay) {
-    auto z = Utc(2024,1,1,0,0,0,0);
+TEST(DateTime_AddArithmetic, AddMsSecMinHourDay)
+{
+    auto z = Utc(2024, 1, 1, 0, 0, 0, 0);
     EXPECT_EQ(z.addMilliseconds(500).millisecond(), 500);
     EXPECT_EQ(z.addSeconds(61).second(), 1);
     EXPECT_EQ(z.addMinutes(125).hour(), 2);
@@ -99,29 +109,31 @@ TEST(DateTime_AddArithmetic, AddMsSecMinHourDay) {
     EXPECT_EQ(z.addDays(31).month(), 2);
 }
 
-TEST(DateTime_AddMonthsYears, EndOfMonthAlignment) {
+TEST(DateTime_AddMonthsYears, EndOfMonthAlignment)
+{
     // 月末对齐：1月31日 + 1 月 -> 2月最后一天（闰/平年）
-    auto a = Utc(2023,1,31,12,0,0,0).addMonths(1);
+    auto a = Utc(2023, 1, 31, 12, 0, 0, 0).addMonths(1);
     EXPECT_TRUE(a.isValid());
     EXPECT_EQ(a.year(), 2023);
     EXPECT_EQ(a.month(), 2);
     EXPECT_EQ(a.day(), 28);
 
-    auto b = Utc(2024,1,31,12,0,0,0).addMonths(1);
+    auto b = Utc(2024, 1, 31, 12, 0, 0, 0).addMonths(1);
     EXPECT_TRUE(b.isValid());
     EXPECT_EQ(b.year(), 2024);
     EXPECT_EQ(b.month(), 2);
     EXPECT_EQ(b.day(), 29);
 
-    auto c = Utc(2022,2,28,23,59,59,999).addYears(1);
+    auto c = Utc(2022, 2, 28, 23, 59, 59, 999).addYears(1);
     EXPECT_TRUE(c.isValid());
     EXPECT_EQ(c.year(), 2023);
     EXPECT_EQ(c.month(), 2);
     EXPECT_EQ(c.day(), 28);
 }
 
-TEST(DateTime_Compare, OperatorsAndDiff) {
-    auto a = Utc(2024,5,1,0,0,0,0);
+TEST(DateTime_Compare, OperatorsAndDiff)
+{
+    auto a = Utc(2024, 5, 1, 0, 0, 0, 0);
     auto b = a.addSeconds(1);
     EXPECT_LT(a, b);
     EXPECT_GT(b, a);
@@ -134,15 +146,16 @@ TEST(DateTime_Compare, OperatorsAndDiff) {
     EXPECT_EQ(b - a, 1000);
 }
 
-TEST(DateTime_LocalUtc, ToLocalAndToUTC) {
+TEST(DateTime_LocalUtc, ToLocalAndToUTC)
+{
     // 你的实现中 Local = UTC+8（固定差值）
-    auto z = Utc(2024,1,2,3,4,5,6);
+    auto z = Utc(2024, 1, 2, 3, 4, 5, 6);
     auto l = z.toLocalTime();
     ASSERT_TRUE(l.isValid());
-    EXPECT_EQ(l.year(),  2024);
+    EXPECT_EQ(l.year(), 2024);
     EXPECT_EQ(l.month(), 1);
-    EXPECT_EQ(l.day(),   2);
-    EXPECT_EQ(l.hour(),  11);   // 3:04:05Z + 8h = 11:04:05 local
+    EXPECT_EQ(l.day(), 2);
+    EXPECT_EQ(l.hour(), 11);   // 3:04:05Z + 8h = 11:04:05 local
     EXPECT_EQ(l.minute(), 4);
     EXPECT_EQ(l.second(), 5);
     EXPECT_EQ(l.millisecond(), 6);
@@ -154,8 +167,9 @@ TEST(DateTime_LocalUtc, ToLocalAndToUTC) {
     EXPECT_EQ(backZ.kind(), DateTime::Kind::Utc);
 }
 
-TEST(DateTime_FormatParse, ToStringIsoAndParseLoose) {
-    auto z = Utc(2025,10,6,12,34,56,789);
+TEST(DateTime_FormatParse, ToStringIsoAndParseLoose)
+{
+    auto z = Utc(2025, 10, 6, 12, 34, 56, 789);
     // toString 默认格式 yyyy/MM/dd HH:mm:ss:fff（按 kind 解释）
     std::string s1 = z.toString('/', ' ', ':');
     EXPECT_FALSE(s1.empty());
@@ -185,8 +199,9 @@ TEST(DateTime_FormatParse, ToStringIsoAndParseLoose) {
     EXPECT_FALSE(out.isValid()); // tryParse 失败时 out = invalid()
 }
 
-TEST(DateTime_OperatorsWithMs, PlusMinusMs) {
-    auto a = Utc(2024,1,1,0,0,0,0);
+TEST(DateTime_OperatorsWithMs, PlusMinusMs)
+{
+    auto a = Utc(2024, 1, 1, 0, 0, 0, 0);
     auto b = a + 1500; // +1.5s
     EXPECT_EQ(b - a, 1500);
     b -= 500;

@@ -7,8 +7,10 @@
 #include "cxarguments.h"
 
 #ifdef _WIN32
+
 #include <tlhelp32.h>
 #include <psapi.h>
+
 #endif
 
 using namespace std;
@@ -68,12 +70,13 @@ static std::vector<ProcessWaitThread *> f_sProcesses;
 
 */
 
-CxProcess::CxProcess(const string &sProgram, const map<string, string> &sArguments, const string &sWorkingDirectory, const map<string, string> &sEnvironments)
-    :
-    m_program(sProgram),
-    m_arguments(sArguments),
-    m_workingDirectory(sWorkingDirectory),
-    m_environments(sEnvironments)
+CxProcess::CxProcess(const string &sProgram, const map<string, string> &sArguments, const string &sWorkingDirectory,
+                     const map<string, string> &sEnvironments)
+        :
+        m_program(sProgram),
+        m_arguments(sArguments),
+        m_workingDirectory(sWorkingDirectory),
+        m_environments(sEnvironments)
 {
     memset(&m_pid, 0, sizeof(m_pid));
 }
@@ -101,18 +104,18 @@ void CxProcess::stop()
 #ifdef _WIN32
 
 cx::pid_os_t CxProcess::exec(const string &sProgram,
-                         const map<string, string> &arguments,
-                         const string &sWorkingDirectory,
-                         const map<string, string> &environments)
+                             const map<string, string> &arguments,
+                             const string &sWorkingDirectory,
+                             const map<string, string> &environments)
 {
     string sArguments = CxArguments::argsToString(arguments);
     return CxProcess::exec(sProgram, sArguments, sWorkingDirectory, environments);
 }
 
 cx::pid_os_t CxProcess::exec(const std::string &sProgram,
-                         const std::string &sArguments,
-                         const string &sWorkingDirectory,
-                         const map<string, string> &environments)
+                             const std::string &sArguments,
+                             const string &sWorkingDirectory,
+                             const map<string, string> &environments)
 {
     //prepare data
     cx::pid_os_t r;
@@ -151,11 +154,11 @@ cx::pid_os_t CxProcess::exec(const std::string &sProgram,
     si.cb = sizeof(si);
 
     bSuccess = ::CreateProcessA(
-        nullptr,
-        const_cast<char *>(sCommand.data()),
-        nullptr, nullptr, FALSE, dwCreationFlags,
-        nullptr, nullptr, &si,
-        &r);
+            nullptr,
+            const_cast<char *>(sCommand.data()),
+            nullptr, nullptr, FALSE, dwCreationFlags,
+            nullptr, nullptr, &si,
+            &r);
 #endif
     if (bSuccess)
     {
@@ -190,12 +193,12 @@ BOOL GetTokenByExplorer(HANDLE &hToken)
     {
         do
         {
-            if((!strcmp(pe32.szExeFile, lpName1)) || (!strcmp(pe32.szExeFile, lpName2)))
+            if ((!strcmp(pe32.szExeFile, lpName1)) || (!strcmp(pe32.szExeFile, lpName2)))
             {
                 HANDLE hProcess = OpenProcess(PROCESS_QUERY_INFORMATION,
-                                              FALSE,pe32.th32ProcessID);
-                r = OpenProcessToken(hProcess,TOKEN_ALL_ACCESS,&hToken);
-                ::CloseHandle (hProcessSnap);
+                                              FALSE, pe32.th32ProcessID);
+                r = OpenProcessToken(hProcess, TOKEN_ALL_ACCESS, &hToken);
+                ::CloseHandle(hProcessSnap);
                 return r;
             }
         }
@@ -207,7 +210,7 @@ BOOL GetTokenByExplorer(HANDLE &hToken)
         r = FALSE;
     }
 
-    ::CloseHandle (hProcessSnap);
+    ::CloseHandle(hProcessSnap);
     return r;
 }
 
@@ -215,15 +218,15 @@ BOOL GetTokenByExplorer(HANDLE &hToken)
 //#include <userenv.h>
 
 cx::pid_os_t CxProcess::execAsDetached(const std::string &sProgram,
-                                   const map<string, string> &arguments,
-                                   const string &sWorkingDirectory,
-                                   const map<string, string> &environments)
+                                       const map<string, string> &arguments,
+                                       const string &sWorkingDirectory,
+                                       const map<string, string> &environments)
 {
     cx::pid_os_t r;
     ZeroMemory(&r, sizeof(r));
 
     HANDLE primaryToken;
-    if(!GetTokenByExplorer(primaryToken))
+    if (!GetTokenByExplorer(primaryToken))
     {
 //        OutputDebugString("2");
         return r;
@@ -407,6 +410,7 @@ void CxProcess::threadEventNotify(void *oTarget, int iEvent, int iTag, const voi
 //    CxApplication::pushProcessCallBack(CxProcess::dealThreadNofity, iEvent, iTag, pData, iLength, oSource, oTarget);
 //    CxApplication::signalMainThread();
 }
+
 /*
 void CxProcess::dealThreadNofity(int iEvent, int iTag, const void *pData, int iLength, void *oSource, void *oTarget)
 {
@@ -471,7 +475,7 @@ std::vector<CxProcess::ProcessInfo> CxProcess::getRunningProcesses()
     }
     PROCESSENTRY32 pe;
     pe.dwSize = sizeof(PROCESSENTRY32);
-    if(Process32First(hSnapShot,&pe))
+    if (Process32First(hSnapShot, &pe))
     {
         while (Process32Next(hSnapShot, &pe))
         {
@@ -501,11 +505,11 @@ bool CxProcess::isRunning(const std::string &sProcessName)
     }
     PROCESSENTRY32 pe;
     pe.dwSize = sizeof(PROCESSENTRY32);
-    if(Process32First(hSnapShot,&pe))
+    if (Process32First(hSnapShot, &pe))
     {
-        while (Process32Next(hSnapShot,&pe))
+        while (Process32Next(hSnapShot, &pe))
         {
-            if(strcmp(sProcessName.c_str(), pe.szExeFile) == 0)
+            if (strcmp(sProcessName.c_str(), pe.szExeFile) == 0)
             {
                 r = true;
                 break;
@@ -531,11 +535,11 @@ bool CxProcess::isRunning(cx::pid_os_t pid)
     }
     PROCESSENTRY32 pe;
     pe.dwSize = sizeof(PROCESSENTRY32);
-    if(Process32First(hSnapShot,&pe))
+    if (Process32First(hSnapShot, &pe))
     {
-        while (Process32Next(hSnapShot,&pe))
+        while (Process32Next(hSnapShot, &pe))
         {
-            if(pid.dwProcessId == pe.th32ProcessID)
+            if (pid.dwProcessId == pe.th32ProcessID)
             {
                 r = true;
                 break;
@@ -596,17 +600,20 @@ int CxProcess::kill(const std::string &sProcessName)
 
 
 #ifdef _WIN32
+
 cx::msepoch_t cxprocess_filetime2msepoch(const FILETIME &ft)
 {
     const cx::uint64 iShift = 116444736000000000ULL; // (27111902 << 32) + 3577643008
-    union {
-        FILETIME  as_file_time;
+    union
+    {
+        FILETIME as_file_time;
         cx::msepoch_t as_integer;   // 100-nanos since 1601-Jan-01
     } caster{};
     caster.as_file_time = ft;
     caster.as_integer -= iShift; // filetime is now 100-nanos since 1970-Jan-01
     return caster.as_integer / 10000LL; // truncate to microseconds
 }
+
 #endif
 
 int CxProcess::getMemoryUsage()
@@ -636,7 +643,7 @@ int CxProcess::getMemoryUsage(cx::pid_os_t pid)
     {
         return pmc.WorkingSetSize;
     }
-	return -1;
+    return -1;
 #else
     return -1;
 #endif

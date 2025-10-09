@@ -5,7 +5,8 @@
 #include "cxglobal.h"
 
 
-class CCXX_EXPORT CxStringC {
+class CCXX_EXPORT CxStringC
+{
 public:
     //***
     //be care begin : malloc
@@ -25,9 +26,11 @@ public:
      */
     static char *createLeft(const char *text, size_t size);
 
-    inline static char *createRight(const char *text, size_t size) { return create(pos(text, -(signed) size)); }
+    inline static char *createRight(const char *text, size_t size)
+    { return create(pos(text, -(signed) size)); }
 
-    inline static char *create(const char *text, size_t offset, size_t len) {
+    inline static char *create(const char *text, size_t offset, size_t len)
+    {
         return createLeft(pos(text, offset), len);
     }
     //***
@@ -82,8 +85,7 @@ public:
      * array[1] == "is";
      * array[2] == "a test";
      */
-    static char *
-    token(char *text, char **last, const char *list, const char *quote = nullptr, const char *end = nullptr);
+    static char * token(char *text, char **last, const char *list, const char *quote = nullptr, const char *end = nullptr);
 
     /**
      * Unquote a quoted null terminated string.  Returns updated string

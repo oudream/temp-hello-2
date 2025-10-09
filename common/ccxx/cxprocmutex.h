@@ -12,7 +12,7 @@
 class CCXX_EXPORT CxProcMutex
 {
 public:
-    CxProcMutex(const std::string& name);
+    CxProcMutex(const std::string &name);
 
     ~CxProcMutex();
 
@@ -24,25 +24,27 @@ public:
 
 private:
     CxProcMutex();
-    CxProcMutex(const CxProcMutex&);
-    CxProcMutex& operator = (const CxProcMutex&);
+
+    CxProcMutex(const CxProcMutex &);
+
+    CxProcMutex &operator=(const CxProcMutex &);
 
     std::string _name;
 
 #ifdef _WIN32
 private:
-    HANDLE      _mutex;
+    HANDLE _mutex;
 
 #else
-private:
-    std::string getFileName();
+    private:
+        std::string getFileName();
 
 #if defined(sun) || defined(__APPLE__) || defined(__osf__) || defined(__QNX__) || defined(_AIX)
-    sem_t* _sem;
+        sem_t* _sem;
 #else
-    int _lockfd; // lock file descriptor
-    int _semfd;  // file used to identify semaphore
-    int _semid;  // semaphore id
+        int _lockfd; // lock file descriptor
+        int _semfd;  // file used to identify semaphore
+        int _semid;  // semaphore id
 #endif
 #endif
 
@@ -51,25 +53,26 @@ private:
 class CxProcMutexScope
 {
 public:
-    CxProcMutexScope(CxProcMutex & mutex);
+    CxProcMutexScope(CxProcMutex &mutex);
 
-    CxProcMutexScope(CxProcMutex * mutex);
+    CxProcMutexScope(CxProcMutex *mutex);
 
-    CxProcMutexScope(CxProcMutex& mutex, long milliseconds);
+    CxProcMutexScope(CxProcMutex &mutex, long milliseconds);
 
-    CxProcMutexScope(CxProcMutex * mutex, long milliseconds);
+    CxProcMutexScope(CxProcMutex *mutex, long milliseconds);
 
     ~CxProcMutexScope();
 
     CxProcMutexScope() = delete;
-    CxProcMutexScope(const CxProcMutexScope&) = delete;
-    CxProcMutexScope& operator = (const CxProcMutexScope&) = delete;
+
+    CxProcMutexScope(const CxProcMutexScope &) = delete;
+
+    CxProcMutexScope &operator=(const CxProcMutexScope &) = delete;
 
 private:
-    CxProcMutex * _mutex;
+    CxProcMutex *_mutex;
 
 };
-
 
 
 #endif // CXPROCMUTEX_H

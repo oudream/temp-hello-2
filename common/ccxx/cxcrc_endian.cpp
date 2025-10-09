@@ -60,8 +60,10 @@ template <class T> inline T gfn_fromLittleEndian(const cx::uchar *src)
 { return gfn_fromLittleEndian(src, reinterpret_cast<T*>(0)); }
 
 #else
+
 template<typename T>
 inline T gfn_fromLittleEndian(const cx::uchar *src);
+
 template<>
 inline cx::uint64 gfn_fromLittleEndian<cx::uint64>(const cx::uchar *src)
 {
@@ -96,6 +98,7 @@ inline cx::int32 gfn_fromLittleEndian<cx::int32>(const cx::uchar *src)
 template<>
 inline cx::int16 gfn_fromLittleEndian<cx::int16>(const cx::uchar *src)
 { return static_cast<cx::int16>(gfn_fromLittleEndian<cx::uint16>(src)); }
+
 #endif
 
 /* This function will read a big-endian (also known as network order) encoded value from \a src
@@ -135,8 +138,10 @@ template <class T> inline T gfn_fromBigEndian(const cx::uchar *src)
 { return gfn_fromBigEndian(src, reinterpret_cast<T*>(0)); }
 
 #else
+
 template<class T>
 inline T gfn_fromBigEndian(const cx::uchar *src);
+
 template<>
 inline cx::uint64 gfn_fromBigEndian<cx::uint64>(const cx::uchar *src)
 {
@@ -171,7 +176,9 @@ inline cx::int32 gfn_fromBigEndian<cx::int32>(const cx::uchar *src)
 template<>
 inline cx::int16 gfn_fromBigEndian<cx::int16>(const cx::uchar *src)
 { return static_cast<cx::int16>(gfn_fromBigEndian<cx::uint16>(src)); }
+
 #endif
+
 /*
  * T gfn_bswap(T source).
  * Changes the byte order of a value from big endian to little endian or vice versa.
@@ -189,6 +196,7 @@ template <> inline cx::uint32 gfn_bswap<cx::uint32>(cx::uint32 source)
 template <> inline cx::uint16 gfn_bswap<cx::uint16>(cx::uint16 source)
 { return bswap_16(source); }
 #else
+
 template<>
 inline cx::uint64 gfn_bswap<cx::uint64>(cx::uint64 source)
 {
@@ -213,6 +221,7 @@ inline cx::uint32 gfn_bswap<cx::uint32>(cx::uint32 source)
 template<>
 inline cx::uint16 gfn_bswap<cx::uint16>(cx::uint16 source)
 { return cx::uint16(0 | ((source & 0x00ff) << 8) | ((source & 0xff00) >> 8)); }
+
 #endif // __GLIBC__
 
 // signed specializations
@@ -233,21 +242,27 @@ inline cx::int16 gfn_bswap<cx::int16>(cx::int16 source)
 template<typename T>
 inline T gfn_toBigEndian(T source)
 { return source; }
+
 template<typename T>
 inline T gfn_fromBigEndian(T source)
 { return source; }
+
 template<typename T>
 inline T gfn_toLittleEndian(T source)
 { return gfn_bswap<T>(source); }
+
 template<typename T>
 inline T gfn_fromLittleEndian(T source)
 { return gfn_bswap<T>(source); }
+
 template<typename T>
 inline void gfn_toBigEndian(T src, cx::uchar *dest)
 { gfn_toUnaligned<T>(src, dest); }
+
 template<typename T>
 inline void gfn_toLittleEndian(T src, cx::uchar *dest)
 { gfn_bswap<T>(src, dest); }
+
 #else // GM_LITTLE_ENDIAN
 
 template <typename T> inline T gfn_toBigEndian(T source)

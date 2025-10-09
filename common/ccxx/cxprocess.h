@@ -3,7 +3,7 @@
 
 #include "cxglobal.h"
 
-typedef void (*fn_void_process_notify_t)(cx::pid_os_t pid, const std::string & sArgs);
+typedef void (*fn_void_process_notify_t)(cx::pid_os_t pid, const std::string &sArgs);
 
 class CCXX_EXPORT CxProcess
 {
@@ -16,10 +16,10 @@ public:
         std::string runParam;
     };
 
-    CxProcess(const std::string & sProgram,
-              const std::map<std::string, std::string> & sArguments = std::map<std::string, std::string>(),
-              const std::string & sWorkingDirectory = std::string{},
-              const std::map<std::string, std::string> & sEnvironments = std::map<std::string, std::string>());
+    CxProcess(const std::string &sProgram,
+              const std::map<std::string, std::string> &sArguments = std::map<std::string, std::string>(),
+              const std::string &sWorkingDirectory = std::string{},
+              const std::map<std::string, std::string> &sEnvironments = std::map<std::string, std::string>());
 
     ~CxProcess();
 
@@ -27,41 +27,49 @@ public:
 
     void stop();
 
-    inline bool isStarted() const { return isvalid(m_pid); }
+    inline bool isStarted() const
+    { return isvalid(m_pid); }
 
-    inline cx::pid_os_t pid() { return m_pid; }
+    inline cx::pid_os_t pid()
+    { return m_pid; }
 
-    inline const std::map<std::string, std::string>& arguments() const { return m_arguments; }
+    inline const std::map<std::string, std::string> &arguments() const
+    { return m_arguments; }
 
-    inline void setArguments(const std::map<std::string, std::string>& sArguments) { m_arguments = sArguments; }
+    inline void setArguments(const std::map<std::string, std::string> &sArguments)
+    { m_arguments = sArguments; }
 
-    inline const std::string& workingDirectory() const { return m_workingDirectory; }
+    inline const std::string &workingDirectory() const
+    { return m_workingDirectory; }
 
-    inline void setWorkingDirectory(const std::string & sWorkingDirectory) { m_workingDirectory = sWorkingDirectory; }
+    inline void setWorkingDirectory(const std::string &sWorkingDirectory)
+    { m_workingDirectory = sWorkingDirectory; }
 
-    inline const std::map<std::string, std::string>& environments() const { return m_environments; }
+    inline const std::map<std::string, std::string> &environments() const
+    { return m_environments; }
 
-    inline void setEnvironments(const std::map<std::string, std::string>& sEnvironments) { m_environments = sEnvironments; }
+    inline void setEnvironments(const std::map<std::string, std::string> &sEnvironments)
+    { m_environments = sEnvironments; }
 
 public:
     //sArguments : std::map<std::string, std::string> sArguments; sArguments["-name1"] = "value1"; sArguments["-name2"] = "value2";
     //sEnvironments : std::map<std::string, std::string> sEnvironments; sEnvironments["path"] = "\tmp:\user\tmp";
-    static cx::pid_os_t exec(const std::string & sProgram,
-                                const std::map<std::string, std::string> & arguments = std::map<std::string, std::string>(),
-                                const std::string & sWorkingDirectory = std::string{},
-                                const std::map<std::string, std::string> & environments = std::map<std::string, std::string>());
+    static cx::pid_os_t exec(const std::string &sProgram,
+                             const std::map<std::string, std::string> &arguments = std::map<std::string, std::string>(),
+                             const std::string &sWorkingDirectory = std::string{},
+                             const std::map<std::string, std::string> &environments = std::map<std::string, std::string>());
 
     //sArguments : std::map<std::string, std::string> sArguments; sArguments["-name1"] = "value1"; sArguments["-name2"] = "value2";
     //sEnvironments : std::map<std::string, std::string> sEnvironments; sEnvironments["path"] = "\tmp:\user\tmp";
-    static cx::pid_os_t exec(const std::string & sProgram,
-                         const std::string & sArguments,
-                         const std::string & sWorkingDirectory = std::string{},
-                         const std::map<std::string, std::string> & environments = std::map<std::string, std::string>());
+    static cx::pid_os_t exec(const std::string &sProgram,
+                             const std::string &sArguments,
+                             const std::string &sWorkingDirectory = std::string{},
+                             const std::map<std::string, std::string> &environments = std::map<std::string, std::string>());
 
-    static cx::pid_os_t execAsDetached(const std::string & sProgram,
-                                   const std::map<std::string, std::string> & arguments = std::map<std::string, std::string>(),
-                                   const std::string & sWorkingDirectory = std::string{},
-                                   const std::map<std::string, std::string> & environments = std::map<std::string, std::string>());
+    static cx::pid_os_t execAsDetached(const std::string &sProgram,
+                                       const std::map<std::string, std::string> &arguments = std::map<std::string, std::string>(),
+                                       const std::string &sWorkingDirectory = std::string{},
+                                       const std::map<std::string, std::string> &environments = std::map<std::string, std::string>());
 
     static cx::pid_os_t allocEmpty();
 
@@ -71,7 +79,7 @@ public:
 
     static bool kill(cx::pid_os_t pid);
 
-    static int kill(const std::string & sProcessName);
+    static int kill(const std::string &sProcessName);
 
     static void wait(cx::pid_os_t pid);
 
@@ -81,7 +89,7 @@ public:
 
     static std::vector<ProcessInfo> getRunningProcesses();
 
-    static bool isRunning(const std::string & sProcessName);
+    static bool isRunning(const std::string &sProcessName);
 
     static bool isRunning(cx::pid_os_t pid);
 
@@ -112,7 +120,7 @@ public:
      */
     static int getMemoryUsage(cx::pid_os_t pid);
 
-    static void threadEventNotify(void * oTarget, int iEvent, int iTag = 0, const void * pData = 0, int iLength = 0, void * oSource = 0);
+    static void threadEventNotify(void *oTarget, int iEvent, int iTag = 0, const void *pData = 0, int iLength = 0, void *oSource = 0);
 
 //    static void dealThreadNofity(int, int, const void *, int, void *, void *);
 
