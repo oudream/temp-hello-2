@@ -7,6 +7,29 @@
 
 namespace cx
 {
+    struct DateTimeParts
+    {
+        int year;
+        int month;
+        int day;
+        int hour;
+        int minute;
+        int second;
+        int millisecond;
+
+        DateTimeParts()
+                : year(0), month(0), day(0),
+                  hour(0), minute(0), second(0), millisecond(0) {}
+
+         std::string toString(char s1 = '/', char s2 = ' ', char s3 = ':') const
+        {
+            char buf[64];
+            snprintf(buf, sizeof(buf), "%04d%c%02d%c%02d%c%02d%c%02d%c%02d.%03d",
+                     year, s1, month, s1, day, s2,
+                     hour, s3, minute, s3, second, millisecond);
+            return buf;
+        }
+    };
 
     class CCXX_EXPORT DateTime
     {
@@ -25,7 +48,7 @@ namespace cx
                  Kind kind = Kind::Unspecified);          // 无异常；若参数非法 -> Invalid()
 
         static DateTime invalid();                       // 无效标记
-        bool isValid() const;                           // 是否有效
+        inline bool isValid() const { return _valid; }   // 是否有效
 
         // --------- 范围 ----------
         static ms_epoch_t minMs();                       // 1970-01-01T00:00:00.000
@@ -40,6 +63,8 @@ namespace cx
         Kind kind() const;
 
         ms_epoch_t ticksMs() const;
+
+        DateTimeParts toParts() const;
 
         int year() const;
 
@@ -60,11 +85,6 @@ namespace cx
 
         // DayOfYear：1..366；失败时返回 -1
         int dayOfYear() const;
-
-        // --------- 静态实用 ----------
-        static bool isLeapYear(int year);
-
-        static int daysInMonth(int year, int month); // 非法参数时返回 0
 
         // --------- 加/减（返回 Invalid() 表示失败/溢出） ----------
         DateTime addMilliseconds(int64_t value) const;
@@ -91,9 +111,6 @@ namespace cx
         // 两个时间相减 -> 毫秒差（无效任一侧时返回 0）
         int64_t operator-(const DateTime &rhs) const;
 
-        // 比较（基于 epoch ms；无效视为最小）
-        static int compare(const DateTime &a, const DateTime &b);
-
         bool operator==(const DateTime &o) const;
 
         bool operator!=(const DateTime &o) const;
@@ -115,13 +132,29 @@ namespace cx
         // 默认沿用 CxTime::toString 风格：yyyy/MM/dd HH:mm:ss:fff
         std::string toString(char s1 = '/', char s2 = ' ', char s3 = ':') const;
 
+        // 简易 ISO8601（kind==Utc 末尾加 'Z'；无效返回空串）
+        std::string toIso8601() const;
+
+        ms_epoch_t toCxMs() const;
+
+    private:
+        ms_epoch_t _ms;
+        Kind _kind;
+        bool _valid;
+
+    public:
+        // --------- 静态实用 ----------
+        static bool isLeapYear(int year);
+
+        static int daysInMonth(int year, int month); // 非法参数时返回 0
+
+        // 比较（基于 epoch ms；无效视为最小）
+        static int compare(const DateTime &a, const DateTime &b);
+
         // 宽松解析：yyyy[-/]MM[-/]dd[ HH[:mm[:ss[.fff]]]]；失败返回 Invalid()
         static DateTime parse(const std::string &s, Kind kind = Kind::Unspecified);
 
         static bool tryParse(const std::string &s, DateTime &out, Kind kind = Kind::Unspecified);
-
-        // 简易 ISO8601（kind==Utc 末尾加 'Z'；无效返回空串）
-        std::string toIso8601() const;
 
         // --------- 与 CxTime 交互 ----------
         static DateTime fromCxLocalString(const std::string &s); // 失败返回 Invalid()
@@ -130,11 +163,12 @@ namespace cx
 
         static msepoch_t currentMsepoch();                       // os.time count ms:(since 1970-01-01 's count ms)
 
-        static std::string currentDateTimeString();
+        static std::string currentDateTimeString(char sSplit1 = '/', char sSplit2 = ' ', char sSplit3 = ':');
 
-        static std::string currentDateString();
+        static std::string currentDateString(char sSplit1 = '/');
 
-        static std::string currentTimeString();
+        static std::string currentTimeString(char sSplit3 = ':');
+        static std::string currentTimeStringMs(char sSplit3 = ':');
 
         static void decodeUtcTm(const msepoch_t &dt, int &y, int &m, int &d, int &h, int &mi, int &se, int &ms);
 
@@ -148,16 +182,11 @@ namespace cx
 
         static std::string toString(int y, int m, int d, int h, int mi, int se, int ms, char sSplit1 = '/', char sSplit2 = ' ', char sSplit3 = ':');
 
-        static long long milliSecondDifferToNow(const msepoch_t &dt)
-        { return currentMsepoch() - dt; }
+        static long long milliSecondDifferToNow(const msepoch_t &dt);
 
-        ms_epoch_t toCxMs() const;
+        static std::string format(const std::tm& t);
 
     private:
-        ms_epoch_t _ms;
-        Kind _kind;
-        bool _valid;
-
         // ----- 工具 -----
         static bool validateYMDHMSms(int y, int m, int d, int h, int mi, int se, int ms);
 

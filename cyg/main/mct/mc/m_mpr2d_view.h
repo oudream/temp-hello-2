@@ -11,17 +11,15 @@
 #include <vtkCallbackCommand.h>
 #include <vtkLookupTable.h>
 
+
+#include "m_mpr2d_view_cell.h"
+#include "base/app_ids.h"
+
+
 class Mpr2DView : public QObject
 {
 
 Q_OBJECT
-
-public:
-    // 三种朝向（本窗观察到的法向）：Z/Y/X
-    enum Axis
-    {
-        AX = 0, AY = 1, AZ = 2
-    };
 
 private:
     static void VtkLogCallback(vtkObject *caller, unsigned long eid, void *client, void *);
@@ -29,7 +27,7 @@ private:
     static void vtkEventForwarder(vtkObject *, unsigned long, void *, void *);
 
 public:
-    explicit Mpr2DView(QVTKOpenGLNativeWidget *host, Axis a, QObject *parent = nullptr, const QString &tag = QString());
+    explicit Mpr2DView(QVTKOpenGLNativeWidget *host, AppIds::EAxis a, QObject *parent = nullptr, const QString &tag = QString());
 
     // 图像数据（体素、体积）
     void setImageData(vtkImageData *img);
@@ -38,7 +36,7 @@ public:
     void setSharedCursor(vtkResliceCursor *cursor);
 
     // Axial/Coronal/Sagittal
-    void setAxis(Axis a);
+    void setAxis(AppIds::EAxis a);
 
     // 窗宽窗位
     void setWL(double win, double lev);
@@ -46,30 +44,36 @@ public:
     // 滚轮步进因子
     void setSliceScrollFactor(double f);
 
+    inline QWidget* panel() const
+    { return _panel; }
+
     // 获取内部对象（供导出器或上层使用）
-    vtkRenderWindow *renderWindow() const
+    inline vtkRenderWindow *renderWindow() const
     { return _win; }
 
-    vtkResliceImageViewer *viewer() const
+    inline vtkResliceImageViewer *viewer() const
     { return _view; }
 
-    vtkImageData *image() const
+    inline vtkImageData *image() const
     { return _image; }
 
-    Axis axis() const
+    inline AppIds::EAxis axis() const
     { return _axis; }
 
     void refresh();
 
 signals:
+
     // 任意切片或交互变化（滚轮、拖十字线）时发出，供三窗联动
     void sliceOrInteract();
 
 private:
     // --- 装配 ---
-    void buildViewers();              // 创建三个 viewer 与窗口/交互器
+    // 创建三个 viewer 与窗口/交互器
+    void buildViewers();
 
-    void connectObservers();          // 建立 VTK 事件联动（切片变化即联动刷新）
+    // 建立 VTK 事件联动（切片变化即联动刷新）
+    void connectObservers();
 
     void applyAxis();
 
@@ -81,10 +85,13 @@ private:
     vtkSmartPointer<vtkCallbackCommand> _evt;
 
     vtkSmartPointer<vtkImageData> _image;
-    Axis _axis = AX;
+    AppIds::EAxis _axis = AppIds::EAxis::X;
     double _scrollFactor = 1.0;
     QString _tag;
     bool _bound;
+
+    QPointer<Mpr2DViewCell> _cell;
+    QPointer<QWidget> _panel;
 
 };
 

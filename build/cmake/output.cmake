@@ -21,9 +21,9 @@ set(gs_project_cyg_path ${gs_project_path}/cyg)
 set(gs_project_cmake_path ${gs_project_build_path}/cmake)
 
 if("${CMAKE_SIZEOF_VOID_P}" STREQUAL "4")
-    set(gs_project_deploy_path ${gs_project_path}/build/deploy/app_x86)
+    set(gs_project_deploy_path ${gs_project_path}/deploy/AppWin32)
 else()
-    set(gs_project_deploy_path ${gs_project_path}/build/deploy/app_x64)
+    set(gs_project_deploy_path ${gs_project_path}/deploy/AppWin64)
 endif()
 
 message("gs_project_deploy_path -" ${gs_project_deploy_path})

@@ -8,3 +8,5 @@ add_subdirectory(vtk)
 add_subdirectory(yml)
 
 add_subdirectory(ct)
+
+add_subdirectory(recon)

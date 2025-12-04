@@ -64,6 +64,15 @@ public:
         return *this;
     }
 
+    LogStream &operator<<(const std::vector<std::string> &vec)
+    {
+        for (size_t i = 0; i < vec.size(); ++i)
+        {
+            _ss << vec[i] << '\n';
+        }
+        return *this;
+    }
+
 private:
     LogLevel _level;
     std::string _tag;
@@ -85,7 +94,7 @@ public:
     // --- 核心靜態方法 ---
     static LogHelper &getInstance();
 
-    static void init(const std::string &logFileName, const std::string &logDirectory = "logs");
+    static void init(const std::string &logFileName, const std::string &logDirectory);
 
     static void shutdown();
 

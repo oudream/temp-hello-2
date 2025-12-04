@@ -28,6 +28,7 @@
 #include <list>
 #include <set>
 #include <map>
+#include <unordered_map>
 #include <bitset>
 #include <stack>
 #include <queue>
@@ -38,6 +39,7 @@
 #include <algorithm>
 #include <limits>
 
+#define NOMINMAX
 
 #ifdef _MSC_VER
 #if _MSC_VER < 1900
@@ -199,9 +201,45 @@ namespace cx
 
 
     // ================== Common character constants ==================
-    constexpr char CHAR_SPACE = ' ';
-    constexpr char CHAR_TAB = '\t';
-    constexpr char CHAR_NEWLINE = '\n';
+    constexpr char CHAR_SPACE       = ' ';
+    constexpr char CHAR_TAB         = '\t';
+    constexpr char CHAR_NEWLINE     = '\n';
+    constexpr char CHAR_RETURN      = '\r';
+
+    constexpr char CHAR_DOT         = '.';
+    constexpr char CHAR_COMMA       = ',';
+    constexpr char CHAR_COLON       = ':';
+    constexpr char CHAR_SEMICOLON   = ';';
+    constexpr char CHAR_UNDERSCORE  = '_';
+    constexpr char CHAR_DASH        = '-';
+    constexpr char CHAR_PLUS        = '+';
+    constexpr char CHAR_MINUS       = '-';
+    constexpr char CHAR_STAR        = '*';
+    constexpr char CHAR_SLASH       = '/';
+    constexpr char CHAR_BACKSLASH   = '\\';
+    constexpr char CHAR_PIPE        = '|';
+    constexpr char CHAR_AMPERSAND   = '&';
+    constexpr char CHAR_PERCENT     = '%';
+    constexpr char CHAR_DOLLAR      = '$';
+    constexpr char CHAR_HASH        = '#';
+    constexpr char CHAR_AT          = '@';
+    constexpr char CHAR_EXCLAMATION = '!';
+    constexpr char CHAR_QUESTION    = '?';
+    constexpr char CHAR_EQUAL       = '=';
+    constexpr char CHAR_LT          = '<';
+    constexpr char CHAR_GT          = '>';
+    constexpr char CHAR_QUOTE       = '\'';
+    constexpr char CHAR_DQUOTE      = '"';
+    constexpr char CHAR_BACKTICK    = '`';
+    constexpr char CHAR_TILDE       = '~';
+    constexpr char CHAR_CARET       = '^';
+
+    constexpr char CHAR_LPAREN      = '(';
+    constexpr char CHAR_RPAREN      = ')';
+    constexpr char CHAR_LBRACKET    = '[';
+    constexpr char CHAR_RBRACKET    = ']';
+    constexpr char CHAR_LBRACE      = '{';
+    constexpr char CHAR_RBRACE      = '}';
 
     // QString / std::string : You can also use it directly
     constexpr const char *STR_NEWLINE = "\n";
@@ -216,6 +254,16 @@ namespace cx
     constexpr const char *STR_LINEBREAK = "\n";
 #endif
 
+    // ================== Common string constants ==================
+    constexpr const char *STR_TRUE   = "true";
+    constexpr const char *STR_FALSE  = "false";
+    constexpr const char *STR_OK     = "OK";
+    constexpr const char *STR_NG     = "NG";
+    constexpr const char *STR_YES    = "YES";
+    constexpr const char *STR_NO     = "NO";
+    constexpr const char *STR_ON     = "ON";
+    constexpr const char *STR_OFF    = "OFF";
+
     inline const std::map<std::string, std::string> MAP_STRING_EMPTY = {};
 
     // ================== int to bool ==================
@@ -226,6 +274,9 @@ namespace cx
 #ifndef    FALSE
 #define    FALSE 0
 #endif
+
+    template <typename T, size_t N>
+    constexpr size_t count_of_array(T (&)[N]) noexcept { return N; }
 
 }
 

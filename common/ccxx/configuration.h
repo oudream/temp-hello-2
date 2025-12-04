@@ -333,10 +333,24 @@ namespace cfg
         {}
 
         ConfigItem *getItem() override
-        { return &obj; }
+        {
+            return &obj;
+        }
 
         const ConfigItem *getItem() const override
-        { return &obj; }
+        {
+            return &obj;
+        }
+
+        T *getTItem()
+        {
+            return &obj;
+        }
+
+        const T *getTItem() const
+        {
+            return &obj;
+        }
     };
 
     class FieldArrayObjectBase : public FieldBase
@@ -559,14 +573,16 @@ namespace cfg
     }
 
     // 辅助：FieldBase 转字符串（安全版）
-    inline std::string fieldValueToString(const FieldBase* f)
+    inline std::string fieldValueToString(const FieldBase *f)
     {
         using VK = ValueKind;
 
         // 小工具：把数组按逗号连接
-        auto join = [](auto const& vec, auto elemToString) -> std::string {
+        auto join = [](auto const &vec, auto elemToString) -> std::string
+        {
             std::ostringstream oss;
-            for (size_t i = 0; i < vec.size(); ++i) {
+            for (size_t i = 0; i < vec.size(); ++i)
+            {
                 if (i) oss << ",";
                 oss << elemToString(vec[i]);
             }
@@ -576,81 +592,111 @@ namespace cfg
         switch (f->kind)
         {
             case VK::kBool:
-                if (auto p = dynamic_cast<const FieldValue<bool>*>(f))
+                if (auto p = dynamic_cast<const FieldValue<bool> *>(f))
                     return p->value ? "true" : "false";
                 break;
 
                 // --- kInt 家族：8/16/32位 有符号/无符号 ---
             case VK::kInt:
-                if (auto p = dynamic_cast<const FieldValue<signed char>*>(f))   return std::to_string(static_cast<int>(p->value));
-                if (auto p = dynamic_cast<const FieldValue<unsigned char>*>(f)) return std::to_string(static_cast<unsigned int>(p->value));
-                if (auto p = dynamic_cast<const FieldValue<short>*>(f))         return std::to_string(static_cast<int>(p->value));
-                if (auto p = dynamic_cast<const FieldValue<unsigned short>*>(f))return std::to_string(static_cast<unsigned int>(p->value));
-                if (auto p = dynamic_cast<const FieldValue<int>*>(f))           return std::to_string(p->value);
-                if (auto p = dynamic_cast<const FieldValue<unsigned int>*>(f))  return std::to_string(p->value);
+                if (auto p = dynamic_cast<const FieldValue<signed char> *>(f)) return std::to_string(static_cast<int>(p->value));
+                if (auto p = dynamic_cast<const FieldValue<unsigned char> *>(f)) return std::to_string(static_cast<unsigned int>(p->value));
+                if (auto p = dynamic_cast<const FieldValue<short> *>(f)) return std::to_string(static_cast<int>(p->value));
+                if (auto p = dynamic_cast<const FieldValue<unsigned short> *>(f))return std::to_string(static_cast<unsigned int>(p->value));
+                if (auto p = dynamic_cast<const FieldValue<int> *>(f)) return std::to_string(p->value);
+                if (auto p = dynamic_cast<const FieldValue<unsigned int> *>(f)) return std::to_string(p->value);
                 break;
 
                 // --- kInt64 家族：long long / unsigned long long ---
             case VK::kInt64:
-                if (auto p = dynamic_cast<const FieldValue<long long>*>(f))            return std::to_string(p->value);
-                if (auto p = dynamic_cast<const FieldValue<unsigned long long>*>(f))   return std::to_string(p->value);
+                if (auto p = dynamic_cast<const FieldValue<long long> *>(f)) return std::to_string(p->value);
+                if (auto p = dynamic_cast<const FieldValue<unsigned long long> *>(f)) return std::to_string(p->value);
                 break;
 
                 // --- kDouble 家族：double / float ---
             case VK::kDouble:
-                if (auto p = dynamic_cast<const FieldValue<double>*>(f)) { std::ostringstream oss; oss << p->value; return oss.str(); }
-                if (auto p = dynamic_cast<const FieldValue<float>*>(f))  { std::ostringstream oss; oss << p->value; return oss.str(); }
+                if (auto p = dynamic_cast<const FieldValue<double> *>(f))
+                {
+                    std::ostringstream oss;
+                    oss << p->value;
+                    return oss.str();
+                }
+                if (auto p = dynamic_cast<const FieldValue<float> *>(f))
+                {
+                    std::ostringstream oss;
+                    oss << p->value;
+                    return oss.str();
+                }
                 break;
 
             case VK::kString:
-                if (auto p = dynamic_cast<const FieldValue<std::string>*>(f)) return p->value;
+                if (auto p = dynamic_cast<const FieldValue<std::string> *>(f)) return p->value;
                 break;
 
             case VK::kDateTime:
-                if (auto p = dynamic_cast<const FieldValue<cx::DateTime>*>(f))
+                if (auto p = dynamic_cast<const FieldValue<cx::DateTime> *>(f))
                     return p->value.isValid() ? p->value.toIso8601() : std::string();
                 break;
 
                 // --- kIntArray 家族 ---
             case VK::kIntArray:
-                if (auto a = dynamic_cast<const FieldArray<signed char>*>(f))
-                    return join(a->value, [](auto v){ return std::to_string(static_cast<int>(v)); });
-                if (auto a = dynamic_cast<const FieldArray<unsigned char>*>(f))
-                    return join(a->value, [](auto v){ return std::to_string(static_cast<unsigned int>(v)); });
-                if (auto a = dynamic_cast<const FieldArray<short>*>(f))
-                    return join(a->value, [](auto v){ return std::to_string(static_cast<int>(v)); });
-                if (auto a = dynamic_cast<const FieldArray<unsigned short>*>(f))
-                    return join(a->value, [](auto v){ return std::to_string(static_cast<unsigned int>(v)); });
-                if (auto a = dynamic_cast<const FieldArray<int>*>(f))
-                    return join(a->value, [](auto v){ return std::to_string(v); });
-                if (auto a = dynamic_cast<const FieldArray<unsigned int>*>(f))
-                    return join(a->value, [](auto v){ return std::to_string(v); });
+                if (auto a = dynamic_cast<const FieldArray<signed char> *>(f))
+                    return join(a->value, [](auto v)
+                    { return std::to_string(static_cast<int>(v)); });
+                if (auto a = dynamic_cast<const FieldArray<unsigned char> *>(f))
+                    return join(a->value, [](auto v)
+                    { return std::to_string(static_cast<unsigned int>(v)); });
+                if (auto a = dynamic_cast<const FieldArray<short> *>(f))
+                    return join(a->value, [](auto v)
+                    { return std::to_string(static_cast<int>(v)); });
+                if (auto a = dynamic_cast<const FieldArray<unsigned short> *>(f))
+                    return join(a->value, [](auto v)
+                    { return std::to_string(static_cast<unsigned int>(v)); });
+                if (auto a = dynamic_cast<const FieldArray<int> *>(f))
+                    return join(a->value, [](auto v)
+                    { return std::to_string(v); });
+                if (auto a = dynamic_cast<const FieldArray<unsigned int> *>(f))
+                    return join(a->value, [](auto v)
+                    { return std::to_string(v); });
                 break;
 
                 // --- kInt64Array 家族 ---
             case VK::kInt64Array:
-                if (auto a = dynamic_cast<const FieldArray<long long>*>(f))
-                    return join(a->value, [](auto v){ return std::to_string(v); });
-                if (auto a = dynamic_cast<const FieldArray<unsigned long long>*>(f))
-                    return join(a->value, [](auto v){ return std::to_string(v); });
+                if (auto a = dynamic_cast<const FieldArray<long long> *>(f))
+                    return join(a->value, [](auto v)
+                    { return std::to_string(v); });
+                if (auto a = dynamic_cast<const FieldArray<unsigned long long> *>(f))
+                    return join(a->value, [](auto v)
+                    { return std::to_string(v); });
                 break;
 
                 // --- kDoubleArray 家族 ---
             case VK::kDoubleArray:
-                if (auto a = dynamic_cast<const FieldArray<double>*>(f))
-                    return join(a->value, [](auto v){ std::ostringstream oss; oss << v; return oss.str(); });
-                if (auto a = dynamic_cast<const FieldArray<float>*>(f))
-                    return join(a->value, [](auto v){ std::ostringstream oss; oss << v; return oss.str(); });
+                if (auto a = dynamic_cast<const FieldArray<double> *>(f))
+                    return join(a->value, [](auto v)
+                    {
+                        std::ostringstream oss;
+                        oss << v;
+                        return oss.str();
+                    });
+                if (auto a = dynamic_cast<const FieldArray<float> *>(f))
+                    return join(a->value, [](auto v)
+                    {
+                        std::ostringstream oss;
+                        oss << v;
+                        return oss.str();
+                    });
                 break;
 
             case VK::kStringArray:
-                if (auto a = dynamic_cast<const FieldArray<std::string>*>(f))
-                    return join(a->value, [](const std::string& v){ return v; });
+                if (auto a = dynamic_cast<const FieldArray<std::string> *>(f))
+                    return join(a->value, [](const std::string &v)
+                    { return v; });
                 break;
 
             case VK::kDateTimeArray:
-                if (auto a = dynamic_cast<const FieldArray<cx::DateTime>*>(f))
-                    return join(a->value, [](const cx::DateTime& v){ return v.isValid() ? v.toIso8601() : std::string(); });
+                if (auto a = dynamic_cast<const FieldArray<cx::DateTime> *>(f))
+                    return join(a->value, [](const cx::DateTime &v)
+                    { return v.isValid() ? v.toIso8601() : std::string(); });
                 break;
 
             default:
@@ -694,15 +740,26 @@ namespace cfg
                            });
     }
 
-    // 打印所有配置
-    inline void printAllConfigs(const ConfigItem *root)
+    inline std::vector<std::string> toLines(const ConfigItem *root)
     {
+        std::vector<std::string> rr;
         std::vector<std::tuple<std::string, std::string, std::string>> items;
         collectAllConfigs(root, "", items);
         for (auto &[path, key, value]: items)
         {
-            std::cout << (path.empty() ? key : path + "." + key)
-                      << " = " << value << std::endl;
+            auto s = (path.empty() ? key : path + "." + key) + " = " + value;
+            rr.emplace_back(s);
+        }
+        return rr;
+    }
+
+    // 打印所有配置
+    inline void printAllConfigs(const ConfigItem *root)
+    {
+        auto ss = toLines(root);
+        for (auto &s: ss)
+        {
+            std::cout << s << std::endl;
         }
     }
 

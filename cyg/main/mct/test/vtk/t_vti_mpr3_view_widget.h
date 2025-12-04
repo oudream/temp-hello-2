@@ -41,14 +41,15 @@ class TVtiMpr3ViewWidget : public QWidget
 {
 Q_OBJECT
 public:
-    explicit TVtiMpr3ViewWidget(QWidget* parent = nullptr);
+    explicit TVtiMpr3ViewWidget(QWidget *parent = nullptr);
+
     ~TVtiMpr3ViewWidget() override = default;
 
     // 载入 .vti 文件；成功则返回 true，并发出 vtiLoaded 信号
-    bool loadVtiFile(const QString& filename);
+    bool loadVtiFile(const QString &filename);
 
     // 直接注入体数据；不接管其生命周期
-    void setImageData(vtkImageData* img);
+    void setImageData(vtkImageData *img);
 
     // 统一设置窗宽/窗位（三个视图一致）
     void setWindowLevel(double win, double lev);
@@ -60,46 +61,54 @@ public:
     void setSliceScrollFactor(double f);
 
     // 获取三个 RenderWindow（外部可做截图/相机等）
-    vtkRenderWindow* renderWindowAxial()   const;
-    vtkRenderWindow* renderWindowCoronal() const;
-    vtkRenderWindow* renderWindowSagittal()const;
+    vtkRenderWindow *renderWindowAxial() const;
+
+    vtkRenderWindow *renderWindowCoronal() const;
+
+    vtkRenderWindow *renderWindowSagittal() const;
 
 signals:
-    void vtiLoaded(QString file, vtkImageData* image);
+
+    void vtiLoaded(QString file, vtkImageData *image);
 
 private slots:
+
     // --- UI 桥接 ---
     void onOpenClicked();
+
     void onThickToggled(int on);
+
     void onThickChanged(int v);
+
     void onWLChanged();               // 简易窗宽/窗位同步
     void onScrollFactorChanged(int v);
 
 private:
     // --- 装配 ---
     void buildUi();
+
     void buildViewers();              // 创建三个 viewer 与窗口/交互器
     void connectObservers();          // 建立 VTK 事件联动（切片变化即联动刷新）
     void refreshAll();                // 三个窗口一起 Render()
 
     // --- 工具 ---
     void updateThickUIEnabled();      // 根据 Thick 勾选与模式显示/隐藏厚度滑条
-    static void vtkEventForwarder(vtkObject* caller, unsigned long eid,
-                                  void* clientData, void* callData);
+    static void vtkEventForwarder(vtkObject *caller, unsigned long eid,
+                                  void *clientData, void *callData);
 
 private:
     // Qt UI
     QPointer<QToolBar> _toolbar;
-    QAction*           _actOpen = nullptr;
+    QAction *_actOpen = nullptr;
 
     QPointer<QCheckBox> _chkThick;    // 厚层开关
-    QPointer<QSlider>   _sldThick;    // 厚度（像素）
-    QPointer<QLabel>    _lblThick;
+    QPointer<QSlider> _sldThick;    // 厚度（像素）
+    QPointer<QLabel> _lblThick;
 
     QPointer<QLabel> _lblWL;
     QPointer<QSlider> _sldWin;        // 窗宽(0..1000 -> 映射到数据范围)
     QPointer<QSlider> _sldLev;        // 窗位(0..1000)
-    QPointer<QLabel>  _lblScroll;
+    QPointer<QLabel> _lblScroll;
     QPointer<QSlider> _sldScroll;     // 滚轮因子(1..20 -> 0.1..2.0)
 
     // 三个 QVTK 控件
@@ -119,7 +128,7 @@ private:
 
     // 共享的 ResliceCursor / LookupTable
     vtkSmartPointer<vtkResliceCursor> _sharedCursor;
-    vtkSmartPointer<vtkLookupTable>   _sharedLut;   // 像素值 → 颜色/灰度
+    vtkSmartPointer<vtkLookupTable> _sharedLut;   // 像素值 → 颜色/灰度
 
     // 事件回调（把某个 viewer 的交互事件转发给另外两个刷新）
     vtkSmartPointer<vtkCallbackCommand> _evtCallback;
@@ -128,9 +137,9 @@ private:
     vtkSmartPointer<vtkImageData> _imageData;
 
     // 当前模式与厚层状态
-    bool   _oblique = false;
-    bool   _thickOn = false;
-    int    _thickPx = 10;
+    bool _oblique = false;
+    bool _thickOn = false;
+    int _thickPx = 10;
     double _scrollFactor = 1.0;
 
 };

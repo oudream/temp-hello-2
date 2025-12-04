@@ -77,8 +77,7 @@ public:
     }
 
     template<typename TKey, typename TValue>
-    inline static typename std::vector<std::pair<TKey, TValue> >::const_iterator
-    contain(const std::vector<std::pair<TKey, TValue> > &vec, const TKey &key)
+    inline static typename std::vector<std::pair<TKey, TValue> >::const_iterator contain(const std::vector<std::pair<TKey, TValue> > &vec, const TKey &key)
     {
         for (int i = 0; i < vec.size(); ++i)
         {
@@ -176,27 +175,90 @@ public:
         vector1.clear();
     }
 
+    // ---------- std::vector<T*> std::list<T*> ----------
+    template<class PtrContainer>
+    inline void deleteAll(PtrContainer &c)
+    {
+        for (auto *p: c) delete p;
+        c.clear();
+    }
+
+    // ---------- std::vector<T*>* std::list<T*>* ----------
+    template<class PtrContainerPtr>
+    inline void deleteAll(PtrContainerPtr cptr)
+    {
+        if (!cptr) return;
+        for (auto *p: *cptr) delete p;
+        cptr->clear();
+    }
+
+    // CxContainer::findByMember(v, &MyClass::id, 123)
+    template<class PtrContainer, class T, class M>
+    inline T *findByMember(const PtrContainer &c, M T::*member, const M &value)
+    {
+        for (auto *p: c)
+        {
+            if (p && (p->*member) == value) return p;
+        }
+        return nullptr;
+    }
+
+    // CxContainer::findByMember(&v, &MyClass::id, 123)
+    template<class PtrContainerPtr, class T, class M>
+    inline T *findByMember(PtrContainerPtr cptr, M T::*member, const M &value)
+    {
+        if (!cptr) return nullptr;
+        for (auto *p: *cptr)
+        {
+            if (p && (p->*member) == value) return p;
+        }
+        return nullptr;
+    }
+
+    // MyClass* r2 = CxContainer::findIfPtr(v, [](const MyClass& o){ return o.code == "ABC"; });
+    template<class PtrContainer, class Pred>
+    inline typename std::remove_pointer<typename PtrContainer::value_type>::type *findIfPtr(const PtrContainer &c, Pred pred)
+    {
+        using T = typename std::remove_pointer<typename PtrContainer::value_type>::type;
+        for (auto *p: c) if (p && pred(*p)) return p;
+        return nullptr;
+    }
+
+    // for_each_ptr(v, [](MyClass& o){ o.done(); });
+    template<class PtrContainer, class Fn>
+    inline void forEachPtr(PtrContainer &c, Fn fn)
+    {
+        for (auto *p: c) if (p) fn(*p);
+    }
+
+    // const PtrContainer &c
+    template<class PtrContainer, class Fn>
+    inline void forEachPtr(const PtrContainer &c, Fn fn)
+    {
+        for (auto *p: c) if (p) fn(*p);
+    }
+
     //vector - pointer begin end
     template<typename TValue>
-    inline static const TValue *begin_pointer(const std::vector<TValue> &vector1)
+    inline static const TValue *beginPointer(const std::vector<TValue> &vector1)
     {
         return (!vector1.empty()) ? (&vector1.front()) : (nullptr);
     }
 
     template<typename TValue>
-    inline static TValue *begin_pointer(std::vector<TValue> &vector1)
+    inline static TValue *beginPointer(std::vector<TValue> &vector1)
     {
         return (!vector1.empty()) ? (&vector1.front()) : (nullptr);
     }
 
     template<typename TValue>
-    inline static const TValue *end_pointer(const std::vector<TValue> &vector1)
+    inline static const TValue *endPointer(const std::vector<TValue> &vector1)
     {
         return (!vector1.empty()) ? (&vector1.back()) : (nullptr);
     }
 
     template<typename TValue>
-    inline static TValue *end_pointer(std::vector<TValue> &vector1)
+    inline static TValue *endPointer(std::vector<TValue> &vector1)
     {
         return (!vector1.empty()) ? (&vector1.back()) : (nullptr);
     }
@@ -214,12 +276,48 @@ public:
     }
 
     //vector - merge
-    template<typename TValue>
-    inline static std::vector<TValue> merge(const std::vector<TValue> &vector1, const std::vector<TValue> &vector2)
+    template<typename T>
+    inline static std::vector<T> merge(const std::vector<T> &a, const std::vector<T> &b)
     {
-        std::vector<TValue> r = vector1;
-        vector1.insert(r.end(), vector2.begin(), vector2.end());
-        return r;
+        std::vector<T> result;
+        result.reserve(a.size() + b.size());
+        result.insert(result.end(), a.begin(), a.end());
+        result.insert(result.end(), b.begin(), b.end());
+        return result;
+    }
+
+    template<typename T>
+    inline static std::vector<T> merge(const std::vector<std::vector<T>> &vs)
+    {
+        std::vector<T> result;
+
+        size_t total = 0;
+        for (const auto &v: vs) total += v.size();
+        result.reserve(total);
+
+        for (const auto &v: vs)
+        {
+            result.insert(result.end(), v.begin(), v.end());
+        }
+
+        return result;
+    }
+
+    template<typename T>
+    inline static std::vector<T> mergeByMove(std::vector<std::vector<T>> &&vs)
+    {
+        std::vector<T> result;
+
+        size_t total = 0;
+        for (const auto &v: vs) total += v.size();
+        result.reserve(total);
+
+        for (auto &v: vs)
+        {
+            result.insert(result.end(), std::make_move_iterator(v.begin()), std::make_move_iterator(v.end()));
+        }
+
+        return result;
     }
 
     //vector - next
@@ -330,26 +428,25 @@ public:
     inline static void sort(std::vector<TValue> &vec1, bool bOrder = true)
     {
         if (bOrder)
-            std::sort(vec1.begin(), vec1.end(), CxContainer::compare_order<TValue>);
+            std::sort(vec1.begin(), vec1.end(), CxContainer::compareOrder<TValue>);
         else
-            std::sort(vec1.begin(), vec1.end(), CxContainer::compare_reverse<TValue>);
+            std::sort(vec1.begin(), vec1.end(), CxContainer::compareReverse<TValue>);
     }
 
     template<typename TValue>
-    inline static int compare_order(const TValue &v1, const TValue &v2)
+    inline static int compareOrder(const TValue &v1, const TValue &v2)
     {
         return v2 > v1;
     }
 
     template<typename TValue>
-    inline static int compare_reverse(const TValue &v1, const TValue &v2)
+    inline static int compareReverse(const TValue &v1, const TValue &v2)
     {
         return v2 < v1;
     }
 
     template<typename TKey, typename TValue>
-    inline static typename std::vector<std::pair<TKey, TValue> >::const_iterator
-    find(const std::vector<std::pair<TKey, TValue> > &vec, const TKey &key)
+    inline static typename std::vector<std::pair<TKey, TValue> >::const_iterator find(const std::vector<std::pair<TKey, TValue> > &vec, const TKey &key)
     {
         for (int i = 0; i < vec.size(); ++i)
         {
@@ -362,258 +459,221 @@ public:
     }
 
     // ======================= map ================================
-    //map - keys
-    template<typename TKey, typename TValue>
-    inline static std::vector<TKey> keys(const std::map<TKey, TValue> &map1)
+    template<typename TMap>
+    using CxMapKey_t   = typename TMap::key_type;
+
+    template<typename TMap>
+    using CxMapValue_t = typename TMap::mapped_type;
+
+    template<typename TMap>
+    using CxMapPair_t  = typename TMap::value_type;
+
+    // ---------- keys ----------
+    template<typename TMap>
+    inline static std::vector<CxMapKey_t<TMap>> keys(const TMap &map1)
     {
-        std::vector<TKey> r;
-        for (typename std::map<TKey, TValue>::const_iterator it = map1.begin(); it != map1.end(); ++it)
-        {
-            r.push_back(it->first);
-        }
+        std::vector<CxMapKey_t<TMap>> r;
+        r.reserve(map1.size());
+        for (const auto &kv : map1) r.push_back(kv.first);
         return r;
     }
 
-    template<typename TKey, typename TValue>
-    inline static std::vector<TKey> keys(const std::map<TKey, TValue> &map1, const TValue &value1)
+    template<typename TMap>
+    inline static std::vector<CxMapKey_t<TMap>> keys(const TMap &map1, const CxMapValue_t<TMap> &value1)
     {
-        std::vector<TKey> r;
-        for (typename std::map<TKey, TValue>::const_iterator it = map1.begin(); it != map1.end(); ++it)
-        {
-            if (it->second == value1)
-                r.push_back(it->first);
-        }
+        std::vector<CxMapKey_t<TMap>> r;
+        for (const auto &kv : map1) if (kv.second == value1) r.push_back(kv.first);
         return r;
     }
 
-    //map - contain
-    template<typename TKey, typename TValue>
-    inline static bool contain(std::map<TKey, TValue> &map1, const TKey &key1)
+// ---------- contain (by key) ----------
+    template<typename TMap>
+    inline static bool contain(TMap &map1, const CxMapKey_t<TMap> &key1)
     {
-        typename std::map<TKey, TValue>::const_iterator it = map1.find(key1);
-        if (it != map1.end())
-            return true;
-        else
-            return false;
+        return map1.find(key1) != map1.end();
     }
 
-    template<typename TKey, typename TValue>
-    inline static bool contain(const std::map<TKey, TValue> &map1, const TKey &key1)
+    template<typename TMap>
+    inline static bool contain(const TMap &map1, const CxMapKey_t<TMap> &key1)
     {
-        typename std::map<TKey, TValue>::const_iterator it = map1.find(key1);
-        if (it != map1.end())
-            return true;
-        else
-            return false;
+        return map1.find(key1) != map1.end();
     }
 
-    template<typename TKey, typename TValue>
-    inline static bool contain(const std::map<TKey, TValue> *map1, const TKey &key1)
+    template<typename TMap>
+    inline static bool contain(const TMap *map1, const CxMapKey_t<TMap> &key1)
     {
-        typename std::map<TKey, TValue>::const_iterator it = map1->find(key1);
-        if (it != map1->end())
-            return true;
-        else
-            return false;
+        if (!map1) return false;
+        return map1->find(key1) != map1->end();
     }
 
-    template<typename TKey, typename TValue>
-    inline static bool containValue(const std::map<TKey, TValue> *map1, const TValue &value1)
+// ---------- containValue ----------
+    template<typename TMap>
+    inline static bool containValue(const TMap *map1, const CxMapValue_t<TMap> &value1)
     {
-        for (typename std::map<TKey, TValue>::const_iterator it = map1->begin(); it != map1->end(); ++it)
-        {
-            if (it->second == value1)
-                return true;
-        }
+        if (!map1) return false;
+        for (const auto &kv : *map1) if (kv.second == value1) return true;
         return false;
     }
 
-    template<typename TKey, typename TValue>
-    inline static bool containValue(const std::map<TKey, TValue> &map1, const TValue &value1)
+    template<typename TMap>
+    inline static bool containValue(const TMap &map1, const CxMapValue_t<TMap> &value1)
     {
-        for (typename std::map<TKey, TValue>::const_iterator it = map1.begin(); it != map1.end(); ++it)
-        {
-            if (it->second == value1)
-                return true;
-        }
+        for (const auto &kv : map1) if (kv.second == value1) return true;
         return false;
     }
 
-    //map - key
-    template<typename TKey, typename TValue>
-    inline static const TKey &key(const std::map<TKey, TValue> &map1, const TValue &value1, const TValue &defaultKey)
+// ---------- key (find key by value) ----------
+    template<typename TMap>
+    inline static CxMapKey_t<TMap> key(const TMap &map1, const CxMapValue_t<TMap> &value1)
     {
-        for (typename std::map<TKey, TValue>::const_iterator it = map1.begin(); it != map1.end(); ++it)
-        {
-            if (it->second == value1)
-                return it->first;
-        }
+        for (const auto &kv : map1) if (kv.second == value1) return kv.first;
+        return CxValueType::originalValue<CxMapKey_t<TMap>>();
+    }
+
+    template<typename TMap>
+    inline static const CxMapKey_t<TMap> &key(const TMap &map1,
+                                              const CxMapValue_t<TMap> &value1,
+                                              const CxMapKey_t<TMap> &defaultKey)
+    {
+        for (const auto &kv : map1) if (kv.second == value1) return kv.first;
         return defaultKey;
     }
 
-    template<typename TKey, typename TValue>
-    inline static TKey key(const std::map<TKey, TValue> &map1, const TValue &value1)
+// ---------- value (with default) ----------
+    template<typename TMap>
+    inline static const CxMapValue_t<TMap> &value(const TMap &map1,
+                                                  const CxMapKey_t<TMap> &key1,
+                                                  const CxMapValue_t<TMap> &defaultValue)
     {
-        for (typename std::map<TKey, TValue>::const_iterator it = map1.begin(); it != map1.end(); ++it)
-        {
-            if (it->second == value1)
-                return it->first;
-        }
-        return CxValueType::originalValue<TKey>();
+        auto it = map1.find(key1);
+        return (it != map1.end()) ? it->second : defaultValue;
     }
 
-    //map - value
-    template<typename TKey, typename TValue>
-    inline static const TValue &value(const std::map<TKey, TValue> &map1, const TKey &key1, const TValue &defaultValue)
+    template<typename TMap>
+    inline static const CxMapValue_t<TMap> &value(const TMap *map1,
+                                                  const CxMapKey_t<TMap> &key1,
+                                                  const CxMapValue_t<TMap> &defaultValue)
     {
-        typename std::map<TKey, TValue>::const_iterator it = map1.find(key1);
-        if (it != map1.end())
-            return it->second;
-        else
-            return defaultValue;
+        if (!map1) return defaultValue;
+        auto it = map1->find(key1);
+        return (it != map1->end()) ? it->second : defaultValue;
     }
 
-    template<typename TKey, typename TValue>
-    inline static const TValue &value(const std::map<TKey, TValue> *map1, const TKey &key1, const TValue &defaultValue)
+    template<typename TMap>
+    inline static CxMapValue_t<TMap> value(const TMap &map1, const CxMapKey_t<TMap> &key1)
     {
-        if (map1)
-        {
-            typename std::map<TKey, TValue>::const_iterator it = map1->find(key1);
-            if (it != map1->end())
-                return it->second;
-            else
-                return defaultValue;
-        }
-        else
-        {
-            return defaultValue;
-        }
+        auto it = map1.find(key1);
+        return (it != map1.end()) ? it->second : CxValueType::originalValue<CxMapValue_t<TMap>>();
     }
 
-    template<typename TKey, typename TValue>
-    inline static TValue value(const std::map<TKey, TValue> &map1, const TKey &key1)
+    template<typename TMap>
+    inline static CxMapValue_t<TMap> value(const TMap *map1, const CxMapKey_t<TMap> &key1)
     {
-        typename std::map<TKey, TValue>::const_iterator it = map1.find(key1);
-        if (it != map1.end())
-            return it->second;
-        else
-            return CxValueType::originalValue<TValue>();
+        if (!map1) return CxValueType::originalValue<CxMapValue_t<TMap>>();
+        auto it = map1->find(key1);
+        return (it != map1->end()) ? it->second : CxValueType::originalValue<CxMapValue_t<TMap>>();
     }
 
-    template<typename TKey, typename TValue>
-    inline static TValue value(const std::map<TKey, TValue> *map1, const TKey &key1)
-    {
-        if (map1)
-        {
-            typename std::map<TKey, TValue>::const_iterator it = map1->find(key1);
-            if (it != map1->end())
-                return it->second;
-            else
-                return CxValueType::originalValue<TValue>();
-        }
-        else
-        {
-            return CxValueType::originalValue<TValue>();
-        }
-    }
-
-    //map - value
+// ---------- valuesTo (改变 mapped_type 的版本：分别为 map 与 unordered_map 提供重载) ----------
     template<typename TKey, typename TValue, typename TNewValue>
     inline static std::map<TKey, TNewValue> valuesTo(const std::map<TKey, TValue> &map1, const TNewValue &defaultValue)
     {
         std::map<TKey, TNewValue> r;
-        for (typename std::map<TKey, TValue>::const_iterator it = map1.begin(); it != map1.end(); ++it)
-        {
-            TNewValue value = CxValueType::valueTo(it->second, defaultValue);
-            r[it->first] = value;
-        }
+        for (const auto &kv : map1) r[kv.first] = CxValueType::valueTo(kv.second, defaultValue);
         return r;
     }
 
-    //map - value
     template<typename TKey, typename TValue, typename TNewValue>
-    inline static TNewValue valueTo(const std::map<TKey, TValue> &map1, const TKey &key1, const TNewValue &defaultValue)
+    inline static std::unordered_map<TKey, TNewValue> valuesTo(const std::unordered_map<TKey, TValue> &map1, const TNewValue &defaultValue)
     {
-        typename std::map<TKey, TValue>::const_iterator it = map1.find(key1);
-        if (it != map1.end())
-        {
-            return CxValueType::valueTo(it->second, defaultValue);
-        }
-        else
-        {
-            return defaultValue;
-        }
+        std::unordered_map<TKey, TNewValue> r;
+        r.reserve(map1.size());
+        for (const auto &kv : map1) r.emplace(kv.first, CxValueType::valueTo(kv.second, defaultValue));
+        return r;
     }
 
-    //map - value
-    template<typename TValue>
-    inline static TValue valueCase(const std::map<std::string, TValue> &map1, const std::string &key1)
+// ---------- valueTo (读出后转型) ----------
+    template<typename TMap, typename TNewValue>
+    inline static TNewValue valueTo(const TMap &map1, const CxMapKey_t<TMap> &key1, const TNewValue &defaultValue)
     {
-        for (typename std::map<std::string, TValue>::const_iterator it = map1.begin(); it != map1.end(); ++it)
-        {
-            if (equalCase(it->first, key1))
-                return it->second;
-        }
-        return CxValueType::originalValue<TValue>();
-    }
-
-    //map - value
-    template<typename TValue>
-    inline static TValue valueCase(const std::map<std::string, TValue> &map1, const std::string &key1, const TValue &defaultValue)
-    {
-        for (typename std::map<std::string, TValue>::const_iterator it = map1.begin(); it != map1.end(); ++it)
-        {
-            if (CxString::equalCase(it->first, key1))
-                return it->second;
-        }
+        auto it = map1.find(key1);
+        if (it != map1.end()) return CxValueType::valueTo(it->second, defaultValue);
         return defaultValue;
     }
 
-    //map - merge
-    template<typename TKey, typename TValue>
-    inline static std::map<TKey, TValue> merge(const std::map<TKey, TValue> &map1, const std::map<TKey, TValue> &map2)
+// ---------- valueCase（key 为 std::string 时大小写无关） ----------
+    template<typename TValue>
+    inline static TValue valueCase(const std::map<std::string, TValue> &map1, const std::string &key1)
     {
-        std::map<TKey, TValue> r = map1;
+        for (const auto &kv : map1) if (CxString::equalCase(kv.first, key1)) return kv.second;
+        return CxValueType::originalValue<TValue>();
+    }
+
+    template<typename TValue>
+    inline static TValue valueCase(const std::map<std::string, TValue> &map1, const std::string &key1, const TValue &defaultValue)
+    {
+        for (const auto &kv : map1) if (CxString::equalCase(kv.first, key1)) return kv.second;
+        return defaultValue;
+    }
+
+    template<typename TValue>
+    inline static TValue valueCase(const std::unordered_map<std::string, TValue> &map1, const std::string &key1)
+    {
+        for (const auto &kv : map1) if (CxString::equalCase(kv.first, key1)) return kv.second;
+        return CxValueType::originalValue<TValue>();
+    }
+
+    template<typename TValue>
+    inline static TValue valueCase(const std::unordered_map<std::string, TValue> &map1, const std::string &key1, const TValue &defaultValue)
+    {
+        for (const auto &kv : map1) if (CxString::equalCase(kv.first, key1)) return kv.second;
+        return defaultValue;
+    }
+
+// ---------- merge / update ----------
+    template<typename TMap>
+    inline static TMap merge(const TMap &map1, const TMap &map2)
+    {
+        TMap r = map1;
         r.insert(map2.begin(), map2.end());
         return r;
     }
 
-    //map - update
-    template<typename TKey, typename TValue>
-    inline static void update(std::map<TKey, TValue> &map1, const std::map<TKey, TValue> &map2)
+    template<typename TMap>
+    inline static void update(TMap &map1, const TMap &map2)
     {
-        for (typename std::map<TKey, TValue>::const_iterator it = map2.begin(); it != map2.end(); ++it)
-        {
-            map1[it->first] = it->second;
-        }
+        for (const auto &kv : map2) map1[kv.first] = kv.second;
     }
 
-    template<typename TKey, typename TValue>
-    inline static void remove(std::map<TKey, TValue> &map1, const TKey &key1)
+// ---------- remove (by key / keys) ----------
+    template<typename TMap>
+    inline static void remove(TMap &map1, const CxMapKey_t<TMap> &key1)
     {
-        typename std::map<TKey, TValue>::iterator it = map1.find(key1);
+        auto it = map1.find(key1);
         if (it != map1.end()) map1.erase(it);
     }
 
-    template<typename TKey, typename TValue>
-    inline static void remove(std::map<TKey, TValue> &map1, const std::vector<TKey> &keys)
+    template<typename TMap>
+    inline static void remove(TMap &map1, const std::vector<CxMapKey_t<TMap>> &keysVec)
     {
-        for (size_t i = 0; i < keys.size(); ++i)
+        for (const auto &k : keysVec)
         {
-            const TKey &key1 = keys.at(i);
-            typename std::map<TKey, TValue>::iterator it = map1.find(key1);
+            auto it = map1.find(k);
             if (it != map1.end()) map1.erase(it);
         }
     }
 
-    //joinToString
-    template<typename TKey, typename TValue>
-    inline static std::string joinToString(const std::map<TKey, TValue> &pairs, const std::string &sMid, const std::string &sJoin)
+// ---------- joinToString ----------
+    template<typename TMap>
+    inline static std::string joinToString(const TMap &pairs, const std::string &sMid, const std::string &sJoin)
     {
         std::string r;
-        for (typename std::map<TKey, TValue>::const_iterator it = pairs.begin(); it != pairs.end(); ++it)
+        for (const auto &kv : pairs)
         {
-            r.append(CxString::toString(it->first) + sMid + CxString::toString(it->second) + sJoin);
+            r.append(CxString::toString(kv.first));
+            r.append(sMid);
+            r.append(CxString::toString(kv.second));
+            r.append(sJoin);
         }
         if (!r.empty()) r.resize(r.size() - sJoin.size());
         return r;
@@ -621,52 +681,66 @@ public:
 
     template<typename TKey, typename TValue>
     inline static std::string
-    joinToString(const std::map<TKey, std::vector<TValue> > &pairs, const std::string &sMid, const std::string &sJoin1, const std::string &sJoin2)
+    joinToString(const std::map<TKey, std::vector<TValue>> &pairs, const std::string &sMid, const std::string &sJoin1, const std::string &sJoin2)
     {
         std::string r;
-        for (typename std::map<TKey, std::vector<TValue> >::const_iterator it = pairs.begin(); it != pairs.end(); ++it)
+        for (const auto &kv : pairs)
         {
-            r.append(CxString::toString(it->first) + sMid + CxContainer::joinToString(it->second, sJoin1) + sJoin2);
+            r.append(CxString::toString(kv.first));
+            r.append(sMid);
+            r.append(CxContainer::joinToString(kv.second, sJoin1));
+            r.append(sJoin2);
         }
         if (!r.empty()) r.resize(r.size() - sJoin2.size());
         return r;
     }
 
-    //joinToString
-    //iMode : 1 key to hex ; 2 value to hex ; 3 key value to hex
     template<typename TKey, typename TValue>
-    inline static std::string joinToHexString(const std::map<TKey, TValue> &pairs, const std::string &sMid, const std::string &sJoin, int iMode = 3)
+    inline static std::string
+    joinToString(const std::unordered_map<TKey, std::vector<TValue>> &pairs, const std::string &sMid, const std::string &sJoin1, const std::string &sJoin2)
     {
-        if (iMode == 1)
+        std::string r;
+        for (const auto &kv : pairs)
         {
-            std::string r;
-            for (typename std::map<TKey, TValue>::const_iterator it = pairs.begin(); it != pairs.end(); ++it)
-            {
-                r.append(CxString::toHexString(it->first) + sMid + CxString::toString(it->second) + sJoin);
-            }
-            if (!r.empty()) r.resize(r.size() - sJoin.size());
-            return r;
+            r.append(CxString::toString(kv.first));
+            r.append(sMid);
+            r.append(CxContainer::joinToString(kv.second, sJoin1));
+            r.append(sJoin2);
         }
-        else if (iMode == 2)
+        if (!r.empty()) r.resize(r.size() - sJoin2.size());
+        return r;
+    }
+
+// ---------- joinToHexString ----------
+// iMode : 1 key to hex ; 2 value to hex ; 3 key & value to hex
+    template<typename TMap>
+    inline static std::string joinToHexString(const TMap &pairs, const std::string &sMid, const std::string &sJoin, int iMode = 3)
+    {
+        std::string r;
+        for (const auto &kv : pairs)
         {
-            std::string r;
-            for (typename std::map<TKey, TValue>::const_iterator it = pairs.begin(); it != pairs.end(); ++it)
+            if (iMode == 1)
             {
-                r.append(CxString::toString(it->first) + sMid + CxString::toHexString(it->second) + sJoin);
+                r.append(CxString::toHexString(kv.first));
+                r.append(sMid);
+                r.append(CxString::toString(kv.second));
             }
-            if (!r.empty()) r.resize(r.size() - sJoin.size());
-            return r;
-        }
-        else
-        {
-            std::string r;
-            for (typename std::map<TKey, TValue>::const_iterator it = pairs.begin(); it != pairs.end(); ++it)
+            else if (iMode == 2)
             {
-                r.append(CxString::toHexString(it->first) + sMid + CxString::toHexString(it->second) + sJoin);
+                r.append(CxString::toString(kv.first));
+                r.append(sMid);
+                r.append(CxString::toHexString(kv.second));
             }
-            if (!r.empty()) r.resize(r.size() - sJoin.size());
-            return r;
+            else
+            {
+                r.append(CxString::toHexString(kv.first));
+                r.append(sMid);
+                r.append(CxString::toHexString(kv.second));
+            }
+            r.append(sJoin);
         }
+        if (!r.empty()) r.resize(r.size() - sJoin.size());
+        return r;
     }
 
     // ======================= queue ================================
@@ -691,57 +765,4 @@ public:
 
 };
 
-
-#define GM_PLISTO_DELETEALL(oList, ClassName) \
-    for (size_t i = 0; i < oList->size(); ++i) \
-    { \
-        ClassName* o = oList->at(i); \
-        delete o; \
-    } \
-    oList->clear();
-
-#define GM_PLISTO_FIND(oList, ClassName, field, value) \
-    for (size_t i = 0; i < oList->size(); ++i) \
-    { \
-        ClassName* o = oList->at(i); \
-        if ( o->field == value ) \
-            return o; \
-    } \
-    return nullptr;
-
-#define GM_LISTO_DONE(list, ClassName, done) \
-    for (size_t i = 0; i < list.size(); ++i) \
-    { \
-        ClassName * o = list.at(i); \
-        o->done; \
-    }
-
-#define GM_LISTO_FIND(list, ClassName, field, value) \
-    for (size_t i = 0; i < list.size(); ++i) \
-    { \
-        ClassName * o = list.at(i); \
-        if ( o->field == value ) \
-            return o; \
-    } \
-    return nullptr;
-
-
 #endif // CXCONTAINER_H
-
-
-
-
-
-/***
- *
-//init map
-const std::map<int, int>::value_type init_value[] =
-{
-    std::map<int, int>::value_type( 1, 1),
-    std::map<int, int>::value_type( 2, 2),
-};
-
-const static std::map<int, int> m_mapPn(init_value, init_value+sizeof(init_value)/sizeof(init_value[0]));
-
-*/
-

@@ -10,7 +10,7 @@
 
 
 int main(int argc, char *argv[]) {
-    LogHelper::init("demo-app1.log");
+    LogHelper::init("demo-app1.log", "logs");
 
     std::cout << "start" << std::endl;
     LogHelper::debug() << "start";

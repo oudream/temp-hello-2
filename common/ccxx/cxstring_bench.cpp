@@ -21,8 +21,7 @@ static std::mt19937_64 &rng()
 
 static string rand_ascii(size_t n)
 {
-    static const char table[] =
-            "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz,.-:_/ \\t\\r\\n";
+    static const char table[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz,.-:_/ \\t\\r\\n";
     std::uniform_int_distribution<size_t> dist(0, sizeof(table) - 2);
     string s(n, '\0');
     for (size_t i = 0; i < n; ++i) s[i] = table[dist(rng())];
@@ -463,9 +462,9 @@ static void BM_replace_trim_case(benchmark::State &st)
         auto t1 = CxString::trim("   \t\r\n" + s + "  ");
         auto t2 = CxString::trim(s, ' ');
         auto t3 = CxString::trim(s, string(" \t\r\n"));
-        auto t4 = CxString::trimAll(s, ' ');
-        string l = CxString::toLower(s);
-        string u = CxString::toUpper(s);
+        auto t4 = CxString::trim(s, ' ');
+        string l = CxString::toLowerAscii(s);
+        string u = CxString::toUpperAscii(s);
         benchmark::DoNotOptimize(r1);
         benchmark::DoNotOptimize(r2);
         benchmark::DoNotOptimize(r3);
@@ -486,8 +485,8 @@ static void BM_equal_exist_begin_end(benchmark::State &st)
     const string a = "Hello  World", b = "hello  world", sub = "world";
     for (auto _: st)
     {
-        bool e1 = CxString::equalCase(a, b);
-        bool e2 = CxString::equalIgnoreAll("a b\tc", "ab c");
+        bool e1 = CxString::equal(a, b);
+        bool e2 = CxString::equalCase("a b\tc", "ab c");
         bool f1 = CxString::exist(a, "World");
         bool f2 = CxString::existCase(a, "world");
         bool bw = CxString::beginWith(a, "Hello");
@@ -537,8 +536,8 @@ static void BM_token_series(benchmark::State &st)
     bool ok = false;
     for (auto _: st)
     {
-        auto r = CxString::token(s1, '.');
-        auto r2 = CxString::token(s2, ".");
+        auto r = CxString::tokenLeft(s1, '.');
+        auto r2 = CxString::tokenLeft(s2, ".");
         auto l = CxString::tokenLeft(s3, '.');
         auto l2 = CxString::tokenLeft(s4, ".");
         auto r3 = CxString::tokenRight(s5, '.');

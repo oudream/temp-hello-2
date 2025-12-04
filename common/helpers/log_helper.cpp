@@ -1,7 +1,10 @@
 #include "log_helper.h"
+
 #include <spdlog/sinks/daily_file_sink.h>
 #include <spdlog/async.h>
+
 #include <iostream>
+#include <filesystem>
 
 using LogLevel = LogStream::LogLevel;
 
@@ -61,7 +64,7 @@ void LogHelper::init(const std::string &logFileName, const std::string &logDirec
     try
     {
         spdlog::init_thread_pool(8192, 1); // 初始化非同步日誌的執行緒池
-        std::string logPath = logDirectory + "/" + logFileName + ".txt";
+        std::string logPath = (std::filesystem::u8path(logDirectory) / (logFileName + ".log")).u8string();
 
         // 建立每日滾動的日誌檔案接收器（sink），執行緒安全，保留7天日誌
         auto daily_sink = std::make_shared<spdlog::sinks::daily_file_sink_mt>(logPath, 0, 0, false, 7);

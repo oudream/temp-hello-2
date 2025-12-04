@@ -243,7 +243,7 @@ cx::pid_os_t CxProcess::execAsDetached(const std::string &sProgram,
 
     std::string sCommand = sProgram;
 
-//    string sShow = CxString::toLower(CxAppEnv::getArgValue(string("show")));
+//    string sShow = CxString::toLowerAscii(CxAppEnv::getArgValue(string("show")));
 //    if (sShow.size() > 0)
 //    {
 //        sCommand += " " + sShow;

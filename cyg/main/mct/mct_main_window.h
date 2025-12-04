@@ -5,8 +5,8 @@
 #include <QMap>
 #include <QPointer>
 
-#include "ui/pages/u_page_manager.h"
-#include "ui/panels/u_panel_manager.h"
+#include "pages/u_page_manager.h"
+#include "panels/u_panel_manager.h"
 
 class URibbon;
 
@@ -16,7 +16,8 @@ class UPanelBase;
 
 class UStatusBar;
 
-class MctMainWindow : public QMainWindow {
+class MctMainWindow : public QMainWindow
+{
 Q_OBJECT
 public:
     explicit MctMainWindow(QWidget *parent = 0);
@@ -51,10 +52,6 @@ private:
     void wireSignals();
 
     void setupShortcuts();
-
-    // --- 工具 ---
-    int pageIndexOfId(const QString &id) const;   // 将 pageId 映射到 _stack 索引
-    QString pageIdAtIndex(int index) const;        // 反查
 
 private slots:
 

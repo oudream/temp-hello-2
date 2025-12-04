@@ -1,9 +1,12 @@
 #include "m_mpr2d_view.h"
+
 #include <vtkRenderer.h>
 #include <vtkCamera.h>
 #include <vtkCommand.h>
 
+
 static bool D_Strace = false;
+
 
 void Mpr2DView::VtkLogCallback(vtkObject *caller, unsigned long eid, void *client, void *)
 {
@@ -15,8 +18,8 @@ void Mpr2DView::VtkLogCallback(vtkObject *caller, unsigned long eid, void *clien
                       << QString("@%1").arg(reinterpret_cast<quintptr>(caller), 0, 16);
 }
 
-Mpr2DView::Mpr2DView(QVTKOpenGLNativeWidget *host, Axis a, QObject *parent, const QString &tag)
-        : QObject(parent), _axis(a), _host(host)
+Mpr2DView::Mpr2DView(QVTKOpenGLNativeWidget *host, AppIds::EAxis axis, QObject *parent, const QString &tag)
+        : QObject(parent), _axis(axis), _host(host)
 {
     _tag = tag;
     _bound = false;
@@ -24,6 +27,9 @@ Mpr2DView::Mpr2DView(QVTKOpenGLNativeWidget *host, Axis a, QObject *parent, cons
     buildViewers();
 
     connectObservers();
+
+    _cell  = new Mpr2DViewCell(axis, this);
+    _panel = _cell->createHost(host, _view->GetRenderer(), QString::asprintf("%s_host", AppIds::AxisToLabel(axis)));
 }
 
 void Mpr2DView::buildViewers()
@@ -134,7 +140,7 @@ void Mpr2DView::setSharedCursor(vtkResliceCursor *v)
     _view->SetResliceCursor(v);
 }
 
-void Mpr2DView::setAxis(Axis a)
+void Mpr2DView::setAxis(AppIds::EAxis a)
 {
     _axis = a;
     applyAxis();
@@ -149,13 +155,13 @@ void Mpr2DView::applyAxis()
         // 三正交方向
         switch (_axis)
         {
-            case AX:
+            case AppIds::EAxis::X:
                 _view->SetSliceOrientationToXY();
                 break; // Axial, 观察 Z
-            case AY:
+            case AppIds::EAxis::Y:
                 _view->SetSliceOrientationToXZ();
                 break; // Coronal, 观察 Y
-            case AZ:
+            case AppIds::EAxis::Z:
                 _view->SetSliceOrientationToYZ();
                 break; // Sagittal, 观察 X
         }
@@ -182,3 +188,4 @@ void Mpr2DView::refresh()
 {
     _host->renderWindow()->Render();
 }
+

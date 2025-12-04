@@ -26,7 +26,7 @@ find_package(GTest CONFIG REQUIRED)
 find_package(benchmark CONFIG REQUIRED)
 
 # qt
-find_package(Qt6 COMPONENTS Core Gui GuiPrivate Widgets REQUIRED)
+find_package(Qt6 COMPONENTS Core Gui Widgets Svg REQUIRED)
 
 if (UNIX AND NOT APPLE AND ((QT_VERSION_MAJOR STREQUAL "6" AND QT_VERSION_MINOR GREATER 8) OR QT_VERSION_MAJOR STREQUAL "5"))
     include_directories(${Qt${QT_VERSION_MAJOR}Gui_PRIVATE_INCLUDE_DIRS})
@@ -115,6 +115,9 @@ set(gs_project_vtkSegmentationCore_path ${gs_project_common_path}/vtkSegmentatio
 
 # include
 include_directories(${gs_project_common_path})
+
+# link
+link_directories(${gs_project_deploy_path})
 
 # docking
 include(common/docking.cmake)

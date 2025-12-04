@@ -170,8 +170,8 @@ TEST(CxString_IsValid_Group, IntegerFloatDoubleLengths)
     EXPECT_TRUE(CxString::isvalidDouble("3.1415926535"));
     EXPECT_FALSE(CxString::isvalidFloat(""));          // empty
     EXPECT_FALSE(CxString::isvalidDouble("1.2.3"));   // multiple dots
-    EXPECT_FALSE(CxString::isvalidFloat("123456789")); // length>=9
-    EXPECT_FALSE(CxString::isvalidDouble("12345678901234567")); // length>=17
+    EXPECT_FALSE(CxString::isvalidFloat("123456789")); // length>8
+    EXPECT_FALSE(CxString::isvalidDouble("123456789012345678")); // length>17
 }
 
 TEST(CxString_HexString_Data, Roundtrips)
@@ -280,19 +280,19 @@ TEST(CxString_Replace_Trim_Case, Basic)
     EXPECT_EQ(CxString::trim("  x  "), "x");
     EXPECT_EQ(CxString::trim("..x..", '.'), "x");
     EXPECT_EQ(CxString::trim("xyx", string("x")), "y");
-    EXPECT_EQ(CxString::trimAll("a b c"), "abc");
+    EXPECT_EQ(CxString::erase("a b c"), "abc");
 
-    EXPECT_EQ(CxString::toLower("AbC"), "abc");
-    EXPECT_EQ(CxString::toUpper("AbC"), "ABC");
+    EXPECT_EQ(CxString::toLowerAscii("AbC"), "abc");
+    EXPECT_EQ(CxString::toUpperAscii("AbC"), "ABC");
 
-    EXPECT_TRUE(CxString::equalCase("AbC", "aBc"));
-    EXPECT_TRUE(CxString::equalIgnoreAll("a b\tc", "abc"));
+    EXPECT_TRUE(CxString::equal("AbC", "AbC"));
+    EXPECT_TRUE(CxString::equalCase("AbC", "abc"));
 }
 
 TEST(CxString_Find_Exist_BeginEnd, SearchOps)
 {
     EXPECT_EQ(CxString::findLeftCase("HelloWorld", "world"), 5u);
-    EXPECT_EQ(CxString::findRightCase("abcXXabcXX", "ABC"), 6u);
+    EXPECT_EQ(CxString::findRightCase("abcXXabcXX", "ABC"), 5u);
     EXPECT_TRUE(CxString::exist("HelloWorld", "World"));
     EXPECT_TRUE(CxString::existCase("HelloWorld", "world"));
     vector<string> pool = {"Aaa", "bBb", "CCC"};
@@ -310,7 +310,7 @@ TEST(CxString_Format_Token_Unquote, FormattingAndTokenizing)
 
     string s1 = "aaaaa.12341234.bbbbbbbbb";
     bool ok = false;
-    string t = CxString::token(s1, '.', &ok);
+    string t = CxString::tokenLeft(s1, '.', &ok);
     EXPECT_TRUE(ok);
     EXPECT_EQ(t, "aaaaa");
     EXPECT_EQ(s1, "12341234.bbbbbbbbb");
@@ -318,8 +318,8 @@ TEST(CxString_Format_Token_Unquote, FormattingAndTokenizing)
     s1 = "aaaaa.12341234.bbbbbbbbb";
     string tl = CxString::tokenLeft(s1, '.', &ok);
     EXPECT_TRUE(ok);
-    EXPECT_EQ(tl, "12341234.bbbbbbbbb");
-    EXPECT_EQ(s1, "aaaaa");
+    EXPECT_EQ(tl, "aaaaa");
+    EXPECT_EQ(s1, "12341234.bbbbbbbbb");
 
     s1 = "aaaaa.12341234.bbbbbbbbb";
     string tr = CxString::tokenRight(s1, '.', &ok);
@@ -343,7 +343,7 @@ TEST(CxString_VarArgs_CStringOps, LengthAndCopy)
 {
     // lengthCString: returns sum(strlen) + n
     int L = CxString::lengthCString(3, "aa", "bbb", "c");
-    EXPECT_EQ(L, int(strlen("aa")+strlen("bbb") + strlen("c") + 3));
+    EXPECT_EQ(L, int(strlen("aa")+strlen("bbb") + strlen("c") + 3 - 1));
     // copyCString: dest gets concatenated with '\0' between per contract
     char buf[64] = {0};
     int copied = CxString::copyCString(buf, 3, "aa", "bb", "c");

@@ -203,7 +203,7 @@ public:
      */
     static void remove(std::string &s, char c);
 
-    static int count(const std::string &ss, const char cCharacter);
+    static int count(const std::string &ss, char cCharacter);
 
     static int count(const std::string &ss, const std::string &sSub);
 
@@ -220,27 +220,31 @@ public:
 
     static std::vector<std::string> split(const std::string &ss, const std::string &sSplitString, bool bHasEmptyString = false);
 
+    /// join ss and split
     static std::vector<std::string> split(const std::vector<std::string> &ss, const std::string &sSplitString, bool bHasEmptyString = false);
 
     static std::vector<std::string> splitCase(const std::string &ss, const std::string &sSplitString, bool bHasEmptyString = false);
 
-    static void splitCase(int mode, char *pBuf, int num, std::string &sVal, std::string &split);
+    static std::vector<int> splitCaseToInt(const std::string &sVal, const std::string &split);
+
+    static std::vector<double> splitCaseToDouble(const std::string &sVal, const std::string &split);
 
     static void splitCase(std::vector<std::vector<char> > &v, std::string &sVal, std::string &split);
 
     //must  : k1=v1,k2=v2,k3=v3
-    static std::map<std::string, std::string> splitToMap(const std::vector<std::string> &ss, char cMid, bool bTrim = true);
+    static std::map<std::string, std::string> splitToMap(const std::vector<std::string> &ss, char cMid, bool bTrim = false);
 
     //must  : k1=v1,k2=v2,k3=v3
-    static std::map<std::string, std::string>
-    splitToMap(const std::string &s, char kvSep, char pairSep, bool trimWS = true, bool keepEmptyPair = false);
+    static std::map<std::string, std::string> splitToMap(const std::string &s, char kvSep, char pairSep, bool bTrim = false, bool keepEmptyPair = false);
+
+    static std::unordered_map<std::string, std::string> splitToUMap(const std::string &s, char kvSep, char pairSep, bool bTrim = false, bool keepEmptyPair = false);
 
     //maybe : k1=v1,k2,k3,k4=v4
     //trim(k) , do not trim v
     static std::map<std::string, std::string> splitToMap_mix(const std::string &ss, char cMid, char cSplitCharacter);
 
     //must : v1=k1,v2=k2,v3=k3
-    static std::map<std::string, std::string> splitToMap_reverse(const std::string &ss, char cMid, char cSplitCharacter, bool bTrim = true);
+    static std::map<std::string, std::string> splitToMap_reverse(const std::string &ss, char cMid, char cSplitCharacter, bool bTrim = false);
 
     static std::vector<std::vector<std::string> > splitToLines(const std::string &ss, char cMid, char cSplitCharacter);
 
@@ -286,23 +290,29 @@ public:
      */
     static std::string trim(const std::string &s);
 
-    static std::string trim(const std::string &s, const char cDelete);
+    static std::string trim(const std::string &s, char cDelete);
 
     static std::string trim(const std::string &s, const std::string &sDelete);
 
-    static std::string trimAll(const std::string &src, char cDelete = cx::CHAR_SPACE);
+    static void trimInplace(std::string &s);
+
+    static void trimInplace(std::string &s, char cDelete);
+
+    static void trimInplace(std::string &s, const std::string &sDelete);
+
+    static std::string erase(const std::string &src, char cDelete = cx::CHAR_SPACE);
 
     /**
-     * @brief toLowerSelf
+     * @brief toLowerAsciiSelf
      * @param r
      */
-    static void toLowerSelf(std::string &r);
+    static void toLowerAsciiSelf(std::string &r);
 
-    static std::string toLower(const std::string &s);
+    static std::string toLowerAscii(const std::string &s);
 
-    static void toUpperSelf(std::string &s);
+    static void toUpperAsciiSelf(std::string &s);
 
-    static std::string toUpper(const std::string &s);
+    static std::string toUpperAscii(const std::string &s);
 
     /**
      * @brief equalCase
@@ -310,9 +320,9 @@ public:
      * @param s2
      * @return
      */
-    static bool equalCase(const std::string &s1, const std::string &s2);
+    static bool equal(const std::string &s1, const std::string &s2);
 
-    static bool equalIgnoreAll(const std::string &s1, const std::string &s2);
+    static bool equalCase(const std::string &s1, const std::string &s2);
 
     /**
      * @brief findLeftCase
@@ -381,10 +391,6 @@ public:
      * tokenLeft result=12341234.bbbbbbbbb input string=aaaaa
      * tokenRight result=bbbbbbbbb input string=aaaaa.12341234
      */
-    static std::string token(std::string &s, char cToken, bool *ok = nullptr);
-
-    static std::string token(std::string &s, const std::string &sToken, bool *ok = nullptr);
-
     static std::string tokenLeft(std::string &s, char cToken, bool *ok = nullptr);
 
     static std::string tokenLeft(std::string &s, const std::string &sToken, bool *ok = nullptr);
@@ -428,7 +434,7 @@ public:
 
     static int copyCString(char *dest, int n, ...);
 
-    static cx::uint32 toUint32(char *pBuff, int iLenth, bool bInverse = true);
+    static cx::uint32 toUint32(const char *pBuff, int iLenth, bool bInverse = true);
 
     static cx::uint32 toUint32(cx::uchar *pBuff, int iLenth, bool bInverse = true);
 
@@ -459,12 +465,14 @@ public:
     static int sizeOf(const std::vector<std::string> &sLines);
 
     inline static std::string newString(const std::string &s)
-    { return std::string(s.data(), s.size()); }
+    {
+        return {s.data(), s.size()};
+    }
 
     inline static std::string newString(const char *pText, size_t iMaxSize)
     {
         size_t iSize = strlen(pText);
-        if (iMaxSize > iSize) return std::string(pText, iSize); else return std::string(pText, iMaxSize);
+        if (iMaxSize > iSize) return {pText, iSize}; else return {pText, iMaxSize};
     }
 
     static std::vector<std::string> newStrings(const std::vector<std::string> &ss);
@@ -481,8 +489,7 @@ public:
 
     static std::string fromWstring(const std::wstring &sSrc);
 
-    static bool equal(const std::vector<std::string> &ss1, const std::vector<std::string> &ss2, bool bIgnoreOrder = false, bool bIgnoreCase = false,
-                      bool bTrim = false);
+    static bool equal(const std::vector<std::string> &ss1, const std::vector<std::string> &ss2, bool bIgnoreOrder = false, bool bIgnoreCase = false, bool bTrim = false);
 
     static std::vector<std::pair<const char *, int>> splitToPair(const char *src, int len, int splitSize);
 

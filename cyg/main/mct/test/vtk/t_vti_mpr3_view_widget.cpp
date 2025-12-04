@@ -14,7 +14,7 @@
 #include <vtkCamera.h>
 #include <vtkMath.h>
 
-TVtiMpr3ViewWidget::TVtiMpr3ViewWidget(QWidget* parent)
+TVtiMpr3ViewWidget::TVtiMpr3ViewWidget(QWidget *parent)
         : QWidget(parent)
 {
     buildUi();
@@ -62,19 +62,19 @@ void TVtiMpr3ViewWidget::buildUi()
     _toolbar->addWidget(_sldScroll);
 
     // 三个 QVTK 小部件：Axial | Coronal | Sagittal
-    _wgtAxial    = new QVTKOpenGLNativeWidget(this);
-    _wgtCoronal  = new QVTKOpenGLNativeWidget(this);
+    _wgtAxial = new QVTKOpenGLNativeWidget(this);
+    _wgtCoronal = new QVTKOpenGLNativeWidget(this);
     _wgtSagittal = new QVTKOpenGLNativeWidget(this);
 
-    auto* grid = new QGridLayout;
-    grid->setContentsMargins(0,0,0,0);
+    auto *grid = new QGridLayout;
+    grid->setContentsMargins(0, 0, 0, 0);
     grid->setSpacing(2);
     grid->addWidget(_wgtAxial, 0, 0);
     grid->addWidget(_wgtCoronal, 0, 1);
     grid->addWidget(_wgtSagittal, 0, 2);
 
-    auto* lay = new QVBoxLayout(this);
-    lay->setContentsMargins(0,0,0,0);
+    auto *lay = new QVBoxLayout(this);
+    lay->setContentsMargins(0, 0, 0, 0);
     lay->addWidget(_toolbar);
     lay->addLayout(grid);
     setLayout(lay);
@@ -93,13 +93,13 @@ void TVtiMpr3ViewWidget::buildUi()
 void TVtiMpr3ViewWidget::buildViewers()
 {
     // 渲染窗口
-    _winAxial    = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
-    _winCoronal  = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
+    _winAxial = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
+    _winCoronal = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
     _winSagittal = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
 
     // 三个 ResliceImageViewer
-    _viewAxial    = vtkSmartPointer<vtkResliceImageViewer>::New();
-    _viewCoronal  = vtkSmartPointer<vtkResliceImageViewer>::New();
+    _viewAxial = vtkSmartPointer<vtkResliceImageViewer>::New();
+    _viewCoronal = vtkSmartPointer<vtkResliceImageViewer>::New();
     _viewSagittal = vtkSmartPointer<vtkResliceImageViewer>::New();
 
     // 共享的 LUT（可替换为医学灰阶）
@@ -143,14 +143,14 @@ void TVtiMpr3ViewWidget::connectObservers()
     _viewSagittal->AddObserver(ev2, _evtCallback);
 }
 
-void TVtiMpr3ViewWidget::vtkEventForwarder(vtkObject* caller, unsigned long,
-                                           void* clientData, void*)
+void TVtiMpr3ViewWidget::vtkEventForwarder(vtkObject *caller, unsigned long,
+                                           void *clientData, void *)
 {
-    TVtiMpr3ViewWidget* self = reinterpret_cast<TVtiMpr3ViewWidget*>(clientData);
+    TVtiMpr3ViewWidget *self = reinterpret_cast<TVtiMpr3ViewWidget *>(clientData);
     if (!self) return;
 
     // 谁触发就刷新其它两个
-    vtkResliceImageViewer* who = vtkResliceImageViewer::SafeDownCast(caller);
+    vtkResliceImageViewer *who = vtkResliceImageViewer::SafeDownCast(caller);
     if (!who) return;
 
     if (who != self->_viewAxial)
@@ -163,17 +163,19 @@ void TVtiMpr3ViewWidget::vtkEventForwarder(vtkObject* caller, unsigned long,
 
 void TVtiMpr3ViewWidget::refreshAll()
 {
-    if (_wgtAxial)    _wgtAxial->renderWindow()->Render();
-    if (_wgtCoronal)  _wgtCoronal->renderWindow()->Render();
+    if (_wgtAxial) _wgtAxial->renderWindow()->Render();
+    if (_wgtCoronal) _wgtCoronal->renderWindow()->Render();
     if (_wgtSagittal) _wgtSagittal->renderWindow()->Render();
 }
 
-bool TVtiMpr3ViewWidget::loadVtiFile(const QString& filename)
+bool TVtiMpr3ViewWidget::loadVtiFile(const QString &filename)
 {
     vtkSmartPointer<vtkXMLImageDataReader> reader = vtkSmartPointer<vtkXMLImageDataReader>::New();
     reader->SetFileName(filename.toLocal8Bit().constData());
-    try { reader->Update(); }
-    catch (...) {
+    try
+    { reader->Update(); }
+    catch (...)
+    {
         QMessageBox::critical(this, "错误", "读取 .vti 失败");
         return false;
     }
@@ -182,7 +184,7 @@ bool TVtiMpr3ViewWidget::loadVtiFile(const QString& filename)
     return true;
 }
 
-void TVtiMpr3ViewWidget::setImageData(vtkImageData* img)
+void TVtiMpr3ViewWidget::setImageData(vtkImageData *img)
 {
     if (!img) return;
     _imageData = img;
@@ -238,7 +240,8 @@ void TVtiMpr3ViewWidget::setImageData(vtkImageData* img)
 
     // 统一 LUT 与 WL
     {
-        double range[2]; _imageData->GetScalarRange(range);
+        double range[2];
+        _imageData->GetScalarRange(range);
         _sharedLut->SetRange(range[0], range[1]);
         _sharedLut->Build();
 
@@ -300,15 +303,17 @@ void TVtiMpr3ViewWidget::setSliceScrollFactor(double f)
     _viewSagittal->SetSliceScrollFactor(f);
 }
 
-vtkRenderWindow* TVtiMpr3ViewWidget::renderWindowAxial() const
+vtkRenderWindow *TVtiMpr3ViewWidget::renderWindowAxial() const
 {
     return _wgtAxial ? _wgtAxial->renderWindow() : nullptr;
 }
-vtkRenderWindow* TVtiMpr3ViewWidget::renderWindowCoronal() const
+
+vtkRenderWindow *TVtiMpr3ViewWidget::renderWindowCoronal() const
 {
     return _wgtCoronal ? _wgtCoronal->renderWindow() : nullptr;
 }
-vtkRenderWindow* TVtiMpr3ViewWidget::renderWindowSagittal() const
+
+vtkRenderWindow *TVtiMpr3ViewWidget::renderWindowSagittal() const
 {
     return _wgtSagittal ? _wgtSagittal->renderWindow() : nullptr;
 }
@@ -333,15 +338,16 @@ void TVtiMpr3ViewWidget::onThickChanged(int v)
 
 static inline double lerp(double a, double b, double t)
 {
-    return a*(1.0 - t) + b*t;
+    return a * (1.0 - t) + b * t;
 }
 
 void TVtiMpr3ViewWidget::onWLChanged()
 {
     if (!_imageData) return;
-    double r[2]; _imageData->GetScalarRange(r);
-    const double win = std::max(1.0, lerp( (r[1]-r[0])*0.05, (r[1]-r[0])*1.5,
-                                           _sldWin->value() / 1000.0 ));
+    double r[2];
+    _imageData->GetScalarRange(r);
+    const double win = std::max(1.0, lerp((r[1] - r[0]) * 0.05, (r[1] - r[0]) * 1.5,
+                                          _sldWin->value() / 1000.0));
     const double lev = lerp(r[0], r[1], _sldLev->value() / 1000.0);
     setWindowLevel(win, lev);
 }
@@ -349,7 +355,7 @@ void TVtiMpr3ViewWidget::onWLChanged()
 void TVtiMpr3ViewWidget::onScrollFactorChanged(int v)
 {
     // 1..20 -> 0.1 .. 2.0
-    const double f = 0.1 + (v-1) * ( (2.0-0.1) / 19.0 );
+    const double f = 0.1 + (v - 1) * ((2.0 - 0.1) / 19.0);
     setSliceScrollFactor(f);
 }
 

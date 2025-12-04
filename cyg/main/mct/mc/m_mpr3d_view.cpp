@@ -9,7 +9,7 @@ void Mpr3DView::VtkLogCallback(vtkObject *caller, unsigned long eid, void *clien
     auto *self = reinterpret_cast<Mpr3DView *>(client);
     const char *ev = (eid == vtkCommand::RenderEvent) ? "RenderEvent" :
                      (eid == vtkCommand::ModifiedEvent) ? "ModifiedEvent" : "Event";
-    qInfo().noquote() << "[" << self->mTag << "]"
+    qInfo().noquote() << "[" << self->_tag << "]"
                       << caller->GetClassName() << ev
                       << QString("@%1").arg(reinterpret_cast<quintptr>(caller), 0, 16);
 }
@@ -38,13 +38,16 @@ Mpr3DView::Mpr3DView(QVTKOpenGLNativeWidget *host, QObject *parent, const QStrin
     _volume->SetMapper(_volMapper);
     _volume->SetProperty(_volProp);
 
-    mTag = tag;
+    _tag = tag;
     auto cb = vtkSmartPointer<vtkCallbackCommand>::New();
     cb->SetClientData(this);
     cb->SetCallback(&VtkLogCallback);
 
     // 谁在渲染
     _ren->AddObserver(vtkCommand::RenderEvent, cb);
+
+    _cell  = new Mpr3DViewCell(AppIds::EAxis::D, this);
+    _panel = _cell->createHost(host, _ren, QString::asprintf("%s_host", AppIds::AxisToLabel(AppIds::EAxis::D)));
 }
 
 void Mpr3DView::setImageData(vtkImageData *img)

@@ -200,8 +200,10 @@ public:
      * Return error code of last socket operation,
      * @return errno style error code.
      */
-    static int error();
+    static int lastError();
 
+    static std::string lastErrorMessage();
+    
     /**
      * Simple function to validate that a given IP address string is a "zero"
      * address.  Such address strings are used for example in SIP to indicate
@@ -210,7 +212,7 @@ public:
      * @param string address to check.
      * @return true if zero/null address.
      */
-    static bool is_null(const char *string);
+    static bool isNull(const char *string);
 
     /**
      * Simple function to validate that a given IP address string is a numeric
@@ -219,7 +221,7 @@ public:
      * @param string address to check.
      * @return true if zero/null address.
      */
-    static bool is_numeric(const char *string);
+    static bool isNumeric(const char *string);
 
     /**
      * Get local address to which the socket is bound.  This is defined here
@@ -268,7 +270,7 @@ public:
      * @param size of segment or zero to not set.
      * @return mtu size of socket.
      */
-    static unsigned segsize(cx::socket_t socket, unsigned size = 0);
+    static unsigned segSize(cx::socket_t socket, unsigned size = 0);
 
     /**
      * Set congestion control id.
@@ -308,7 +310,7 @@ public:
      * @param size of send buffer to set.
      * @return 0 on success, -1 on error.
      */
-    static int sendsize(cx::socket_t socket, unsigned size);
+    static int sendSize(cx::socket_t socket, unsigned size);
 
     /**
      * Set the size to wait before sending.
@@ -316,7 +318,7 @@ public:
      * @param size of send wait buffer to set.
      * @return 0 on success, -1 on error.
      */
-    static int sendwait(cx::socket_t socket, unsigned size);
+    static int sendWait(cx::socket_t socket, unsigned size);
 
     /**
      * Set the receive size of a socket descriptor.
@@ -324,7 +326,7 @@ public:
      * @param size of receive buffer to set.
      * @return 0 on success, -1 on error.
      */
-    static int recvsize(cx::socket_t socket, unsigned size);
+    static int recvSize(cx::socket_t socket, unsigned size);
 
     /**
      * Connect socket descriptor to a remote host from an address list.
@@ -334,7 +336,7 @@ public:
      * @param list of addresses to connect to.
      * @return 0 on success, -1 on error.
      */
-    static int connectto(cx::socket_t socket, struct addrinfo *list);
+    static int connectTo(cx::socket_t socket, struct addrinfo *list);
 
     /**
      * Disconnect a connected socket descriptor.
@@ -380,7 +382,7 @@ public:
      * @param enable true to loopback, false to ignore.
      * @return 0 if success, -1 if error.
      */
-    static int loopback(cx::socket_t socket, bool enable);
+    static int loopBack(cx::socket_t socket, bool enable);
 
     /**
      * Set socket blocking I/O mode of socket descriptor.
@@ -396,7 +398,7 @@ public:
      * @param enable keep-alive if true.
      * @return 0 if success, -1 if error.
      */
-    static int keepalive(cx::socket_t socket, bool enable);
+    static int keepALive(cx::socket_t socket, bool enable);
 
     /**
      * Set socket for unicast mode broadcasts on socket descriptor.
@@ -467,7 +469,7 @@ public:
      * @param flags for i/o operation (MSG_OOB, MSG_PEEK, etc).
      * @return number of bytes received, -1 if error.
      */
-    static ssize_t recv(cx::socket_t socket, void *buffer, size_t size, int flags = 0);
+    static int recv(cx::socket_t socket, void *buffer, size_t size, int flags = 0);
 
     /**
      * Get data waiting in receive queue.
@@ -478,7 +480,7 @@ public:
      * @param address of source.
      * @return number of bytes received, -1 if error.
      */
-    static ssize_t recvfrom(cx::socket_t socket, void *buffer, size_t size, int flags = 0, struct sockaddr_storage *addr = nullptr);
+    static int recvFrom(cx::socket_t socket, void *buffer, size_t size, int flags = 0, struct sockaddr_storage *addr = nullptr);
 
     /**
      * Send data on socket.
@@ -488,7 +490,7 @@ public:
      * @param flags for i/o operation (MSG_OOB, MSG_PEEK, etc).
      * @return number of bytes sent, -1 if error.
      */
-    static ssize_t send(cx::socket_t socket, const void *buffer, size_t size, int flags = 0);
+    static int send(cx::socket_t socket, const void *buffer, size_t size, int flags = 0);
 
     /**
      * Send data on socket.
@@ -499,7 +501,7 @@ public:
      * @param address of destination, nullptr if connected.
      * @return number of bytes sent, -1 if error.
      */
-    static ssize_t sendto(cx::socket_t socket, const void *buffer, size_t size, int flags = 0, const struct sockaddr *addr = nullptr);
+    static int sendTo(cx::socket_t socket, const void *buffer, size_t size, int flags = 0, const sockaddr *addr = nullptr);
 
     /**
      * Send reply on socket.  Used to reply to a recvfrom message.
@@ -510,8 +512,8 @@ public:
      * @param address to reply to.
      * @return number of bytes sent, -1 if error.
      */
-    inline static ssize_t replyto(cx::socket_t socket, const void *buffer, size_t size, int flags, const struct sockaddr_storage *address)
-    { return sendto(socket, buffer, size, flags, (const struct sockaddr *) address); }
+    inline static int replyTo(cx::socket_t socket, const void *buffer, size_t size, int flags, const struct sockaddr_storage *address)
+    { return sendTo(socket, buffer, size, flags, (const struct sockaddr *) address); }
 
     /**
      * Send to internet socket.
@@ -522,8 +524,8 @@ public:
      * @param address to send to.
      * @return number of bytes sent, -1 if error.
      */
-    inline static ssize_t sendinet(cx::socket_t socket, const void *buffer, size_t size, int flags, const struct sockaddr_internet *address)
-    { return sendto(socket, buffer, size, flags, (const struct sockaddr *) address); }
+    inline static int sendINet(cx::socket_t socket, const void *buffer, size_t size, int flags, const struct sockaddr_internet *address)
+    { return sendTo(socket, buffer, size, flags, (const struct sockaddr *) address); }
 
     /**
      * Get internet data waiting in receive queue.
@@ -534,7 +536,7 @@ public:
      * @param address of source.
      * @return number of bytes received, -1 if error.
      */
-    static ssize_t recvinet(cx::socket_t socket, void *buffer, size_t size, int flags = 0, struct sockaddr_internet *addr = nullptr);
+    static int recvINet(cx::socket_t socket, void *buffer, size_t size, int flags = 0, struct sockaddr_internet *addr = nullptr);
 
     /**
      * Bind the socket descriptor to a known interface.
@@ -542,7 +544,7 @@ public:
      * @param address of interface to bind to.
      * @return 0 on success, -1 if error.
      */
-    static int bindto(cx::socket_t socket, const struct sockaddr *addr);
+    static int bindTo(cx::socket_t socket, const struct sockaddr *addr);
 
     /**
      * Bind the socket descriptor to a known interface listen on service port.
@@ -551,7 +553,7 @@ public:
      * @param backlog for service.
      * @return 0 on success, -1 if error.
      */
-    static int listento(cx::socket_t socket, int backlog = 5);
+    static int listenTo(cx::socket_t socket, int backlog = 5);
 
     /**
      * Connect the socket to remote.
@@ -559,7 +561,7 @@ public:
      * @param address of interface to connect to.
      * @return 0 on success, -1 if error.
      */
-    static int connectto(cx::socket_t socket, const struct sockaddr *addr);
+    static int connectTo(cx::socket_t socket, const struct sockaddr *addr);
 
     /**
      * Accept a socket connection from a remote host.
@@ -567,7 +569,7 @@ public:
      * @param address of socket accepting.
      * @return new socket accepted.
      */
-    static cx::socket_t acceptfrom(cx::socket_t socket, struct sockaddr_storage *addr = nullptr);
+    static cx::socket_t acceptFrom(cx::socket_t socket, struct sockaddr_storage *addr = nullptr);
 
     /**
      * Create a socket object unbound.
@@ -644,7 +646,7 @@ public:
      * @param address2 to compare.
      * @return true if same family and equal.
      */
-    static bool eq_host(const struct sockaddr *address1, const struct sockaddr *address2);
+    static bool eqHost(const struct sockaddr *address1, const struct sockaddr *address2);
 
     /**
      * Compare socket addresses.  Test if the stored addresses received match.
@@ -653,7 +655,7 @@ public:
      * @param address2 to compare.
      * @return true if same family and equal.
      */
-    inline static bool eq_from(const struct sockaddr_storage *address1, const struct sockaddr_storage *address2)
+    inline static bool eqFrom(const struct sockaddr_storage *address1, const struct sockaddr_storage *address2)
     { return equal((const struct sockaddr *) address1, (const struct sockaddr *) address2); }
 
     /**
@@ -663,7 +665,7 @@ public:
      * @param address2 to compare.
      * @return true if same family and equal.
      */
-    inline static bool eq_inet(const struct sockaddr_internet *address1, const struct sockaddr_internet *address2)
+    inline static bool eqINet(const struct sockaddr_internet *address1, const struct sockaddr_internet *address2)
     { return equal((const struct sockaddr *) address1, (const struct sockaddr *) address2); }
 
     /**
@@ -673,7 +675,7 @@ public:
      * @param address2 to test.
      * @return true if in same subnet.
      */
-    static bool eq_subnet(const struct sockaddr *address1, const struct sockaddr *address2);
+    static bool eqSubNet(const struct sockaddr *address1, const struct sockaddr *address2);
 
     /**
      * Get the socket address of the interface needed to reach a destination
@@ -714,7 +716,7 @@ public:
      * @param size of map index.
      * @return key index path.
      */
-    static unsigned keyindex(const struct sockaddr *addr, unsigned size);
+    static unsigned keyIndex(const struct sockaddr *addr, unsigned size);
 
     /**
      * Convert a socket host address into a hash map index.
@@ -722,7 +724,7 @@ public:
      * @param size of map index.
      * @return key index path.
      */
-    static unsigned keyhost(const struct sockaddr *addr, unsigned size);
+    static unsigned keyHost(const struct sockaddr *addr, unsigned size);
 
     /**
      * Test for pending input data.  This function can wait up to a specified
@@ -731,7 +733,7 @@ public:
      * @param timeout or 0 if none.
      * @return true if input data waiting.
      */
-    static bool wait(cx::socket_t socket, cx::timems_t timeout = 0);
+    static bool wait(cx::socket_t socket, cx::timems_t timeout = 0, int *status = nullptr);
 
     /**
      * Read a newline of text data from the socket and save in nullptr terminated
@@ -744,7 +746,7 @@ public:
      * @param timeout to wait for a complete input line.
      * @return number of bytes read, 0 if none, -1 if error.
      */
-    static ssize_t readline(cx::socket_t socket, char *data, size_t size, cx::timems_t timeout = cx::LONG_MINUS_ONE);
+    static int readLine(cx::socket_t socket, char *data, size_t size, cx::timems_t timeout = cx::LONG_MINUS_ONE);
 
     /**
      * Print formatted string to socket.
@@ -752,7 +754,7 @@ public:
      * @param format string.
      * @return number of bytes sent, -1 if error.
      */
-    static ssize_t printf(cx::socket_t socket, const char *format, ...) __PRINTF(2, 3);
+    static int printf(cx::socket_t socket, const char *format, ...) __PRINTF(2, 3);
 
     /**
      * Close socket.
@@ -776,14 +778,14 @@ public:
      * Create socket from existing socket descriptor.
      * @param socket descriptor to use.
      */
-    CxSocket(cx::socket_t socket);
+    explicit CxSocket(cx::socket_t socket);
 
     /**
      * Create and connect a socket to an address from an address list.  The
      * type of socket created is based on the type we are connecting to.
      * @param address list to connect with.
      */
-    CxSocket(struct addrinfo *addr);
+    explicit CxSocket(struct addrinfo *addr);
 
     /**
      * Create an unbound socket of a specific type.
@@ -807,7 +809,7 @@ public:
     /**
      * cancel pending i/o by shutting down the socket.
      */
-    void cancel();
+    void cancel() const;
 
     /**
      * Shutdown and close the socket.
@@ -868,7 +870,7 @@ public:
      * @param enable broadcasting if true.
      * @return 0 on success, -1 if error.
      */
-    inline int broadcast(bool enable)
+    inline int broadcast(bool enable) const
     { return broadcast(so, enable); }
 
     /**
@@ -876,15 +878,15 @@ public:
      * @param enable keep-alive if true.
      * @return 0 on success, -1 if error.
      */
-    inline int keepalive(bool enable)
-    { return keepalive(so, enable); }
+    inline int keepALive(bool enable) const
+    { return keepALive(so, enable); }
 
     /**
      * Set socket blocking I/O mode.
      * @param enable true for blocking I/O.
      * @return 0 on success, -1 if error.
      */
-    inline int blocking(bool enable)
+    inline int blocking(bool enable) const
     { return blocking(so, enable); }
 
     /**
@@ -892,7 +894,7 @@ public:
      * @param ttl to set for multicast socket or 0 to disable multicast.
      * @return 0 on success, -1 if error.
      */
-    inline int multicast(unsigned ttl = 1)
+    inline int multicast(unsigned ttl = 1) const
     { return multicast(so, ttl); }
 
     /**
@@ -900,14 +902,14 @@ public:
      * @param enable true to loopback, false to ignore.
      * @return 0 on success, -1 if error.
      */
-    inline int loopback(bool enable)
-    { return loopback(so, enable); }
+    inline int loopBack(bool enable) const
+    { return loopBack(so, enable); }
 
     /**
      * Get socket error code.
      * @return socket error code.
      */
-    inline int getError()
+    inline int getError() const
     { return error(so); }
 
     /**
@@ -915,7 +917,7 @@ public:
      * @param time to live to set.
      * @return 0 on success, -1 on error.
      */
-    inline int ttl(unsigned char time)
+    inline int ttl(unsigned char time) const
     { return ttl(so, time); }
 
     /**
@@ -923,16 +925,16 @@ public:
      * @param size of send buffer to set.
      * @return 0 on success, -1 on error.
      */
-    inline int sendsize(unsigned size)
-    { return sendsize(so, size); }
+    inline int sendSize(unsigned size) const
+    { return sendSize(so, size); }
 
     /**
      * Set the size to wait before sending.
      * @param size of send wait buffer to set.
      * @return 0 on success, -1 on error.
      */
-    inline int sendwait(unsigned size)
-    { return sendwait(so, size); }
+    inline int sendWait(unsigned size) const
+    { return sendWait(so, size); }
 
 
     /**
@@ -940,14 +942,14 @@ public:
      * @param size of recv buffer to set.
      * @return 0 on success, -1 on error.
      */
-    inline int recvsize(unsigned size)
-    { return recvsize(so, size); }
+    inline int recvSize(unsigned size) const
+    { return recvSize(so, size); }
 
     /**
      * Get the type of a socket.
      * @return socket type.
      */
-    inline int type()
+    inline int type() const
     { return type(so); }
 
     /**
@@ -955,15 +957,15 @@ public:
      * @param size of segment or 0 to leave unchanged.
      * @return mtu size.
      */
-    inline unsigned segsize(unsigned size)
-    { return segsize(so, size); }
+    inline unsigned segSize(unsigned size) const
+    { return segSize(so, size); }
 
     /**
      * Set ccid of dccp socket.
      * @param ccid to set.
      * @return true if success, false if not dccp or not supported ccid used.
      */
-    inline bool ccid(cx::uint8 id)
+    inline bool ccid(cx::uint8 id) const
     { return ccid(so, id); }
 
     /**
@@ -974,7 +976,7 @@ public:
      * @param type of service value.
      * @return 0 on success or -1 on error.
      */
-    inline int tos(int type)
+    inline int tos(int type) const
     { return tos(so, type); }
 
     /**
@@ -983,13 +985,13 @@ public:
      * @param scheduling priority for packet scheduling.
      * @return 0 on success, -1 on error.
      */
-    inline int priority(int scheduling)
+    inline int priority(int scheduling) const
     { return priority(so, scheduling); }
 
     /**
      * Shutdown the socket communication channel.
      */
-    inline void shutdown()
+    inline void shutdown() const
     { ::shutdown(so, SHUT_RDWR); }
 
     /**
@@ -999,7 +1001,7 @@ public:
      * @param list of addresses to connect to.
      * @return 0 on success or error.
      */
-    int connectto(struct addrinfo *list);
+    int connectTo(struct addrinfo *list);
 
     /**
      * Disconnect a connected socket.  Depending on the implementation, this
@@ -1036,7 +1038,7 @@ public:
      * @param number of bytes to peek.
      * @return number of bytes actually read, or 0 if no data waiting.
      */
-    size_t peek(void *data, size_t number) const;
+    int peek(void *data, size_t number) const;
 
     /**
      * Read data from the socket receive buffer.  This will be used in abi 4.
@@ -1045,7 +1047,7 @@ public:
      * @param address of peer data was received from.
      * @return number of bytes actually read, 0 if none, -1 if error.
      */
-    size_t readfrom(void *data, size_t number, struct sockaddr_storage *addr = nullptr);
+    int readFrom(void *data, size_t number, struct sockaddr_storage *addr = nullptr);
 
     /**
      * Write data to the socket send buffer.  This will be used in abi 4.
@@ -1053,7 +1055,7 @@ public:
      * @param number of bytes to write.
      * @return number of bytes actually sent, 0 if none, -1 if error.
      */
-    size_t write(const void *data, size_t number);
+    int write(const void *data, size_t number);
 
     /**
      * Write data to the socket send buffer.  This will be used in abi 4.
@@ -1062,7 +1064,7 @@ public:
      * @param address of peer to send data to if not connected.
      * @return number of bytes actually sent, 0 if none, -1 if error.
      */
-    size_t writeto(const void *data, size_t number, const struct sockaddr *addr = nullptr);
+    int writeto(const void *data, size_t number, const struct sockaddr *addr = nullptr);
 
     /**
      * Read a newline of text data from the socket and save in nullptr terminated
@@ -1076,14 +1078,14 @@ public:
      * @param size of input line buffer.
      * @return number of bytes read, 0 if none, err() has error.
      */
-    size_t readline(char *data, size_t size);
+    int readLine(char *data, size_t size);
 
     /**
      * Print formatted string to socket.
      * @param format string.
      * @return number of bytes sent.
      */
-    size_t printf(const char *format, ...) __PRINTF(2, 3);
+    int printf(const char *format, ...) __PRINTF(2, 3);
 
     /**
      * Write a null terminated string to the socket.  This exists because
@@ -1092,13 +1094,13 @@ public:
      * @param string to write.
      * @return number of bytes sent, 0 if none, -1 if error.
      */
-    size_t writes(const char *string);
+    int writes(const char *string);
 
     /**
      * Test if socket is valid.
      * @return true if valid socket.
      */
-    operator bool();
+    operator bool() const;
 
     /**
      * Test if socket is invalid.
@@ -1791,11 +1793,11 @@ inline bool eq(const struct sockaddr_storage *s1, const struct sockaddr_storage 
  * @param s2 socket address to compare.
  * @return true if addresses same.
  */
-inline bool eq_host(const struct sockaddr *s1, const struct sockaddr *s2)
-{ return CxSocket::eq_host(s1, s2); }
+inline bool eqHost(const struct sockaddr *s1, const struct sockaddr *s2)
+{ return CxSocket::eqHost(s1, s2); }
 
-inline bool eq_subnet(const struct sockaddr *s1, const struct sockaddr *s2)
-{ return CxSocket::eq_subnet(s1, s2); }
+inline bool eqSubNet(const struct sockaddr *s1, const struct sockaddr *s2)
+{ return CxSocket::eqSubNet(s1, s2); }
 
 
 

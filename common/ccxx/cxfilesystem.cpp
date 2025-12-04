@@ -6,7 +6,57 @@
 #include <system_error>
 #include <thread>
 
+#ifndef _WIN32
+#include <sys/stat.h>
+#include <unistd.h>
+#endif
+
 namespace fs = std::filesystem;
+
+using PathKind = CxFilesystem::PathKind;
+
+// ---- time helpers ----
+std::tm _fileTime2tm(fs::file_time_type ft)
+{
+    using namespace std::chrono;
+    const auto sctp = time_point_cast<system_clock::duration>(
+            ft - fs::file_time_type::clock::now() + system_clock::now());
+    std::time_t tt = system_clock::to_time_t(sctp);
+    std::tm tm{};
+#if defined(_WIN32)
+    localtime_s(&tm, &tt);
+#else
+    tm = *std::localtime(&tt);
+#endif
+    return tm;
+}
+
+// ---- kind detection (symlink/device/fifo/socket) ----
+CxFilesystem::PathKind _detectKind(const fs::directory_entry &de)
+{
+    std::error_code ec;
+    if (!de.exists(ec)) return PathKind::eNone;
+    if (de.is_symlink(ec)) return PathKind::eSoftLink;
+    if (de.is_directory(ec)) return PathKind::eDir;
+    if (de.is_regular_file(ec)) return PathKind::eFile;
+
+#if defined(_WIN32)
+    // Windows 上字符/块设备基本不可见于普通文件系统；其余统归 eSystem
+    return PathKind::eSystem;
+#else
+    struct stat st{};
+    if (lstat(de.path().c_str(), &st) == 0) {
+        if (S_ISCHR(st.st_mode))  return PathKind::eDevChar;
+        if (S_ISBLK(st.st_mode))  return PathKind::eDevBlock;
+        if (S_ISFIFO(st.st_mode)) return PathKind::eSystem; // fifo
+#ifdef S_ISSOCK
+        if (S_ISSOCK(st.st_mode)) return PathKind::eSystem; // socket
+#endif
+    }
+    return PathKind::eSystem;
+#endif
+}
+
 
 // --- UTF-8 string <-> path ---
 fs::path CxFilesystem::p8(const std::string &s)
@@ -94,6 +144,11 @@ bool CxFilesystem::createDirs(const std::string &dir)
     const fs::path p = p8(dir);
     if (fs::exists(p, ec)) return true;
     return fs::create_directories(p, ec);
+}
+
+bool CxFilesystem::ensureDirs(const std::string &dir)
+{
+    return createDirs(dir);
 }
 
 bool CxFilesystem::removeOne(const std::string &path)
@@ -339,6 +394,52 @@ std::string CxFilesystem::join(const std::string &a, const std::string &b)
     return u8(p);
 }
 
+// -------- 路径拼接补全 --------
+std::string CxFilesystem::join(const std::string &a, const std::string &b, const std::string &c)
+{
+    fs::path p = p8(a);
+    p /= p8(b);
+    p /= p8(c);
+    return u8(p);
+}
+
+std::string CxFilesystem::join(const std::string &a, const std::string &b, const std::string &c, const std::string &d)
+{
+    fs::path p = p8(a);
+    p /= p8(b);
+    p /= p8(c);
+    p /= p8(d);
+    return u8(p);
+}
+
+std::string CxFilesystem::join(const std::string &a, const std::string &b, const std::string &c, const std::string &d, const std::string &e)
+{
+    fs::path p = p8(a);
+    p /= p8(b);
+    p /= p8(c);
+    p /= p8(d);
+    p /= p8(e);
+    return u8(p);
+}
+
+std::string CxFilesystem::join(const std::string &a, const std::string &b, const std::string &c, const std::string &d, const std::string &e, const std::string &f)
+{
+    fs::path p = p8(a);
+    p /= p8(b);
+    p /= p8(c);
+    p /= p8(d);
+    p /= p8(e);
+    p /= p8(f);
+    return u8(p);
+}
+
+std::string CxFilesystem::joinMany(const std::string &base, const std::vector<std::string> &parts)
+{
+    std::filesystem::path p(base);
+    for (const auto &s: parts) p /= s;
+    return p.u8string();
+}
+
 std::string CxFilesystem::absolutePath(const std::string &path)
 {
     std::error_code ec;
@@ -369,4 +470,181 @@ std::string CxFilesystem::getCwd()
 {
     std::error_code ec;
     return u8(fs::current_path(ec));
+}
+
+
+// ---- pathStat / fileStat / dirStat / dirsStat ----
+CxFilesystem::PathStat CxFilesystem::pathStat(const std::string &path)
+{
+    PathStat st;
+    std::error_code ec;
+    const fs::path p = p8(path);                // uses your helper :contentReference[oaicite:2]{index=2}
+    st.path = u8(p);                           // uses your helper :contentReference[oaicite:3]{index=3}
+    st.name = u8(p.filename());
+
+    fs::directory_entry de(p, ec);
+    st.exists = de.exists(ec);
+    if (!st.exists) return st;
+
+    st.isFile = de.is_regular_file(ec);
+    st.isDir = de.is_directory(ec);
+    st.kind = _detectKind(de);
+
+    if (st.isFile)
+    {
+        std::error_code ec2;
+        st.size = de.file_size(ec2);
+    }
+    else
+    {
+        st.size = 0;
+    }
+
+    std::error_code ec3;
+    auto mtime = de.last_write_time(ec3);
+    if (!ec3) st.modifyTime = _fileTime2tm(mtime);
+
+    return st;
+}
+
+CxFilesystem::FileStat CxFilesystem::fileStat(const std::string &filePath)
+{
+    FileStat fsst;
+    PathStat base = pathStat(filePath);
+    static_cast<PathStat &>(fsst) = base;
+
+    if (base.exists && base.isFile)
+    {
+        fsst.extension = u8(p8(filePath).extension());
+    }
+    return fsst;
+}
+
+CxFilesystem::DirStat CxFilesystem::dirStat(const std::string &dirPath, bool calcSize)
+{
+    DirStat ds;
+    PathStat base = pathStat(dirPath);
+    static_cast<PathStat &>(ds) = base;
+
+    if (!(base.exists && base.isDir)) return ds;
+
+    std::error_code ec;
+    std::uintmax_t sz = 0;
+    std::size_t files = 0, dirs = 0;
+
+    for (fs::directory_iterator it{p8(dirPath), ec}, end; it != end && !ec; it.increment(ec))
+    {
+        std::error_code ec2;
+        if (it->is_directory(ec2))
+        {
+            ++dirs;
+        }
+        else if (it->is_regular_file(ec2))
+        {
+            ++files;
+            if (calcSize)
+            {
+                std::error_code ec3;
+                sz += it->file_size(ec3);
+            }
+        }
+    }
+    ds.fileCount = files;
+    ds.dirCount = dirs;
+    if (calcSize) ds.size = sz;
+    return ds;
+}
+
+std::vector<CxFilesystem::DirStat> CxFilesystem::dirsStat(const std::string &dirPath, bool calcSize)
+{
+    std::vector<DirStat> out;
+    std::error_code ec;
+    if (!fs::is_directory(p8(dirPath), ec)) return out;
+
+    for (fs::directory_iterator it{p8(dirPath), ec}, end; it != end && !ec; it.increment(ec))
+    {
+        std::error_code ec2;
+        if (it->is_directory(ec2))
+        {
+            out.emplace_back(dirStat(u8(it->path()), calcSize));
+        }
+    }
+    return out;
+}
+
+// ---- stringify ----
+constexpr char CHAR_SPLIT = ':';
+
+static inline void _kv(std::ostringstream &oss, const char *k, const std::string &v, char sp)
+{
+    oss << sp << k << CHAR_SPLIT << v;
+}
+
+static inline void _kv(std::ostringstream &oss, const char *k, bool v, char sp)
+{
+    oss << sp << k << ":" << (v ? "true" : "false");
+}
+
+static inline void _kv(std::ostringstream &oss, const char *k, std::uintmax_t v, char sp)
+{
+    oss << sp << k << ":" << v;
+}
+
+static inline const char *_kindStr(CxFilesystem::PathKind k)
+{
+    using K = CxFilesystem::PathKind;
+    switch (k)
+    {
+        case K::eNone:
+            return "none";
+        case K::eFile:
+            return "file";
+        case K::eDir:
+            return "dir";
+        case K::eSoftLink:
+            return "link";
+        case K::eDevChar:
+            return "devchar";
+        case K::eDevBlock:
+            return "devblock";
+        case K::eSystem:
+            return "system";
+    }
+    return "none";
+}
+
+std::string CxFilesystem::toString(const PathStat &st, char spitChar)
+{
+    std::ostringstream oss;
+    oss << "name" << CHAR_SPLIT << st.name;
+    _kv(oss, "path", st.path, spitChar);
+    _kv(oss, "kind", std::string(_kindStr(st.kind)), spitChar);
+    _kv(oss, "exists", st.exists, spitChar);
+    _kv(oss, "isFile", st.isFile, spitChar);
+    _kv(oss, "isDir", st.isDir, spitChar);
+    _kv(oss, "size", st.size, spitChar);
+    {
+        std::ostringstream ss;
+        ss << std::put_time(&st.modifyTime, "%Y-%m-%d %H:%M:%S");
+        _kv(ss, "modify", ss.str(), spitChar);
+    }
+//    if (!s.empty()) s.back() = '\n';
+    return oss.str();
+}
+
+std::string CxFilesystem::toString(const FileStat &st, char spitChar)
+{
+    std::ostringstream oss;
+    oss << toString(static_cast<const PathStat &>(st), spitChar);
+    _kv(oss, "ext", st.extension, spitChar);
+    return oss.str();
+}
+
+std::string CxFilesystem::toString(const DirStat &st, char spitChar)
+{
+    std::ostringstream oss;
+    oss << toString(static_cast<const PathStat &>(st), spitChar);
+    _kv(oss, "files", st.fileCount, spitChar);
+    _kv(oss, "dirs", st.dirCount, spitChar);
+    return oss.str();
 }
